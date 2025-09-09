@@ -1,0 +1,78 @@
+<!-- Global Loader -->
+<div id="globalLoader" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 transition-opacity duration-300 ease-in-out pointer-events-none">
+    <div class="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4">
+        <!-- Animated Logo/Icon -->
+        <div class="flex justify-center mb-6">
+            <div class="relative">
+                <!-- Outer rotating ring -->
+                <div class="w-16 h-16 border-4 border-indigo-200 rounded-full animate-spin border-t-indigo-600"></div>
+                <!-- Inner pulsing dot -->
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-indigo-600 rounded-full animate-pulse"></div>
+            </div>
+        </div>
+        
+        <!-- Loading Text -->
+        <div class="text-center">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2" id="loaderTitle">Loading...</h3>
+            <p class="text-sm text-gray-600" id="loaderMessage">Please wait while we process your request</p>
+        </div>
+        
+        <!-- Progress Bar (Optional) -->
+        <div class="mt-6 hidden" id="loaderProgress">
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300 ease-out" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div class="text-center mt-2">
+                <span class="text-xs text-gray-500" id="progressText">0%</span>
+            </div>
+        </div>
+        
+        <!-- Animated Dots -->
+        <div class="flex justify-center mt-4">
+            <div class="flex space-x-1">
+                <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative Full Screen Loader -->
+<div id="fullScreenLoader" class="fixed inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center z-50 opacity-0 transition-opacity duration-500 ease-in-out pointer-events-none">
+    <div class="text-center">
+        <!-- Animated Logo -->
+        <div class="mb-8">
+            <div class="relative mx-auto w-24 h-24">
+                <!-- Main rotating circle -->
+                <div class="w-24 h-24 border-4 border-white border-opacity-20 rounded-full animate-spin border-t-white"></div>
+                <!-- Inner pulsing circle -->
+                <div class="absolute top-2 left-2 w-20 h-20 border-4 border-white border-opacity-30 rounded-full animate-pulse"></div>
+                <!-- Center dot -->
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full animate-ping"></div>
+            </div>
+        </div>
+        
+        <!-- Brand Text -->
+        <h1 class="text-4xl font-bold text-white mb-2 animate-pulse">ArchivArt</h1>
+        <p class="text-white text-opacity-80 mb-8" id="fullScreenLoaderMessage">Loading your experience...</p>
+        
+        <!-- Progress Bar -->
+        <div class="w-64 mx-auto">
+            <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                <div class="bg-white h-2 rounded-full transition-all duration-500 ease-out" id="fullScreenProgressBar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <!-- Loading Animation -->
+        <div class="mt-8">
+            <div class="flex justify-center space-x-2">
+                <div class="w-3 h-3 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                <div class="w-3 h-3 bg-white rounded-full animate-bounce" style="animation-delay: 100ms"></div>
+                <div class="w-3 h-3 bg-white rounded-full animate-bounce" style="animation-delay: 200ms"></div>
+                <div class="w-3 h-3 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                <div class="w-3 h-3 bg-white rounded-full animate-bounce" style="animation-delay: 400ms"></div>
+            </div>
+        </div>
+    </div>
+</div>

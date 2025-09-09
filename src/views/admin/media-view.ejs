@@ -1,0 +1,272 @@
+<!-- Media View Page -->
+<div class="flex-1 min-h-screen bg-gray-50">
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Media Details</h1>
+                    <p class="mt-1 text-sm text-gray-600">View and interact with your media content</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="/admin/media" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Media List
+                    </a>
+                    <button onclick="editMedia(<%= media.id %>)" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <i class="fas fa-edit mr-2"></i>
+                        Edit Media
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Media Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Media Player Section -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %> mr-2 text-indigo-600"></i>
+                        <%= media.media_type.charAt(0).toUpperCase() + media.media_type.slice(1) %> Content
+                    </h2>
+                    <p class="text-sm text-gray-600">Uploaded media file</p>
+                </div>
+
+                <!-- Media Player -->
+                <div class="bg-gray-100 rounded-lg p-4 mb-4">
+                    <% if (media.media_type === 'video') { %>
+                        <video 
+                            id="mediaPlayer" 
+                            class="w-full h-64 bg-black rounded-lg" 
+                            controls 
+                            preload="metadata"
+                            poster="<%= mediaUrl(media.scanning_image) %>"
+                        >
+                            <source src="<%= mediaUrl(media.file_path) %>" type="<%= media.mime_type %>">
+                            Your browser does not support the video tag.
+                        </video>
+                    <% } else if (media.media_type === 'audio') { %>
+                        <div class="bg-black rounded-lg p-8 text-center">
+                            <i class="fas fa-music text-white text-4xl mb-4"></i>
+                            <audio 
+                                id="mediaPlayer" 
+                                class="w-full" 
+                                controls 
+                                preload="metadata"
+                            >
+                                <source src="<%= mediaUrl(media.file_path) %>" type="<%= media.mime_type %>">
+                                Your browser does not support the audio tag.
+                            </audio>
+                        </div>
+                    <% } else { %>
+                        <img 
+                            src="<%= mediaUrl(media.file_path) %>" 
+                            alt="<%= media.title %>" 
+                            class="w-full h-64 object-cover rounded-lg"
+                        >
+                    <% } %>
+                </div>
+
+                <!-- Media Info -->
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">File Size:</span>
+                        <span class="font-medium"><%= (media.file_size / 1024 / 1024).toFixed(2) %> MB</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">MIME Type:</span>
+                        <span class="font-medium"><%= media.mime_type %></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Status:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= media.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                            <%= media.is_active ? 'Active' : 'Inactive' %>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scanning Image Section -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-qrcode mr-2 text-green-600"></i>
+                        Scanning Image
+                    </h2>
+                    <p class="text-sm text-gray-600">AR scanning target image</p>
+                </div>
+
+                <!-- Scanning Image Display -->
+                <div class="bg-gray-100 rounded-lg p-4 mb-4 flex items-center justify-center" style="min-height: 300px;">
+                    <img 
+                        src="<%= mediaUrl(media.scanning_image) %>" 
+                        alt="Scanning Image" 
+                        class="max-w-full max-h-full object-contain rounded-lg border-2 border-dashed border-gray-300"
+                        id="scanningImage"
+                    >
+                </div>
+
+                <!-- Scanning Image Info -->
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Image Hash:</span>
+                        <span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                            <%= media.image_hash ? media.image_hash.substring(0, 16) + '...' : 'Not available' %>
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Unique:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <i class="fas fa-check mr-1"></i>
+                            Verified
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Media Details Section -->
+        <div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="mb-4">
+                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-info-circle mr-2 text-blue-600"></i>
+                    Media Information
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900 mb-3">Basic Information</h3>
+                    <dl class="space-y-2">
+                        <div>
+                            <dt class="text-sm text-gray-600">Title</dt>
+                            <dd class="text-sm font-medium text-gray-900"><%= media.title %></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-600">Description</dt>
+                            <dd class="text-sm text-gray-900"><%= media.description || 'No description provided' %></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-600">Media Type</dt>
+                            <dd class="text-sm font-medium text-gray-900 capitalize"><%= media.media_type %></dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900 mb-3">Upload Information</h3>
+                    <dl class="space-y-2">
+                        <div>
+                            <dt class="text-sm text-gray-600">Uploaded By</dt>
+                            <dd class="text-sm font-medium text-gray-900"><%= media.uploaded_by_name || 'Unknown' %></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-600">Created</dt>
+                            <dd class="text-sm text-gray-900"><%= new Date(media.created_at).toLocaleDateString() %></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-600">Last Updated</dt>
+                            <dd class="text-sm text-gray-900"><%= new Date(media.updated_at).toLocaleDateString() %></dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-6 flex justify-end space-x-3">
+            <button 
+                onclick="toggleMediaStatus(<%= media.id %>)" 
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white <%= media.is_active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700' %>"
+            >
+                <i class="fas fa-<%= media.is_active ? 'pause' : 'play' %> mr-2"></i>
+                <%= media.is_active ? 'Deactivate' : 'Activate' %>
+            </button>
+            <button 
+                onclick="deleteMedia(<%= media.id %>)" 
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+            >
+                <i class="fas fa-trash mr-2"></i>
+                Delete Media
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Media player controls
+    document.addEventListener('DOMContentLoaded', function() {
+        const player = document.getElementById('mediaPlayer');
+        if (player) {
+            // Add custom controls or event listeners if needed
+            player.addEventListener('loadedmetadata', function() {
+                console.log('Media loaded:', player.duration);
+            });
+        }
+    });
+
+
+    // Media management functions (reuse from existing code)
+    function editMedia(mediaId) {
+        // Redirect to edit page or open edit modal
+        window.location.href = `/admin/media/edit/${mediaId}`;
+    }
+
+    function toggleMediaStatus(mediaId) {
+        if (confirm('Are you sure you want to change the status of this media?')) {
+            fetch(`/admin/media/${mediaId}/toggle`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessToast(data.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showErrorToast('Error updating media status: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorToast('Error updating media status');
+            });
+        }
+    }
+
+    function deleteMedia(mediaId) {
+        if (confirm('Are you sure you want to delete this media? This action cannot be undone.')) {
+            fetch(`/admin/media/${mediaId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessToast(data.message);
+                    setTimeout(() => {
+                        window.location.href = '/admin/media';
+                    }, 1000);
+                } else {
+                    showErrorToast('Error deleting media: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorToast('Error deleting media');
+            });
+        }
+    }
+</script>

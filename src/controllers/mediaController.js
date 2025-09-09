@@ -1,0 +1,614 @@
+const Media = require('../models/Media');
+const PerceptualHash = require('../utils/perceptualHash');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs').promises;
+const { v4: uuidv4 } = require('uuid');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: async (req, file, cb) => {
+        const uploadDir = path.join(__dirname, '../public/uploads/media');
+        try {
+            await fs.mkdir(uploadDir, { recursive: true });
+            cb(null, uploadDir);
+        } catch (error) {
+            cb(error);
+        }
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+        cb(null, uniqueName);
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = {
+        'image/jpeg': 'image',
+        'image/jpg': 'image',
+        'image/png': 'image',
+        'image/gif': 'image',
+        'image/webp': 'image',
+        'video/mp4': 'video',
+        'video/avi': 'video',
+        'video/mov': 'video',
+        'video/wmv': 'video',
+        'video/webm': 'video',
+        'video/quicktime': 'video',
+        'audio/mp3': 'audio',
+        'audio/mpeg': 'audio',
+        'audio/wav': 'audio',
+        'audio/m4a': 'audio',
+        'audio/ogg': 'audio',
+        'audio/aac': 'audio',
+        'audio/flac': 'audio',
+        'audio/wma': 'audio'
+    };
+
+    if (allowedTypes[file.mimetype]) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Only images, videos, and audio files are allowed.'), false);
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 100 * 1024 * 1024 // 100MB limit
+    }
+});
+
+class MediaController {
+    // Public API: match scanning image by pHash
+    static async matchScanningImage(req, res) {
+        try {
+            // Accept either a precomputed hash or an uploaded image
+            const threshold = parseInt(req.body.threshold || '5', 10);
+            const providedHash = (req.body.hash || '').trim();
+
+            let imageHash = null;
+
+            // If file uploaded, save temporarily and compute hash
+            if (req.file) {
+                try {
+                    // When using memory storage, write buffer to a temp file if needed
+                    const tempDir = path.join(process.cwd(), 'tmp');
+                    await fs.mkdir(tempDir, { recursive: true });
+                    const tempPath = path.join(tempDir, `${uuidv4()}${path.extname(req.file.originalname)}`);
+                    await fs.writeFile(tempPath, req.file.buffer);
+                    imageHash = await PerceptualHash.generateHash(tempPath, 16, true);
+                    // Clean up temp file
+                    await fs.unlink(tempPath).catch(() => {});
+                } catch (err) {
+                    console.error('Error computing hash from uploaded file:', err);
+                    return res.status(400).json({ success: false, message: 'Invalid image file' });
+                }
+            } else if (providedHash) {
+                if (!PerceptualHash.isValidHash(providedHash)) {
+                    return res.status(400).json({ success: false, message: 'Invalid hash format' });
+                }
+                imageHash = providedHash;
+            } else {
+                return res.status(400).json({ success: false, message: 'Provide an image file or a hash' });
+            }
+
+            // Query all candidates and compute similarity
+            const similar = await Media.findSimilarByImageHash(imageHash, threshold);
+
+            // Enrich with distance values
+            const results = [];
+            if (Array.isArray(similar)) {
+                for (const m of similar) {
+                    const distance = PerceptualHash.hammingDistance(imageHash, m.image_hash);
+                    results.push({
+                        id: m.id,
+                        title: m.title,
+                        description: m.description,
+                        media_type: m.media_type,
+                        scanning_image: m.scanning_image,
+                        file_path: m.file_path,
+                        is_active: m.is_active,
+                        created_at: m.created_at,
+                        similarity: {
+                            distance,
+                            threshold,
+                            description: PerceptualHash.getSimilarityDescription(imageHash, m.image_hash)
+                        }
+                    });
+                }
+            }
+
+            // Sort by ascending distance (most similar first)
+            results.sort((a, b) => a.similarity.distance - b.similarity.distance);
+
+            return res.json({
+                success: true,
+                input: { hash: imageHash },
+                matches: results
+            });
+        } catch (error) {
+            console.error('Error matching scanning image:', error);
+            return res.status(500).json({ success: false, message: 'Server error matching image' });
+        }
+    }
+    // Get media list page
+    static async getMediaList(req, res) {
+        try {
+            const {
+                page = 1,
+                limit = 10,
+                search = '',
+                media_type = '',
+                is_active = '',
+                sort = 'created_at',
+                order = 'desc'
+            } = req.query;
+
+            const options = {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                search,
+                media_type,
+                is_active,
+                sort,
+                order
+            };
+
+            const result = await Media.findAll(options);
+            const stats = await Media.getStats();
+
+            res.render('admin/media', {
+                title: 'Media Management',
+                media: result.media,
+                pagination: {
+                    currentPage: result.page,
+                    totalPages: result.totalPages,
+                    totalItems: result.total,
+                    hasNext: result.page < result.totalPages,
+                    hasPrev: result.page > 1,
+                    nextPage: result.page + 1,
+                    prevPage: result.page - 1
+                },
+                search,
+                filters: {
+                    media_type,
+                    is_active
+                },
+                stats,
+                user: req.session.user
+            });
+    } catch (error) {
+            console.error('Error getting media list:', error);
+            req.flash('error', 'Error loading media list');
+            res.redirect('/admin/dashboard');
+        }
+    }
+
+    // Get media data for AJAX
+    static async getMediaData(req, res) {
+        try {
+            console.log('getMediaData called with query:', req.query);
+            
+            const {
+                page = 1,
+                limit = 10,
+                search = '',
+                media_type = '',
+                is_active = '',
+                sort = 'created_at',
+                order = 'desc'
+            } = req.query;
+
+            const options = {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                search,
+                media_type,
+                is_active,
+                sort,
+                order
+            };
+
+            console.log('Media.findAll called with options:', options);
+            const result = await Media.findAll(options);
+            console.log('Media.findAll result:', { total: result.total, mediaCount: result.media.length });
+
+            // Generate table rows HTML
+            const tableRows = result.media.map(media => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 table-cell-wrap max-w-sm">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-12 w-12">
+                                ${media.media_type === 'image' ? 
+                                    `<img class=\"h-12 w-12 rounded-lg object-cover\" src=\"${typeof mediaUrl === 'function' ? '${mediaUrl("' + media.file_path + '")}' : '/uploads/media/' + media.file_path}\" alt=\"${media.title}\">` :
+                                    `<div class="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                                        <i class="fas fa-${media.media_type === 'video' ? 'video' : 'music'} text-gray-500"></i>
+                                    </div>`
+                                }
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${media.title}</div>
+                                <div class="text-sm text-gray-500">${media.media_type}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 table-cell-wrap max-w-md">
+                        <div class="text-sm text-gray-900">${media.description || 'No description'}</div>
+                    </td>
+                    <td class="px-6 py-4 table-cell-nowrap">
+                        <div class="text-sm text-gray-900">${media.scanning_image}</div>
+                    </td>
+                    <td class="px-6 py-4 table-cell-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${media.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${media.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 table-cell-nowrap text-sm text-gray-500">
+                        ${new Date(media.created_at).toLocaleDateString()}
+                    </td>
+                    <td class="px-6 py-4 table-cell-nowrap text-sm text-gray-500">
+                        ${media.uploaded_by_name || 'Unknown'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="window.location.href='/admin/media/view/${media.id}'" class="text-indigo-600 hover:text-indigo-900" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="editMedia(${media.id})" class="text-blue-600 hover:text-blue-900" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="toggleMediaStatus(${media.id})" class="text-${media.is_active ? 'yellow' : 'green'}-600 hover:text-${media.is_active ? 'yellow' : 'green'}-900" title="${media.is_active ? 'Deactivate' : 'Activate'}">
+                                <i class="fas fa-${media.is_active ? 'pause' : 'play'}"></i>
+                            </button>
+                            <button onclick="deleteMedia(${media.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            res.json({
+                success: true,
+                media: result.media,
+                tableRows,
+                pagination: {
+                    currentPage: result.page,
+                    totalPages: result.totalPages,
+                    totalItems: result.total,
+                    hasNext: result.page < result.totalPages,
+                    hasPrev: result.page > 1,
+                    startItem: ((result.page - 1) * result.limit) + 1,
+                    endItem: Math.min(result.page * result.limit, result.total)
+                }
+            });
+        } catch (error) {
+            console.error('Error getting media data:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error loading media data'
+            });
+        }
+    }
+
+    // Show upload form
+    static async showUploadForm(req, res) {
+        try {
+            res.render('admin/media-upload', {
+                title: 'Upload Media',
+                user: req.session.user
+      });
+    } catch (error) {
+            console.error('Error showing upload form:', error);
+            req.flash('error', 'Error loading upload form');
+            res.redirect('/admin/media');
+        }
+    }
+
+    // Handle file upload
+    static async uploadMedia(req, res) {
+        try {
+            const uploadMiddleware = upload.fields([
+                { name: 'media_file', maxCount: 1 },
+                { name: 'scanning_image', maxCount: 1 }
+            ]);
+
+            uploadMiddleware(req, res, async (err) => {
+        if (err) {
+                    console.error('Upload error:', err);
+                    return res.status(400).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
+
+                try {
+                    const { title, description, media_type } = req.body;
+                    const mediaFile = req.files.media_file ? req.files.media_file[0] : null;
+                    const scanningImageFile = req.files.scanning_image ? req.files.scanning_image[0] : null;
+
+                    // Validate required fields
+                    if (!title || !mediaFile || !scanningImageFile) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Title, media file, and scanning image are required'
+                        });
+                    }
+
+                    // Generate perceptual hash of the scanning image for similarity detection
+                    let imageHash = null;
+                    try {
+                        imageHash = await PerceptualHash.generateScanningImageHash(scanningImageFile.filename);
+                        console.log('Generated perceptual hash:', imageHash);
+                    } catch (hashError) {
+                        console.error('Error generating perceptual hash:', hashError);
+                        // Delete uploaded files
+                        await fs.unlink(mediaFile.path);
+                        await fs.unlink(scanningImageFile.path);
+                        
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Error processing scanning image. Please try again.'
+                        });
+                    }
+
+                    // Duplicate detection is now handled in Media.create() method
+                    // This includes both filename and perceptual hash similarity checks
+
+                    // Create media record
+                    const mediaData = {
+                        title,
+                        description,
+                        scanning_image: scanningImageFile.filename,
+                        image_hash: imageHash,
+                        media_type,
+                        file_path: mediaFile.filename,
+                        file_size: mediaFile.size,
+                        mime_type: mediaFile.mimetype,
+                        uploaded_by: req.session.user.id
+                    };
+
+                    const newMedia = await Media.create(mediaData);
+
+                    res.json({
+                        success: true,
+                        message: 'Media uploaded successfully',
+                        media: newMedia
+                    });
+                } catch (error) {
+                    console.error('Error creating media:', error);
+                    
+                    // Clean up uploaded files on error
+                    if (req.files.media_file) {
+                        await fs.unlink(req.files.media_file[0].path).catch(() => {});
+                    }
+                    if (req.files.scanning_image) {
+                        await fs.unlink(req.files.scanning_image[0].path).catch(() => {});
+                    }
+
+                    res.status(500).json({
+                        success: false,
+                        message: error.message
+                    });
+                }
+            });
+        } catch (error) {
+            console.error('Upload error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error uploading media'
+            });
+        }
+    }
+
+    // Get media view page
+    static async getMediaView(req, res) {
+        try {
+            const { id } = req.params;
+            const media = await Media.findById(id);
+
+            if (!media) {
+                req.flash('error', 'Media not found');
+                return res.redirect('/admin/media');
+            }
+
+            res.render('admin/media-view', {
+                title: `Media: ${media.title}`,
+                media: media
+            });
+        } catch (error) {
+            console.error('Error loading media view:', error);
+            req.flash('error', 'Error loading media details');
+            res.redirect('/admin/media');
+        }
+    }
+
+    // Get single media
+    static async getMedia(req, res) {
+        try {
+            const { id } = req.params;
+            const media = await Media.findById(id);
+
+            if (!media) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Media not found'
+                });
+            }
+
+            res.json({
+                success: true,
+                media
+      });
+    } catch (error) {
+            console.error('Error getting media:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error loading media'
+      });
+    }
+  }
+
+    // Update media
+    static async updateMedia(req, res) {
+    try {
+      const { id } = req.params;
+            const { title, description, media_type, is_active } = req.body;
+
+            const media = await Media.findById(id);
+            if (!media) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Media not found'
+                });
+            }
+
+            const updatedMedia = await media.update({
+                title,
+                description,
+                media_type,
+                is_active: is_active === 'true'
+            });
+
+            res.json({
+                success: true,
+                message: 'Media updated successfully',
+                media: updatedMedia
+      });
+    } catch (error) {
+            console.error('Error updating media:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
+    // Toggle media status
+    static async toggleMediaStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const media = await Media.findById(id);
+
+            if (!media) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Media not found'
+                });
+            }
+
+            const updatedMedia = await media.toggleStatus();
+
+            res.json({
+                success: true,
+                message: `Media ${updatedMedia.is_active ? 'activated' : 'deactivated'} successfully`,
+                media: updatedMedia
+      });
+    } catch (error) {
+            console.error('Error toggling media status:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error updating media status'
+            });
+    }
+  }
+
+  // Delete media
+    static async deleteMedia(req, res) {
+    try {
+      const { id } = req.params;
+            const media = await Media.findById(id);
+
+            if (!media) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Media not found'
+                });
+            }
+
+            // Delete files from filesystem
+            const mediaPath = path.join(__dirname, '../public/uploads/media', media.file_path);
+            const scanningImagePath = path.join(__dirname, '../public/uploads/media', media.scanning_image);
+
+            await fs.unlink(mediaPath).catch(() => {});
+            await fs.unlink(scanningImagePath).catch(() => {});
+
+      // Delete from database
+            await media.delete();
+
+            res.json({
+                success: true,
+                message: 'Media deleted successfully'
+            });
+    } catch (error) {
+            console.error('Error deleting media:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error deleting media'
+            });
+        }
+    }
+
+    // Generate pagination HTML
+    static generatePaginationHtml(currentPage, totalPages, options) {
+        if (totalPages <= 1) return '';
+
+        let paginationHtml = '<nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">';
+        paginationHtml += '<div class="flex flex-1 justify-between sm:hidden">';
+        
+        if (currentPage > 1) {
+            paginationHtml += `<button onclick="goToPage(${currentPage - 1})" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</button>`;
+        }
+        
+        if (currentPage < totalPages) {
+            paginationHtml += `<button onclick="goToPage(${currentPage + 1})" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</button>`;
+        }
+        
+        paginationHtml += '</div>';
+        paginationHtml += '<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">';
+        paginationHtml += '<div>';
+        paginationHtml += `<p class="text-sm text-gray-700">Showing page <span class="font-medium">${currentPage}</span> of <span class="font-medium">${totalPages}</span></p>`;
+        paginationHtml += '</div>';
+        paginationHtml += '<div>';
+        paginationHtml += '<nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">';
+        
+        // Previous button
+        if (currentPage > 1) {
+            paginationHtml += `<button onclick="goToPage(${currentPage - 1})" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">`;
+            paginationHtml += '<span class="sr-only">Previous</span>';
+            paginationHtml += '<i class="fas fa-chevron-left h-5 w-5"></i>';
+            paginationHtml += '</button>';
+        }
+        
+        // Page numbers
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === currentPage) {
+                paginationHtml += `<button class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">${i}</button>`;
+            } else {
+                paginationHtml += `<button onclick="goToPage(${i})" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">${i}</button>`;
+            }
+        }
+        
+        // Next button
+        if (currentPage < totalPages) {
+            paginationHtml += `<button onclick="goToPage(${currentPage + 1})" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">`;
+            paginationHtml += '<span class="sr-only">Next</span>';
+            paginationHtml += '<i class="fas fa-chevron-right h-5 w-5"></i>';
+            paginationHtml += '</button>';
+        }
+        
+        paginationHtml += '</nav>';
+        paginationHtml += '</div>';
+        paginationHtml += '</div>';
+        paginationHtml += '</nav>';
+
+        return paginationHtml;
+    }
+}
+
+module.exports = MediaController;

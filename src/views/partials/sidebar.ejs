@@ -1,0 +1,52 @@
+<!-- Sidebar Component -->
+<div class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 sidebar-transition" id="sidebar">
+    <!-- Sidebar Header -->
+    <div class="flex items-center justify-center h-16 bg-gray-800">
+        <h1 class="text-white text-xl font-bold">
+            <i class="fas fa-magic mr-2"></i>ArchivArt
+        </h1>
+    </div>
+    
+    <!-- Sidebar Navigation -->
+    <nav class="mt-5 px-2">
+        <div class="space-y-1">
+            <a href="/admin/dashboard" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
+                <i class="fas fa-tachometer-alt mr-3"></i>
+                Dashboard
+            </a>
+            
+            <a href="/admin/users" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
+                <i class="fas fa-users mr-3"></i>
+                Users
+            </a>
+            
+            <a href="/admin/media" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
+                <i class="fas fa-images mr-3"></i>
+                Media
+            </a>
+            
+            <a href="/admin/upload" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
+                <i class="fas fa-upload mr-3"></i>
+                Upload Media
+            </a>
+            
+            <a href="/admin/settings" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
+                <i class="fas fa-cog mr-3"></i>
+                Settings
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Sidebar Footer -->
+    <div class="absolute bottom-0 w-full p-4">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=<%= user ? user.name : 'Admin' %>&background=random" alt="Admin">
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-white"><%= user ? user.name : 'Admin' %></p>
+                <p class="text-xs text-gray-400"><%= user ? user.role : 'admin' %></p>
+            </div>
+        </div>
+    </div>
+</div>

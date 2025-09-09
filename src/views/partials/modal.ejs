@@ -1,0 +1,148 @@
+<!-- Modal Alert System -->
+<div id="customModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div id="modalIcon" class="flex-shrink-0 mr-3">
+                        <!-- Icon will be inserted here -->
+                    </div>
+                    <h3 id="modalTitle" class="text-lg font-medium text-gray-900">
+                        <!-- Title will be inserted here -->
+                    </h3>
+                </div>
+                <button onclick="closeCustomModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p id="modalMessage" class="text-sm text-gray-600">
+                    <!-- Message will be inserted here -->
+                </p>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="modalCancelBtn" onclick="closeCustomModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 hidden">
+                    Cancel
+                </button>
+                <button id="modalConfirmBtn" onclick="confirmCustomModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 hidden">
+                    Confirm
+                </button>
+                <button id="modalOkBtn" onclick="closeCustomModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Modal System
+    let customModalCallback = null;
+
+    function showSuccessModal(message, title = 'Success') {
+        showCustomModal('success', title, message);
+    }
+
+    function showErrorModal(message, title = 'Error') {
+        showCustomModal('error', title, message);
+    }
+
+    function showWarningModal(message, title = 'Warning') {
+        showCustomModal('warning', title, message);
+    }
+
+    function showInfoModal(message, title = 'Information') {
+        showCustomModal('info', title, message);
+    }
+
+    function showConfirmModal(message, title = 'Confirm', callback = null) {
+        showCustomModal('confirm', title, message, callback);
+    }
+
+    function showCustomModal(type, title, message, callback = null) {
+        const modal = document.getElementById('customModal');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalOkBtn = document.getElementById('modalOkBtn');
+
+        // Set title and message
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+
+        // Set icon and colors based on type
+        let iconHtml = '';
+        let confirmBtnClass = '';
+        
+        switch(type) {
+            case 'success':
+                iconHtml = '<i class="fas fa-check-circle text-green-500 text-2xl"></i>';
+                confirmBtnClass = 'bg-green-600 hover:bg-green-700';
+                break;
+            case 'error':
+                iconHtml = '<i class="fas fa-exclamation-circle text-red-500 text-2xl"></i>';
+                confirmBtnClass = 'bg-red-600 hover:bg-red-700';
+                break;
+            case 'warning':
+                iconHtml = '<i class="fas fa-exclamation-triangle text-yellow-500 text-2xl"></i>';
+                confirmBtnClass = 'bg-yellow-600 hover:bg-yellow-700';
+                break;
+            case 'info':
+                iconHtml = '<i class="fas fa-info-circle text-blue-500 text-2xl"></i>';
+                confirmBtnClass = 'bg-blue-600 hover:bg-blue-700';
+                break;
+            case 'confirm':
+                iconHtml = '<i class="fas fa-question-circle text-blue-500 text-2xl"></i>';
+                confirmBtnClass = 'bg-blue-600 hover:bg-blue-700';
+                break;
+        }
+
+        modalIcon.innerHTML = iconHtml;
+
+        // Show/hide buttons based on type
+        if (type === 'confirm') {
+            modalCancelBtn.classList.remove('hidden');
+            modalConfirmBtn.classList.remove('hidden');
+            modalOkBtn.classList.add('hidden');
+            modalConfirmBtn.className = `px-4 py-2 ${confirmBtnClass} text-white rounded-md`;
+            customModalCallback = callback;
+        } else {
+            modalCancelBtn.classList.add('hidden');
+            modalConfirmBtn.classList.add('hidden');
+            modalOkBtn.classList.remove('hidden');
+            modalOkBtn.className = `px-4 py-2 ${confirmBtnClass} text-white rounded-md`;
+            customModalCallback = null;
+        }
+
+        // Show modal
+        modal.classList.remove('hidden');
+    }
+
+    function closeCustomModal() {
+        document.getElementById('customModal').classList.add('hidden');
+        customModalCallback = null;
+    }
+
+    function confirmCustomModal() {
+        if (customModalCallback) {
+            customModalCallback();
+        }
+        closeCustomModal();
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('customModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCustomModal();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCustomModal();
+        }
+    });
+</script>

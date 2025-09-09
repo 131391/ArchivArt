@@ -1,0 +1,177 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+    </div>
+
+    <!-- Settings Form -->
+    <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <form action="/admin/settings" method="POST">
+                <div class="space-y-6">
+                    <!-- System Settings -->
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            <i class="fas fa-cog mr-2"></i>System Settings
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label for="site_name" class="block text-sm font-medium text-gray-700">
+                                    Site Name
+                                </label>
+                                <input type="text" name="site_name" id="site_name" 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                       value="ArchivArt">
+                            </div>
+                            
+                            <div>
+                                <label for="max_file_size" class="block text-sm font-medium text-gray-700">
+                                    Max File Size (MB)
+                                </label>
+                                <input type="number" name="max_file_size" id="max_file_size" 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                       value="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AWS Settings -->
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            <i class="fas fa-cloud mr-2"></i>AWS S3 Settings
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label for="aws_bucket" class="block text-sm font-medium text-gray-700">
+                                    S3 Bucket Name
+                                </label>
+                                <input type="text" name="aws_bucket" id="aws_bucket" 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                       value="archivart-media">
+                            </div>
+                            
+                            <div>
+                                <label for="aws_region" class="block text-sm font-medium text-gray-700">
+                                    AWS Region
+                                </label>
+                                <select name="aws_region" id="aws_region" 
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="us-east-1">US East (N. Virginia)</option>
+                                    <option value="us-west-2">US West (Oregon)</option>
+                                    <option value="eu-west-1">Europe (Ireland)</option>
+                                    <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            <i class="fas fa-shield-alt mr-2"></i>Security Settings
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label for="jwt_expiry" class="block text-sm font-medium text-gray-700">
+                                    JWT Token Expiry (hours)
+                                </label>
+                                <input type="number" name="jwt_expiry" id="jwt_expiry" 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                       value="24">
+                            </div>
+                            
+                            <div>
+                                <label for="session_timeout" class="block text-sm font-medium text-gray-700">
+                                    Session Timeout (hours)
+                                </label>
+                                <input type="number" name="session_timeout" id="session_timeout" 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                       value="24">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Settings -->
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            <i class="fas fa-envelope mr-2"></i>Email Settings
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label for="smtp_host" class="block text-sm font-medium text-gray-700">
+                                    SMTP Host
+                                </label>
+                                <input type="text" name="smtp_host" id="smtp_host" 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                       placeholder="smtp.gmail.com">
+                            </div>
+                            
+                            <div>
+                                <label for="smtp_port" class="block text-sm font-medium text-gray-700">
+                                    SMTP Port
+                                </label>
+                                <input type="number" name="smtp_port" id="smtp_port" 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                       placeholder="587">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end">
+                        <button type="submit" 
+                                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                <i class="fas fa-info-circle mr-2"></i>System Information
+            </h3>
+            
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <h4 class="font-medium text-gray-900">Node.js Version</h4>
+                    <p class="text-sm text-gray-600">v18.17.0</p>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <h4 class="font-medium text-gray-900">Database</h4>
+                    <p class="text-sm text-gray-600">MySQL 8.0</p>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <h4 class="font-medium text-gray-900">Storage</h4>
+                    <p class="text-sm text-gray-600">AWS S3</p>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <h4 class="font-medium text-gray-900">Uptime</h4>
+                    <p class="text-sm text-gray-600">2 days, 14 hours</p>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <h4 class="font-medium text-gray-900">Memory Usage</h4>
+                    <p class="text-sm text-gray-600">45.2 MB</p>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <h4 class="font-medium text-gray-900">Disk Usage</h4>
+                    <p class="text-sm text-gray-600">2.1 GB</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

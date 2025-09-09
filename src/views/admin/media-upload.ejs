@@ -1,0 +1,206 @@
+<!-- Upload Content Page -->
+<div class="flex-1 min-h-screen bg-gray-50">
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Page Header -->
+        <%- include('../partials/media-upload-header') %>
+
+        <!-- Content Type Tabs -->
+        <%- include('../components/content-type-tabs') %>
+
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <!-- Upload Card -->
+            <%- include('../components/upload-card') %>
+
+            <!-- Details Card -->
+            <%- include('../components/details-form') %>
+        </div>
+
+    </div>
+</div>
+
+<style>
+/* Active Tab Styling - Override Tailwind Classes */
+button.media-tab.active,
+.media-tab.active,
+button[class*="media-tab"][class*="active"],
+button.media-tab.active.flex-1,
+button.media-tab.active.py-3,
+button.media-tab.active.px-4,
+button.media-tab.active.rounded-md,
+button.media-tab.active.font-medium,
+button.media-tab.active.text-sm,
+button.media-tab.active.transition-all,
+button.media-tab.active.duration-200 {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #374151 !important; /* gray-700 */
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06) !important;
+    transform: translateY(-1px) !important;
+    font-weight: 600 !important;
+    z-index: 10 !important;
+    position: relative !important;
+    transition: all 0.2s ease-in-out !important;
+    border-radius: 8px !important;
+}
+
+/* Target the exact button with all classes */
+button.media-tab.active.flex-1.py-3.px-4.rounded-md.font-medium.text-sm.transition-all.duration-200 {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #374151 !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06) !important;
+    transform: translateY(-1px) !important;
+    font-weight: 600 !important;
+}
+
+button.media-tab.active:hover,
+.media-tab.active:hover,
+button[class*="media-tab"][class*="active"]:hover {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+button.media-tab.active i,
+.media-tab.active i,
+button[class*="media-tab"][class*="active"] i {
+    color: #374151 !important; /* gray-700 */
+}
+
+button.media-tab.active span,
+.media-tab.active span,
+button[class*="media-tab"][class*="active"] span {
+    color: #374151 !important; /* gray-700 */
+    font-weight: 600 !important;
+}
+
+button.media-tab.active .flex,
+.media-tab.active .flex,
+button[class*="media-tab"][class*="active"] .flex {
+    color: #374151 !important; /* gray-700 */
+}
+
+button.media-tab.active div,
+.media-tab.active div,
+button[class*="media-tab"][class*="active"] div {
+    color: #374151 !important; /* gray-700 */
+}
+
+/* Inactive Tab Styling - Light Gray Design */
+button.media-tab:not(.active) {
+    background-color: #f9fafb !important; /* gray-50 */
+    color: #6b7280 !important; /* gray-500 */
+    border: 1px solid #e5e7eb !important;
+    transition: all 0.2s ease-in-out;
+    border-radius: 8px !important;
+}
+
+button.media-tab:not(.active):hover {
+    background-color: #f3f4f6 !important; /* gray-100 */
+    color: #4b5563 !important; /* gray-600 */
+    border-color: #d1d5db !important;
+}
+
+button.media-tab:not(.active) i {
+    color: #6b7280 !important; /* gray-500 */
+}
+
+button.media-tab:not(.active) span {
+    color: #6b7280 !important; /* gray-500 */
+    font-weight: 500 !important;
+}
+
+/* Base Tab Styling - Simple */
+.media-tab {
+    position: relative;
+    border: 1px solid transparent;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    z-index: 1;
+    pointer-events: auto;
+    border-radius: 8px;
+}
+
+/* Ensure tab container doesn't block clicks */
+.media-tab * {
+    pointer-events: none;
+}
+
+.media-tab {
+    pointer-events: auto;
+}
+
+/* Make sure tabs are clickable */
+.media-tab:hover {
+    cursor: pointer;
+}
+
+.media-tab:focus {
+    outline: 2px solid #7c3aed;
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+/* Simple hover effects */
+.media-tab:hover:not(.active) {
+    transform: translateY(-1px);
+}
+
+/* Additional active tab styling for better visibility */
+.media-tab.active {
+    z-index: 10;
+    position: relative;
+}
+
+/* Ensure proper contrast for inactive tabs */
+.media-tab:not(.active) {
+    opacity: 0.8;
+}
+
+.media-tab:not(.active):hover {
+    opacity: 1;
+}
+
+/* Drag and Drop Styling */
+#drop-zone.dragover,
+#scanning-image-drop-zone.dragover {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+/* File Upload Animation */
+.file-uploading {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Focus States for Accessibility */
+.media-tab:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.media-tab.active:focus {
+    outline-color: #ffffff;
+}
+</style>
+
+<!-- Media Upload JavaScript -->
+<!-- <script src="/js/media-upload.js"></script> -->
+ 
+
