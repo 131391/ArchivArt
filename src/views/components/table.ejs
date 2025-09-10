@@ -491,6 +491,11 @@ function loadTableData() {
     })
         .then(response => {
             if (!response.ok) {
+                if (response.status === 302 || response.status === 401) {
+                    // Authentication issue - redirect to login
+                    window.location.href = '/admin/login';
+                    return;
+                }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
@@ -513,10 +518,18 @@ function loadTableData() {
         })
         .catch(error => {
             console.error('Error:', error);
+            let errorMessage = 'Error loading data';
+            
+            if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Network error: Unable to connect to server. Please check your connection and try again.';
+            } else if (error.message.includes('HTTP error')) {
+                errorMessage = `Server error: ${error.message}`;
+            }
+            
             if (typeof showNotification === 'function') {
-                showNotification('Error loading data', 'error');
+                showNotification(errorMessage, 'error');
             } else {
-                alert('Error loading data');
+                alert(errorMessage);
             }
         })
         .finally(() => {

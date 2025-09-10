@@ -157,6 +157,11 @@ async function loadTableData() {
         });
 
         if (!response.ok) {
+            if (response.status === 302 || response.status === 401) {
+                // Authentication issue - redirect to login
+                window.location.href = '/admin/login';
+                return;
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -165,10 +170,18 @@ async function loadTableData() {
         
     } catch (error) {
         console.error('Error loading table data:', error);
+        let errorMessage = 'Error loading table data: ' + error.message;
+        
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error: Unable to connect to server. Please check your connection and try again.';
+        } else if (error.message.includes('HTTP error')) {
+            errorMessage = `Server error: ${error.message}`;
+        }
+        
         if (typeof showErrorModal === 'function') {
-            showErrorModal('Error loading table data: ' + error.message);
+            showErrorModal(errorMessage);
         } else {
-            alert('Error loading table data: ' + error.message);
+            alert(errorMessage);
         }
     } finally {
         isLoading = false;
