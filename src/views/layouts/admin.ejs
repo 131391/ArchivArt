@@ -315,9 +315,6 @@
     <!-- Global Loader JavaScript -->
     <script src="/js/global-loader.js"></script>
 
-    <!-- Common Table JavaScript -->
-    <script src="/js/table.js"></script>
-
 
     <!-- Media upload javascript - only loaded on media upload pages -->
     <% if (typeof title !== 'undefined' && title.includes('Upload Media')) { %>
@@ -334,10 +331,26 @@
         <script src="/js/media-edit.js"></script>
     <% } %>
 
+    <!-- Table javascript - only loaded on media and users list pages -->
+    <% if (typeof title !== 'undefined' && (title.includes('Media') || title.includes('Users'))) { %>
+        <script src="/js/table.js"></script>
+    <% } %>
+
 
     <!-- Users page specific JavaScript -->
     <% if (typeof title !== 'undefined' && title.includes('Users')) { %>
         <script>
+        // Initialize table for users page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof TableUtils !== 'undefined') {
+                TableUtils.initTable({
+                    sort: { column: 'created_at', direction: 'desc' },
+                    page: 1,
+                    search: '',
+                    filters: {}
+                });
+            }
+        });
 
         // User management functions
         function viewUser(userId) {
@@ -610,7 +623,14 @@
                 });
         }
 
-        // Initialize table for AJAX operations (search, sort, pagination)
+        // Table initialization is now handled by individual page scripts
+        </script>
+    <% } %>
+
+    <!-- Media page specific JavaScript -->
+    <% if (typeof title !== 'undefined' && title.includes('Media')) { %>
+        <script>
+        // Initialize table for media page
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof TableUtils !== 'undefined') {
                 TableUtils.initTable({
@@ -621,12 +641,7 @@
                 });
             }
         });
-        </script>
-    <% } %>
 
-    <!-- Media page specific JavaScript -->
-    <% if (typeof title !== 'undefined' && title.includes('Media')) { %>
-        <script>
         // Media management functions
         function viewMedia(mediaId) {
             console.log('viewMedia called with mediaId:', mediaId);

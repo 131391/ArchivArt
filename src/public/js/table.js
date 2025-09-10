@@ -6,6 +6,19 @@ let currentSearch = '';
 let currentFilters = {};
 let isLoading = false;
 
+// Debounce function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Initialize table functionality
 function initTable(options = {}) {
     currentSort = options.sort || { column: 'created_at', direction: 'desc' };
@@ -22,16 +35,46 @@ function initTable(options = {}) {
 
 // Set up all event listeners
 function setupEventListeners() {
-    // Search form
-    const searchForm = document.getElementById('searchForm');
-    if (searchForm) {
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const searchInput = this.querySelector('input[name="search"]');
-            currentSearch = searchInput.value;
-            currentPage = 1; // Reset to first page
+    // Search input with debouncing
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        console.log('Table.js: Search input found, setting up event listeners');
+        
+        // Debounced search function
+        const debouncedSearch = debounce(function(value) {
+            console.log('Table.js: Debounced search triggered with value:', value);
+            currentSearch = value;
+            currentPage = 1;
             loadTableData();
+        }, 500); // 500ms delay
+        
+        // Input event listener
+        searchInput.addEventListener('input', function(e) {
+            const value = e.target.value.trim();
+            console.log('Table.js: Search input changed:', value);
+            
+            // Show loading indicator
+            const loadingIndicator = document.getElementById('searchLoading');
+            if (loadingIndicator) {
+                loadingIndicator.classList.remove('hidden');
+            }
+            
+            // Debounced search
+            debouncedSearch(value);
         });
+        
+        // Clear search on escape
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                console.log('Table.js: Escape key pressed, clearing search');
+                this.value = '';
+                currentSearch = '';
+                currentPage = 1;
+                loadTableData();
+            }
+        });
+    } else {
+        console.log('Table.js: Search input not found');
     }
 
     // Filter dropdowns
@@ -203,7 +246,7 @@ function hideLoadingState() {
 // Set current filter values on page load
 function setFilterValues() {
     // Set search value
-    const searchInput = document.querySelector('input[name="search"]');
+    const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.value = currentSearch;
     }
