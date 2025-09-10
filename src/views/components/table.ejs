@@ -496,15 +496,18 @@ function loadTableData() {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data && data.success) {
                 updateTableContent(data);
-                updatePagination(data.pagination);
+                if (data.pagination) {
+                    updatePagination(data.pagination);
+                }
                 updateURL();
             } else {
+                const errorMessage = data && data.message ? data.message : 'Unknown error occurred';
                 if (typeof showNotification === 'function') {
-                    showNotification('Error loading data: ' + data.message, 'error');
+                    showNotification('Error loading data: ' + errorMessage, 'error');
                 } else {
-                    alert('Error loading data: ' + data.message);
+                    alert('Error loading data: ' + errorMessage);
                 }
             }
         })
@@ -536,7 +539,7 @@ function updateTableContent(data) {
     const tbody = document.querySelector('#dataTable tbody');
     if (!tbody) return;
     
-    if (data.tableRows && data.tableRows.trim() !== '') {
+    if (data.tableRows && typeof data.tableRows === 'string' && data.tableRows.trim() !== '') {
         tbody.innerHTML = data.tableRows;
     } else {
         // Show empty state
