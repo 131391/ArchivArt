@@ -382,95 +382,73 @@
                     if (data.success) {
                         const user = data.user;
                         const userDetails = `
-                            <div class="space-y-6">
-                                <!-- User Profile Section -->
-                                <div class="flex items-center space-x-6 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-100">
-                                    <div class="relative">
-                                        <img class="h-20 w-20 rounded-full ring-4 ring-white shadow-lg" src="https://ui-avatars.com/api/?name=${user.name}&background=8B5CF6&color=ffffff&size=80" alt="${user.name}">
-                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 border-2 border-white rounded-full"></div>
-                                    </div>
-                                    <div class="flex-1">
-                                        <h4 class="text-2xl font-bold text-gray-900 mb-1">${user.name}</h4>
-                                        <p class="text-gray-600 mb-2">${user.email}</p>
-                                        <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusText(user) === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                            <div class="w-2 h-2 rounded-full mr-2 ${getStatusText(user) === 'Active' ? 'bg-green-400' : 'bg-red-400'}"></div>
-                                            ${getStatusText(user)}
+                            <div class="space-y-8">
+                                <!-- User Profile Header -->
+                                <div class="text-center">
+                                    <div class="relative inline-block">
+                                        <img class="h-24 w-24 rounded-full mx-auto shadow-lg" src="https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=ffffff&size=96" alt="${user.name}">
+                                        <div class="absolute -bottom-2 -right-2 w-8 h-8 ${getStatusText(user) === 'Active' ? 'bg-green-500' : 'bg-red-500'} border-4 border-white rounded-full flex items-center justify-center">
+                                            <i class="fas fa-check text-white text-xs"></i>
                                         </div>
                                     </div>
+                                    <h3 class="text-2xl font-bold text-gray-900 mt-4 mb-1">${user.name}</h3>
+                                    <p class="text-gray-600 mb-4">${user.email}</p>
+                                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusText(user) === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        <div class="w-2 h-2 rounded-full mr-2 ${getStatusText(user) === 'Active' ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                        ${getStatusText(user)}
+                                    </span>
                                 </div>
 
-                                <!-- User Information Cards -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- Role Card -->
-                                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-                                        <div class="flex items-center mb-3">
-                                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                                                <i class="fas fa-user-tag text-blue-600"></i>
-                                            </div>
-                                            <div>
-                                                <h5 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Role</h5>
-                                                <p class="text-lg font-bold text-gray-900 capitalize">${user.role}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Account Status Card -->
-                                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-                                        <div class="flex items-center mb-3">
-                                            <div class="w-10 h-10 ${getStatusText(user) === 'Active' ? 'bg-green-100' : 'bg-red-100'} rounded-lg flex items-center justify-center mr-3">
-                                                <i class="fas fa-user-check ${getStatusText(user) === 'Active' ? 'text-green-600' : 'text-red-600'}"></i>
-                                            </div>
-                                            <div>
-                                                <h5 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Account Status</h5>
-                                                <p class="text-lg font-bold ${getStatusText(user) === 'Active' ? 'text-green-600' : 'text-red-600'}">${getStatusText(user)}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Created Date Card -->
-                                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-                                        <div class="flex items-center mb-3">
-                                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                                                <i class="fas fa-calendar-plus text-purple-600"></i>
-                                            </div>
-                                            <div>
-                                                <h5 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Created</h5>
-                                                <p class="text-lg font-bold text-gray-900">${new Date(user.created_at).toLocaleDateString()}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Last Updated Card -->
-                                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-                                        <div class="flex items-center mb-3">
-                                            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
-                                                <i class="fas fa-clock text-orange-600"></i>
-                                            </div>
-                                            <div>
-                                                <h5 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Last Updated</h5>
-                                                <p class="text-lg font-bold text-gray-900">${new Date(user.updated_at).toLocaleDateString()}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Additional Info Section -->
-                                <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-                                    <div class="flex items-center justify-between">
+                                <!-- User Information -->
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between py-3 border-b border-gray-100">
                                         <div class="flex items-center">
-                                            <div class="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-                                                <i class="fas fa-info-circle text-gray-600"></i>
+                                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                                <i class="fas fa-user-tag text-blue-600 text-sm"></i>
                                             </div>
-                                            <div>
-                                                <h5 class="text-sm font-semibold text-gray-700">User ID</h5>
-                                                <p class="text-sm text-gray-600">#${user.id}</p>
-                                            </div>
+                                            <span class="text-sm font-medium text-gray-700">Role</span>
                                         </div>
-                                        <div class="text-right">
-                                            <h5 class="text-sm font-semibold text-gray-700">Member Since</h5>
-                                            <p class="text-sm text-gray-600">${Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24))} days</p>
-                                        </div>
+                                        <span class="text-sm font-semibold text-gray-900 capitalize">${user.role}</span>
                                     </div>
+
+                                    <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                                <i class="fas fa-calendar-plus text-green-600 text-sm"></i>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-700">Created</span>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-900">${new Date(user.created_at).toLocaleDateString()}</span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                                <i class="fas fa-clock text-purple-600 text-sm"></i>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-700">Last Updated</span>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-900">${new Date(user.updated_at).toLocaleDateString()}</span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between py-3">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                                                <i class="fas fa-hashtag text-gray-600 text-sm"></i>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-700">User ID</span>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-900">#${user.id}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Member Since Info -->
+                                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                                    <div class="flex items-center justify-center mb-2">
+                                        <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                        <span class="text-sm font-medium text-gray-700">Member Since</span>
+                                    </div>
+                                    <p class="text-lg font-bold text-gray-900">${Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24))} days</p>
                                 </div>
                             </div>
                         `;
