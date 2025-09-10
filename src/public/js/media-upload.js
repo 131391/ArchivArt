@@ -221,19 +221,19 @@ function saveMedia(event) {
     // Validation
     if (!title.trim()) {
         console.error('❌ Title is required');
-        showNotification('Please enter a title for your media', 'error');
+        showErrorToast('Please enter a title for your media');
         return;
     }
     
     if (!mainFile) {
         console.error('❌ Main file is required');
-        showNotification('Please select a file to upload', 'error');
+        showErrorToast('Please select a file to upload');
         return;
     }
     
     if (!scanningImage) {
         console.error('❌ Scanning image is required');
-        showNotification('Please select a scanning image', 'error');
+        showErrorToast('Please select a scanning image');
         return;
     }
     
@@ -568,14 +568,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('File type check:', file.type, 'startsWith', currentMediaType + '/', '=', isValidType);
         
         if (!isValidType) {
-            showNotification(`Please select a valid ${currentMediaType} file.`, 'error');
+            showErrorToast(`Please select a valid ${currentMediaType} file.`);
             return;
         }
 
         // Validate file size (100MB)
         const maxSize = 100 * 1024 * 1024; // 100MB in bytes
         if (file.size > maxSize) {
-            showNotification('File size must be less than 100MB.', 'error');
+            showErrorToast('File size must be less than 100MB.');
             return;
         }
 
@@ -654,14 +654,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleScanningImageSelection(file) {
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            showNotification('Please select a valid image file.', 'error');
+            showErrorToast('Please select a valid image file.');
             return;
         }
 
         // Validate file size (10MB)
         const maxSize = 10 * 1024 * 1024; // 10MB in bytes
         if (file.size > maxSize) {
-            showNotification('Scanning image size must be less than 10MB.', 'error');
+            showErrorToast('Scanning image size must be less than 10MB.');
             return;
         }
 
@@ -722,18 +722,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validate required fields
         if (!title) {
-            showNotification('Please enter a title', 'error');
+            showErrorToast('Please enter a title');
             document.getElementById('media-title').focus();
             return;
         }
         
         if (!selectedFile) {
-            showNotification('Please select a media file', 'error');
+            showErrorToast('Please select a media file');
             return;
         }
         
         if (!selectedScanningImage) {
-            showNotification('Please select a scanning image', 'error');
+            showErrorToast('Please select a scanning image');
             return;
         }
         
@@ -766,38 +766,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (response.ok && result.success) {
-                showNotification('Media uploaded successfully!', 'success');
+                // Show success notification using global toaster
+                showSuccessToast('Media uploaded successfully!', 2000);
                 
-                // Reset form
-                document.getElementById('media-form').reset();
-                clearFileSelection();
-                clearScanningImageSelection();
-                
-                // Reset to video tab
-                document.querySelectorAll('.media-tab').forEach(tab => {
-                    tab.classList.remove('active');
-                    tab.style.backgroundColor = '#f9fafb';
-                    tab.style.color = '#6b7280';
-                    tab.style.border = '1px solid #e5e7eb';
-                    tab.style.boxShadow = 'none';
-                    tab.style.transform = 'none';
-                    tab.style.fontWeight = '500';
-                });
-                
-                const videoTab = document.querySelector('[data-type="video"]');
-                videoTab.classList.add('active');
-                videoTab.style.backgroundColor = '#ffffff';
-                videoTab.style.color = '#374151';
-                videoTab.style.border = '1px solid #e5e7eb';
-                videoTab.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06)';
-                videoTab.style.transform = 'translateY(-1px)';
-                videoTab.style.fontWeight = '600';
-                
-                updateContentForMediaType('video');
-                updateFormPlaceholders('video');
+                // Wait a moment for the notification to show, then redirect
+                setTimeout(() => {
+                    window.location.href = '/admin/media';
+                }, 1500);
                 
             } else {
-                showNotification('Error: ' + result.message, 'error');
+                // Handle error response
+                const errorMessage = result.message || 'Upload failed. Please try again.';
+                showErrorToast('Error: ' + errorMessage);
             }
         } catch (error) {
             console.error('Upload error:', error);
@@ -807,7 +787,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 hideLoader();
             }
             
-            showNotification('Error uploading media. Please try again.', 'error');
+            showErrorToast('Error uploading media. Please try again.');
         } finally {
             // Reset button state
             submitButton.disabled = false;
@@ -815,80 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Notification system
-    function showNotification(message, type = 'info') {
-        // Remove existing notifications
-        const existingNotifications = document.querySelectorAll('.notification');
-        existingNotifications.forEach(notification => notification.remove());
-        
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification fixed top-4 right-4 z-50 max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden transform transition-all duration-300 ease-in-out`;
-        
-        // Set colors based on type
-        let bgColor = 'bg-blue-50';
-        let textColor = 'text-blue-800';
-        let iconColor = 'text-blue-400';
-        let icon = 'fas fa-info-circle';
-        
-        if (type === 'success') {
-            bgColor = 'bg-green-50';
-            textColor = 'text-green-800';
-            iconColor = 'text-green-400';
-            icon = 'fas fa-check-circle';
-        } else if (type === 'error') {
-            bgColor = 'bg-red-50';
-            textColor = 'text-red-800';
-            iconColor = 'text-red-400';
-            icon = 'fas fa-exclamation-circle';
-        } else if (type === 'warning') {
-            bgColor = 'bg-yellow-50';
-            textColor = 'text-yellow-800';
-            iconColor = 'text-yellow-400';
-            icon = 'fas fa-exclamation-triangle';
-        }
-        
-        notification.innerHTML = `
-            <div class="p-4">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <i class="${icon} ${iconColor}"></i>
-                    </div>
-                    <div class="ml-3 w-0 flex-1 pt-0.5">
-                        <p class="text-sm font-medium ${textColor}">${message}</p>
-                    </div>
-                    <div class="ml-4 flex-shrink-0 flex">
-                        <button class="bg-white rounded-md inline-flex ${textColor} hover:${textColor.replace('800', '600')} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()">
-                            <span class="sr-only">Close</span>
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Add to page
-        document.body.appendChild(notification);
-        
-        // Animate in
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-            notification.style.opacity = '1';
-        }, 100);
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.style.transform = 'translateX(100%)';
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    if (notification.parentElement) {
-                        notification.remove();
-                    }
-                }, 300);
-            }
-        }, 5000);
-    }
+    // Using global toaster system for notifications
 
     // Add form submission event listener
     const mediaForm = document.getElementById('media-form');
