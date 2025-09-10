@@ -224,9 +224,6 @@ class Media {
                 ORDER BY m.${validSort} ${validOrder}
                 LIMIT ${limit} OFFSET ${offset}
             `;
-
-            console.log('Executing query:', query);
-            console.log('Query params:', queryParams);
             
             const [rows] = await db.execute(query, queryParams);
             console.log('Query executed successfully, rows count:', rows.length);

@@ -279,14 +279,24 @@ function setupEventListeners() {
             const value = e.target.value.trim();
             console.log('Search input changed:', value);
             
+            // Test alert to see if event is firing
+            if (value.length > 0) {
+                console.log('Search input has value, proceeding with search');
+            }
+            
             // Show loading indicator
             const loadingIndicator = document.getElementById('searchLoading');
             if (loadingIndicator) {
                 loadingIndicator.classList.remove('hidden');
             }
             
-            // Debounced search
-            debouncedSearch(value);
+            // Immediate search for testing (remove debouncing temporarily)
+            currentSearch = value;
+            currentPage = 1;
+            loadTableData();
+            
+            // Debounced search (commented out for testing)
+            // debouncedSearch(value);
         });
         
         // Clear search on escape
