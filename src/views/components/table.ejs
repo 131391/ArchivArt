@@ -257,11 +257,18 @@ function debounce(func, wait) {
 
 // Set up event listeners
 function setupEventListeners() {
+    console.log('Setting up event listeners...');
+    
     // Search input with debouncing
     const searchInput = document.getElementById('searchInput');
+    console.log('Search input element:', searchInput);
+    
     if (searchInput) {
+        console.log('Search input found, setting up event listeners');
+        
         // Debounced search function
         const debouncedSearch = debounce(function(value) {
+            console.log('Debounced search triggered with value:', value);
             currentSearch = value;
             currentPage = 1;
             loadTableData();
@@ -270,6 +277,7 @@ function setupEventListeners() {
         // Input event listener
         searchInput.addEventListener('input', function(e) {
             const value = e.target.value.trim();
+            console.log('Search input changed:', value);
             
             // Show loading indicator
             const loadingIndicator = document.getElementById('searchLoading');
@@ -284,12 +292,17 @@ function setupEventListeners() {
         // Clear search on escape
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
+                console.log('Escape key pressed, clearing search');
                 this.value = '';
                 currentSearch = '';
                 currentPage = 1;
                 loadTableData();
             }
         });
+        
+        console.log('Search event listeners set up successfully');
+    } else {
+        console.error('Search input element not found!');
     }
 
     // Filter dropdowns
@@ -324,7 +337,12 @@ function goToPage(page) {
 
 // Load table data via AJAX
 function loadTableData() {
-    if (isLoading) return;
+    console.log('loadTableData called with search:', currentSearch, 'page:', currentPage);
+    
+    if (isLoading) {
+        console.log('Already loading, skipping request');
+        return;
+    }
     
     isLoading = true;
     
