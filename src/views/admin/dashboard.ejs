@@ -158,7 +158,16 @@
                                 <li class="py-4">
                                     <div class="flex items-center space-x-4">
                                         <div class="flex-shrink-0">
-                                            <img class="h-8 w-8 rounded" src="<%= media.scanning_image %>" alt="Media thumbnail">
+                                            <% if (media.scanning_image && media.scanning_image.trim() !== '') { %>
+                                                <img class="h-8 w-8 rounded object-cover" src="<%= media.scanning_image.startsWith('/') ? media.scanning_image : '/uploads/scanning-images/' + media.scanning_image %>" alt="Media thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                <div class="h-8 w-8 rounded bg-gray-200 flex items-center justify-center" style="display: none;">
+                                                    <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %> text-gray-500 text-sm"></i>
+                                                </div>
+                                            <% } else { %>
+                                                <div class="h-8 w-8 rounded bg-gray-200 flex items-center justify-center">
+                                                    <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %> text-gray-500 text-sm"></i>
+                                                </div>
+                                            <% } %>
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-medium text-gray-900 truncate">
