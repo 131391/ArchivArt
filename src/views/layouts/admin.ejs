@@ -60,6 +60,8 @@
         }
         .navbar-collapsed {
             left: 64px !important; /* Adjust navbar for collapsed sidebar */
+            right: 0 !important; /* Ensure navbar extends to full width */
+            width: calc(100% - 64px) !important; /* Full width minus collapsed sidebar */
         }
         .navbar-mobile {
             left: 0 !important;
@@ -72,9 +74,10 @@
             top: 0 !important;
             left: 256px !important; /* 64 * 4 = 256px (w-64) */
             right: 0 !important;
+            width: calc(100% - 256px) !important; /* Full width minus sidebar */
             z-index: 40 !important;
             transform: none !important;
-            transition: left 0.3s ease-in-out !important;
+            transition: left 0.3s ease-in-out, width 0.3s ease-in-out !important;
         }
         .navbar-mobile {
             left: 0 !important;
