@@ -196,7 +196,7 @@ function updateTableContent(data) {
     // Update table body
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
-        if (data.tableRows && data.tableRows.trim() !== '') {
+        if (data.tableRows && typeof data.tableRows === 'string' && data.tableRows.trim() !== '') {
             tbody.innerHTML = data.tableRows;
         } else {
             // Show empty state when no data - determine content based on current page
@@ -226,7 +226,7 @@ function updateTableContent(data) {
     // Update pagination
     const paginationContainer = document.querySelector('.bg-white.px-4.py-3');
     if (paginationContainer) {
-        if (data.pagination && data.pagination.trim() !== '') {
+        if (data.pagination && typeof data.pagination === 'string' && data.pagination.trim() !== '') {
             paginationContainer.innerHTML = data.pagination;
         } else {
             paginationContainer.innerHTML = '';
