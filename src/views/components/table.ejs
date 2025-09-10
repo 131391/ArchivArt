@@ -1,4 +1,4 @@
-<!-- Common Table Component with Pagination and Sorting -->
+<!-- Enhanced Table Component with Modern Design -->
 <style>
     .table-cell-wrap {
         word-break: break-word !important;
@@ -11,126 +11,201 @@
         overflow: hidden !important;
         text-overflow: ellipsis !important;
     }
+    
+    /* Enhanced table animations */
+    .table-row-enter {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    .table-row-enter-active {
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    
+    /* Custom scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
 </style>
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900"><%= title %></h1>
-        <div class="flex space-x-4">
-            <!-- Custom Header Buttons -->
-            <% if (typeof headerButtons !== 'undefined' && headerButtons && headerButtons.length > 0) { %>
-                <% headerButtons.forEach(button => { %>
-                    <a href="<%= button.href %>" 
-                       class="<%= button.class || 'inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' %>">
-                        <% if (button.icon) { %>
-                            <i class="<%= button.icon %> mr-2"></i>
-                        <% } %>
-                        <%= button.text %>
-                    </a>
-                <% }); %>
-            <% } %>
-            <!-- Search -->
-            <% if (showSearch) { %>
-            <div class="flex relative">
-                <input type="text" 
-                       id="searchInput"
-                       placeholder="<%= searchPlaceholder || 'Search...' %>" 
-                       value="<%= search %>"
-                       class="px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 w-64">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fas fa-search text-gray-400"></i>
+
+<div class="space-y-8">
+    <!-- Enhanced Header Section -->
+    <div class="bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl p-6 border border-gray-200 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
+            <!-- Title Section -->
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-table text-white text-xl"></i>
                 </div>
-                <div id="searchLoading" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden">
-                    <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900"><%= title %></h1>
+                    <p class="text-gray-600 mt-1">Manage and view your data efficiently</p>
+                </div>
+            </div>
+            
+            <!-- Action Buttons and Controls -->
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                <!-- Custom Header Buttons -->
+                <% if (typeof headerButtons !== 'undefined' && headerButtons && headerButtons.length > 0) { %>
+                    <% headerButtons.forEach(button => { %>
+                        <a href="<%= button.href %>" 
+                           class="<%= button.class || 'inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl' %>">
+                            <% if (button.icon) { %>
+                                <i class="<%= button.icon %> mr-2"></i>
+                            <% } %>
+                            <%= button.text %>
+                        </a>
+                    <% }); %>
+                <% } %>
+            </div>
+        </div>
+        
+        <!-- Search and Filter Section -->
+        <div class="mt-6 flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
+            <!-- Enhanced Search -->
+            <% if (showSearch) { %>
+            <div class="flex-1 relative">
+                <div class="relative">
+                    <input type="text" 
+                           id="searchInput"
+                           placeholder="<%= searchPlaceholder || 'Search...' %>" 
+                           value="<%= search %>"
+                           class="w-full px-4 py-3 pl-12 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <div id="searchLoading" class="absolute inset-y-0 right-0 pr-4 flex items-center hidden">
+                        <i class="fas fa-spinner fa-spin text-indigo-500"></i>
+                    </div>
                 </div>
             </div>
             <% } %>
             
-            <!-- Filters -->
+            <!-- Enhanced Filters -->
             <% if (typeof filters !== 'undefined' && filters && Object.keys(filters).length > 0) { %>
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                 <% if (filters.statusFilter !== undefined) { %>
-                <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">All Status</option>
-                    <option value="active" <%= filters.statusFilter === 'active' ? 'selected' : '' %>>Active</option>
-                    <option value="blocked" <%= filters.statusFilter === 'blocked' ? 'selected' : '' %>>Blocked</option>
-                    <option value="inactive" <%= filters.statusFilter === 'inactive' ? 'selected' : '' %>>Inactive</option>
-                </select>
+                <div class="relative">
+                    <select id="statusFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+                        <option value="">All Status</option>
+                        <option value="active" <%= filters.statusFilter === 'active' ? 'selected' : '' %>>Active</option>
+                        <option value="blocked" <%= filters.statusFilter === 'blocked' ? 'selected' : '' %>>Blocked</option>
+                        <option value="inactive" <%= filters.statusFilter === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </div>
+                </div>
                 <% } %>
                 <% if (filters.roleFilter !== undefined) { %>
-                <select id="roleFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">All Roles</option>
-                    <option value="admin" <%= filters.roleFilter === 'admin' ? 'selected' : '' %>>Admin</option>
-                    <option value="user" <%= filters.roleFilter === 'user' ? 'selected' : '' %>>User</option>
-                </select>
+                <div class="relative">
+                    <select id="roleFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+                        <option value="">All Roles</option>
+                        <option value="admin" <%= filters.roleFilter === 'admin' ? 'selected' : '' %>>Admin</option>
+                        <option value="user" <%= filters.roleFilter === 'user' ? 'selected' : '' %>>User</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </div>
+                </div>
                 <% } %>
+            </div>
             <% } %>
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200" id="dataTable">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <% columns.forEach(column => { %>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" 
-                                <% if (column.sortable) { %>onclick="sortTable('<%= column.key %>')"<% } %>>
-                                <%= column.label %>
+    <!-- Enhanced Table -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="min-w-full" id="dataTable">
+                <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                        <% columns.forEach(column => { %>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200 border-b border-gray-200" 
+                            <% if (column.sortable) { %>onclick="sortTable('<%= column.key %>')"<% } %>>
+                            <div class="flex items-center space-x-2">
+                                <span><%= column.label %></span>
                                 <% if (column.sortable) { %>
-                                <i class="fas fa-sort ml-1"></i>
+                                <div class="flex flex-col">
+                                    <i class="fas fa-sort-up text-gray-400 text-xs"></i>
+                                    <i class="fas fa-sort-down text-gray-400 text-xs -mt-1"></i>
+                                </div>
                                 <% } %>
-                            </th>
-                            <% }); %>
-                            <% if (actions && actions.length > 0) { %>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            <% } %>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                            </div>
+                        </th>
+                        <% }); %>
+                        <% if (actions && actions.length > 0) { %>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-cog text-gray-500"></i>
+                                <span>Actions</span>
+                            </div>
+                        </th>
+                        <% } %>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
                         <% if (data && data.length > 0) { %>
                             <% data.forEach((item, index) => { %>
-                            <tr class="hover:bg-gray-50">
+                            <tr class="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200 border-b border-gray-100">
                                 <% columns.forEach(column => { %>
-                                <td class="px-6 py-4 <%= column.wrap !== false ? 'table-cell-wrap' : 'table-cell-nowrap' %> <%= column.maxWidth ? 'max-w-' + column.maxWidth : '' %>">
+                                <td class="px-6 py-5 <%= column.wrap !== false ? 'table-cell-wrap' : 'table-cell-nowrap' %> <%= column.maxWidth ? 'max-w-' + column.maxWidth : '' %>">
                                     <% if (column.type === 'avatar') { %>
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10">
-                                                <img class="h-10 w-10 rounded-full" src="<%= column.avatarUrl ? column.avatarUrl(item) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item[column.key]) + '&background=random' %>" alt="<%= item[column.key] %>">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="flex-shrink-0 relative">
+                                                <img class="h-12 w-12 rounded-full ring-2 ring-white shadow-md" src="<%= column.avatarUrl ? column.avatarUrl(item) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item[column.key]) + '&background=8B5CF6&color=ffffff&size=48' %>" alt="<%= item[column.key] %>">
+                                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
                                             </div>
-                                            <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900"><%= item[column.key] %></div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-sm font-semibold text-gray-900 truncate"><%= item[column.key] %></div>
                                                 <% if (column.subtitle) { %>
-                                                <div class="text-sm text-gray-500"><%= column.subtitle(item) %></div>
+                                                <div class="text-sm text-gray-500 truncate"><%= column.subtitle(item) %></div>
                                                 <% } %>
                                             </div>
                                         </div>
                                     <% } else if (column.type === 'badge') { %>
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full <%= column.badgeClass ? column.badgeClass(item) : 'bg-green-100 text-green-800' %>">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold <%= column.badgeClass ? column.badgeClass(item) : 'bg-green-100 text-green-800' %>">
+                                            <div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>
                                             <%= column.formatter ? column.formatter(item) : item[column.key] %>
                                         </span>
                                     <% } else if (column.type === 'date') { %>
-                                        <%= new Date(item[column.key]).toLocaleDateString() %>
+                                        <div class="flex items-center space-x-2">
+                                            <i class="fas fa-calendar text-gray-400 text-xs"></i>
+                                            <span class="text-sm text-gray-900"><%= new Date(item[column.key]).toLocaleDateString() %></span>
+                                        </div>
                                     <% } else if (column.type === 'custom') { %>
                                         <%- column.formatter(item) %>
                                     <% } else { %>
-                                        <% if (column.key === 'scanning_image' && typeof mediaUrl === 'function') { %>
-                                            <%= item[column.key] %>
-                                        <% } else { %>
-                                            <%= item[column.key] %>
-                                        <% } %>
+                                        <div class="text-sm text-gray-900">
+                                            <% if (column.key === 'scanning_image' && typeof mediaUrl === 'function') { %>
+                                                <%= item[column.key] %>
+                                            <% } else { %>
+                                                <%= item[column.key] %>
+                                            <% } %>
+                                        </div>
                                     <% } %>
                                 </td>
                                 <% }); %>
                                 
                                 <% if (actions && actions.length > 0) { %>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    <div class="flex items-center space-x-2">
                                         <% actions.forEach(action => { %>
                                             <% if (!action.condition || action.condition(item)) { %>
                                             <button onclick="<%= action.onclick(item) %>" 
-                                                    class="<%= action.class %>" 
+                                                    class="<%= action.class || 'inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2' %>" 
                                                     title="<%= typeof action.title === 'function' ? action.title(item) : action.title %>">
                                                 <i class="<%= typeof action.icon === 'function' ? action.icon(item) : action.icon %>"></i>
                                             </button>
@@ -143,13 +218,22 @@
                             <% }); %>
                         <% } else { %>
                             <tr>
-                                <td colspan="100%" class="px-6 py-4 text-center">
-                                    <div class="flex flex-col items-center justify-center py-12">
-                                        <i class="<%= emptyIcon || 'fas fa-inbox' %> text-4xl text-gray-400 mb-4"></i>
-                                        <h3 class="text-lg font-medium text-gray-900 mb-2"><%= emptyTitle || 'No Data Found' %></h3>
-                                        <p class="text-gray-500 text-center max-w-sm">
+                                <td colspan="100%" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center justify-center py-16">
+                                        <div class="w-20 h-20 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
+                                            <i class="<%= emptyIcon || 'fas fa-inbox' %> text-3xl text-gray-400"></i>
+                                        </div>
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-3"><%= emptyTitle || 'No Data Found' %></h3>
+                                        <p class="text-gray-500 text-center max-w-md leading-relaxed">
                                             <%= search && search.length > 0 ? (emptySearchMessage || 'No items match your search criteria.') : (emptyMessage || 'No data available at the moment.') %>
                                         </p>
+                                        <% if (search && search.length > 0) { %>
+                                        <button onclick="document.getElementById('searchInput').value = ''; document.getElementById('searchInput').dispatchEvent(new Event('input'));" 
+                                                class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                                            <i class="fas fa-times mr-2"></i>
+                                            Clear Search
+                                        </button>
+                                        <% } %>
                                     </div>
                                 </td>
                             </tr>
@@ -157,67 +241,74 @@
                     </tbody>
                 </table>
             </div>
+        </div>
 
-                <!-- Pagination -->
-                <% if (pagination && pagination.totalPages > 1) { %>
-                <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
-                    <div class="flex-1 flex justify-between sm:hidden">
+        <!-- Enhanced Pagination -->
+        <% if (pagination && pagination.totalPages > 1) { %>
+        <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                <!-- Results Info -->
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-info-circle text-gray-400"></i>
+                    <p class="text-sm text-gray-700">
+                        Showing
+                        <span class="font-semibold text-gray-900"><%= pagination.startItem %></span>
+                        to
+                        <span class="font-semibold text-gray-900"><%= pagination.endItem %></span>
+                        of
+                        <span class="font-semibold text-gray-900"><%= pagination.totalItems %></span>
+                        results
+                    </p>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div class="flex items-center space-x-2">
+                    <!-- Mobile Pagination -->
+                    <div class="flex sm:hidden space-x-2">
                         <% if (pagination.hasPrev) { %>
-                        <button onclick="goToPage(<%= pagination.currentPage - 1 %>)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <button onclick="goToPage(<%= pagination.currentPage - 1 %>)" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
+                            <i class="fas fa-chevron-left mr-1"></i>
                             Previous
                         </button>
                         <% } %>
                         <% if (pagination.hasNext) { %>
-                        <button onclick="goToPage(<%= pagination.currentPage + 1 %>)" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <button onclick="goToPage(<%= pagination.currentPage + 1 %>)" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
                             Next
+                            <i class="fas fa-chevron-right ml-1"></i>
                         </button>
                         <% } %>
                     </div>
-                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <p class="text-sm text-gray-700">
-                                Showing
-                                <span class="font-medium"><%= pagination.startItem %></span>
-                                to
-                                <span class="font-medium"><%= pagination.endItem %></span>
-                                of
-                                <span class="font-medium"><%= pagination.totalItems %></span>
-                                results
-                            </p>
-                        </div>
-                        <div>
-                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                <% if (pagination.hasPrev) { %>
-                                <button onclick="goToPage(<%= pagination.currentPage - 1 %>)" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                    <span class="sr-only">Previous</span>
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <% } %>
-                                
-                                <% for (let i = pagination.startPage; i <= pagination.endPage; i++) { %>
-                                    <% if (i === pagination.currentPage) { %>
-                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
-                                        <%= i %>
-                                    </span>
-                                    <% } else { %>
-                                    <button onclick="goToPage(<%= i %>)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                                        <%= i %>
-                                    </button>
-                                    <% } %>
-                                <% } %>
-                                
-                                <% if (pagination.hasNext) { %>
-                                <button onclick="goToPage(<%= pagination.currentPage + 1 %>)" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                    <span class="sr-only">Next</span>
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                                <% } %>
-                            </nav>
-                        </div>
+                    
+                    <!-- Desktop Pagination -->
+                    <div class="hidden sm:flex items-center space-x-1">
+                        <% if (pagination.hasPrev) { %>
+                        <button onclick="goToPage(<%= pagination.currentPage - 1 %>)" class="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
+                            <i class="fas fa-chevron-left text-sm"></i>
+                        </button>
+                        <% } %>
+                        
+                        <% for (let i = pagination.startPage; i <= pagination.endPage; i++) { %>
+                            <% if (i === pagination.currentPage) { %>
+                            <span class="inline-flex items-center justify-center w-10 h-10 border border-indigo-500 bg-indigo-500 text-white text-sm font-semibold rounded-lg">
+                                <%= i %>
+                            </span>
+                            <% } else { %>
+                            <button onclick="goToPage(<%= i %>)" class="inline-flex items-center justify-center w-10 h-10 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200 rounded-lg">
+                                <%= i %>
+                            </button>
+                            <% } %>
+                        <% } %>
+                        
+                        <% if (pagination.hasNext) { %>
+                        <button onclick="goToPage(<%= pagination.currentPage + 1 %>)" class="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
+                            <i class="fas fa-chevron-right text-sm"></i>
+                        </button>
+                        <% } %>
                     </div>
                 </div>
-                <% } %>
+            </div>
         </div>
+        <% } %>
     </div>
 </div>
 
