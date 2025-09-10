@@ -58,10 +58,11 @@
         .main-content-collapsed {
             margin-left: 64px !important; /* Adjust for collapsed sidebar */
         }
-        .navbar-collapsed {
+        #navbar.navbar-collapsed {
             left: 64px !important; /* Adjust navbar for collapsed sidebar */
             right: 0 !important; /* Ensure navbar extends to full width */
             width: calc(100% - 64px) !important; /* Full width minus collapsed sidebar */
+            transition: left 0.3s ease-in-out, width 0.3s ease-in-out !important;
         }
         .navbar-mobile {
             left: 0 !important;
@@ -254,6 +255,11 @@
             sidebar.classList.toggle('sidebar-collapsed');
             mainContent.classList.toggle('main-content-collapsed');
             navbar.classList.toggle('navbar-collapsed');
+            
+            // Debug: Log the current state
+            console.log('Sidebar collapsed:', sidebar.classList.contains('sidebar-collapsed'));
+            console.log('Navbar collapsed:', navbar.classList.contains('navbar-collapsed'));
+            console.log('Navbar classes:', navbar.className);
         });
 
         // User menu toggle
