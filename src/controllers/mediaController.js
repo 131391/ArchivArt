@@ -522,8 +522,8 @@ class MediaController {
 
     // Update media
     static async updateMedia(req, res) {
-        try {
-            const { id } = req.params;
+    try {
+      const { id } = req.params;
             const { title, description, media_type, is_active } = req.body;
             
             console.log('Update media request:', { id, title, description, media_type, is_active });
@@ -650,8 +650,8 @@ class MediaController {
                 success: true,
                 message: 'Media updated successfully',
                 media: updatedMedia
-            });
-        } catch (error) {
+      });
+    } catch (error) {
             console.error('Error updating media:', error);
             res.status(500).json({
                 success: false,

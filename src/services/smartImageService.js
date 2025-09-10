@@ -1,9 +1,11 @@
+const opencvService = require('./opencvService');
 const nodeOpenCVService = require('./nodeOpenCVService');
 const fallbackImageService = require('./fallbackImageService');
 
 class SmartImageService {
     constructor() {
-        this.primaryService = nodeOpenCVService;
+        this.primaryService = opencvService; // Python OpenCV service
+        this.secondaryService = nodeOpenCVService; // Node.js OpenCV service
         this.fallbackService = fallbackImageService;
         this.currentService = null;
         this.initializeService();
@@ -11,18 +13,30 @@ class SmartImageService {
 
     async initializeService() {
         try {
-            // Check if OpenCV service is available
-            const isOpenCVHealthy = await this.primaryService.isHealthy();
+            // Try Python OpenCV service first
+            const isPythonOpenCVHealthy = await this.primaryService.isHealthy();
             
-            if (isOpenCVHealthy) {
+            if (isPythonOpenCVHealthy) {
                 this.currentService = this.primaryService;
-                console.log('🚀 Using OpenCV service for image processing');
-            } else {
-                this.currentService = this.fallbackService;
-                console.log('⚠️ OpenCV not available, using fallback image service');
+                console.log('🐍 Using Python OpenCV service for image processing');
+                return;
             }
+            
+            // Try Node.js OpenCV service as secondary
+            const isNodeOpenCVHealthy = await this.secondaryService.isHealthy();
+            
+            if (isNodeOpenCVHealthy) {
+                this.currentService = this.secondaryService;
+                console.log('🟢 Using Node.js OpenCV service for image processing');
+                return;
+            }
+            
+            // Fall back to basic image service
+            this.currentService = this.fallbackService;
+            console.log('⚠️ OpenCV services not available, using fallback image service');
+            
         } catch (error) {
-            console.warn('⚠️ Error initializing OpenCV service, using fallback:', error.message);
+            console.warn('⚠️ Error initializing OpenCV services, using fallback:', error.message);
             this.currentService = this.fallbackService;
         }
     }
@@ -42,7 +56,13 @@ class SmartImageService {
         const result = await this.currentService.extractFeatures(imagePath);
         
         // Add service info to result
-        result.service = this.currentService === this.primaryService ? 'opencv' : 'fallback';
+        if (this.currentService === this.primaryService) {
+            result.service = 'python-opencv';
+        } else if (this.currentService === this.secondaryService) {
+            result.service = 'node-opencv';
+        } else {
+            result.service = 'fallback';
+        }
         
         return result;
     }
