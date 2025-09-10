@@ -274,7 +274,11 @@
         const navLinks = document.querySelectorAll('.nav-link');
         
         navLinks.forEach(link => {
-            if (link.getAttribute('href') === currentPath) {
+            const linkHref = link.getAttribute('href');
+            
+            // Check for exact match or if current path starts with the link href
+            // This handles sub-paths like /admin/media/edit/1 matching /admin/media
+            if (linkHref === currentPath || currentPath.startsWith(linkHref + '/')) {
                 link.classList.remove('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
                 link.classList.add('bg-gray-700', 'text-white');
             }
