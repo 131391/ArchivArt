@@ -411,7 +411,18 @@
                             </div>
                         `;
                         document.getElementById('userDetails').innerHTML = userDetails;
-                        document.getElementById('viewUserModal').classList.remove('hidden');
+                        // Show modal with animation
+                        const modal = document.getElementById('viewUserModal');
+                        const modalContainer = document.getElementById('viewUserModalContainer');
+                        modal.classList.remove('hidden');
+                        
+                        // Trigger animation
+                        setTimeout(() => {
+                            if (modalContainer) {
+                                modalContainer.classList.remove('scale-95', 'opacity-0');
+                                modalContainer.classList.add('scale-100', 'opacity-100');
+                            }
+                        }, 10);
                     } else {
                         showErrorToast('Error loading user details');
                     }
@@ -452,7 +463,18 @@
                             document.getElementById('editUserStatus').value = 'inactive';
                         }
                         
-                        document.getElementById('editUserModal').classList.remove('hidden');
+                        // Show modal with animation
+                        const modal = document.getElementById('editUserModal');
+                        const modalContainer = document.getElementById('editUserModalContainer');
+                        modal.classList.remove('hidden');
+                        
+                        // Trigger animation
+                        setTimeout(() => {
+                            if (modalContainer) {
+                                modalContainer.classList.remove('scale-95', 'opacity-0');
+                                modalContainer.classList.add('scale-100', 'opacity-100');
+                            }
+                        }, 10);
                     } else {
                         showErrorToast('Error loading user details');
                     }
@@ -464,18 +486,59 @@
         }
 
         function closeEditModal() {
-            document.getElementById('editUserModal').classList.add('hidden');
+            const modal = document.getElementById('editUserModal');
+            const modalContainer = document.getElementById('editUserModalContainer');
+            
+            if (modalContainer) {
+                // Trigger closing animation
+                modalContainer.classList.remove('scale-100', 'opacity-100');
+                modalContainer.classList.add('scale-95', 'opacity-0');
+                
+                // Hide modal after animation
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            } else {
+                modal.classList.add('hidden');
+            }
         }
 
         function closeViewModal() {
-            document.getElementById('viewUserModal').classList.add('hidden');
+            const modal = document.getElementById('viewUserModal');
+            const modalContainer = document.getElementById('viewUserModalContainer');
+            
+            if (modalContainer) {
+                // Trigger closing animation
+                modalContainer.classList.remove('scale-100', 'opacity-100');
+                modalContainer.classList.add('scale-95', 'opacity-0');
+                
+                // Hide modal after animation
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            } else {
+                modal.classList.add('hidden');
+            }
         }
 
         // Generic modal close function
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
+            const modalContainer = document.getElementById(modalId + 'Container');
+            
             if (modal) {
-                modal.classList.add('hidden');
+                if (modalContainer) {
+                    // Trigger closing animation
+                    modalContainer.classList.remove('scale-100', 'opacity-100');
+                    modalContainer.classList.add('scale-95', 'opacity-0');
+                    
+                    // Hide modal after animation
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                    }, 300);
+                } else {
+                    modal.classList.add('hidden');
+                }
             }
         }
 
@@ -711,7 +774,18 @@
                             </div>
                         `;
                         document.getElementById('mediaDetails').innerHTML = mediaDetails;
-                        document.getElementById('viewMediaModal').classList.remove('hidden');
+                        // Show modal with animation
+                        const modal = document.getElementById('viewMediaModal');
+                        const modalContainer = document.getElementById('viewMediaModalContainer');
+                        modal.classList.remove('hidden');
+                        
+                        // Trigger animation
+                        setTimeout(() => {
+                            if (modalContainer) {
+                                modalContainer.classList.remove('scale-95', 'opacity-0');
+                                modalContainer.classList.add('scale-100', 'opacity-100');
+                            }
+                        }, 10);
                     } else {
                         showErrorToast('Error loading media details');
                     }
