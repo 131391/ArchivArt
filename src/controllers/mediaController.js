@@ -61,76 +61,113 @@ const upload = multer({
 });
 
 class MediaController {
-    // Public API: match scanning image by pHash
+    // Public API: match scanning image using OpenCV feature matching
     static async matchScanningImage(req, res) {
         try {
-            // Accept either a precomputed hash or an uploaded image
-            const threshold = parseInt(req.body.threshold || '5', 10);
-            const providedHash = (req.body.hash || '').trim();
+            // Accept uploaded image file
+            const threshold = parseInt(req.body.threshold || '50', 10); // Default threshold for OpenCV matching
+            
+            if (!req.file) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Image file is required. Please upload an image file.' 
+                });
+            }
 
-            let imageHash = null;
+            // Check if image processing service is available
+            const isServiceHealthy = await smartImageService.isHealthy();
+            if (!isServiceHealthy) {
+                return res.status(503).json({
+                    success: false,
+                    message: 'Image processing service is temporarily unavailable. Please try again later.'
+                });
+            }
 
-            // If file uploaded, save temporarily and compute hash
-            if (req.file) {
-                try {
-                    // When using memory storage, write buffer to a temp file if needed
-                    const tempDir = path.join(process.cwd(), 'tmp');
-                    await fs.mkdir(tempDir, { recursive: true });
-                    const tempPath = path.join(tempDir, `${uuidv4()}${path.extname(req.file.originalname)}`);
-                    await fs.writeFile(tempPath, req.file.buffer);
-                    imageHash = await PerceptualHash.generateHash(tempPath, 16, true);
+            // Save uploaded image temporarily
+            const tempDir = path.join(process.cwd(), 'tmp');
+            await fs.mkdir(tempDir, { recursive: true });
+            const tempPath = path.join(tempDir, `${uuidv4()}${path.extname(req.file.originalname)}`);
+            
+            try {
+                await fs.writeFile(tempPath, req.file.buffer);
+                console.log(`📱 Mobile app uploaded image: ${req.file.originalname}`);
+
+                // Get all media with descriptors for matching
+                const existingMedia = await Media.findAllWithDescriptors();
+                
+                if (existingMedia.length === 0) {
                     // Clean up temp file
                     await fs.unlink(tempPath).catch(() => {});
-                } catch (err) {
-                    console.error('Error computing hash from uploaded file:', err);
-                    return res.status(400).json({ success: false, message: 'Invalid image file' });
-                }
-            } else if (providedHash) {
-                if (!PerceptualHash.isValidHash(providedHash)) {
-                    return res.status(400).json({ success: false, message: 'Invalid hash format' });
-                }
-                imageHash = providedHash;
-            } else {
-                return res.status(400).json({ success: false, message: 'Provide an image file or a hash' });
-            }
-
-            // Query all candidates and compute similarity
-            const similar = await Media.findSimilarByImageHash(imageHash, threshold);
-
-            // Enrich with distance values
-            const results = [];
-            if (Array.isArray(similar)) {
-                for (const m of similar) {
-                    const distance = PerceptualHash.hammingDistance(imageHash, m.image_hash);
-                    results.push({
-                        id: m.id,
-                        title: m.title,
-                        description: m.description,
-                        media_type: m.media_type,
-                        scanning_image: m.scanning_image,
-                        file_path: m.file_path,
-                        is_active: m.is_active,
-                        created_at: m.created_at,
-                        similarity: {
-                            distance,
-                            threshold,
-                            description: PerceptualHash.getSimilarityDescription(imageHash, m.image_hash)
-                        }
+                    return res.json({
+                        success: true,
+                        message: 'No media available for matching',
+                        matches: [],
+                        service: smartImageService.getServiceInfo().current
                     });
                 }
+
+                // Find matching media using OpenCV
+                const matchResult = await smartImageService.findMatchingMedia(
+                    tempPath,
+                    existingMedia,
+                    threshold
+                );
+
+                // Clean up temp file
+                await fs.unlink(tempPath).catch(() => {});
+
+                if (matchResult.success && matchResult.matchedMedia) {
+                    // Found a match
+                    const matchedMedia = matchResult.matchedMedia;
+                    const result = {
+                        id: matchedMedia.id,
+                        title: matchedMedia.title,
+                        description: matchedMedia.description,
+                        media_type: matchedMedia.media_type,
+                        scanning_image: matchedMedia.scanning_image,
+                        file_path: matchedMedia.file_path,
+                        is_active: matchedMedia.is_active,
+                        created_at: matchedMedia.created_at,
+                        similarity: {
+                            score: matchResult.matchScore,
+                            matchCount: matchResult.matchCount,
+                            threshold: threshold,
+                            service: matchResult.service,
+                            description: matchResult.matchScore >= 0.8 ? 'Very High' : 
+                                        matchResult.matchScore >= 0.6 ? 'High' : 
+                                        matchResult.matchScore >= 0.4 ? 'Medium' : 'Low'
+                        }
+                    };
+
+                    return res.json({
+                        success: true,
+                        message: 'Match found',
+                        match: result,
+                        service: matchResult.service
+                    });
+                } else {
+                    // No match found
+                    return res.json({
+                        success: true,
+                        message: 'No matching media found',
+                        matches: [],
+                        service: matchResult.service || smartImageService.getServiceInfo().current
+                    });
+                }
+
+            } catch (processingError) {
+                // Clean up temp file on error
+                await fs.unlink(tempPath).catch(() => {});
+                throw processingError;
             }
 
-            // Sort by ascending distance (most similar first)
-            results.sort((a, b) => a.similarity.distance - b.similarity.distance);
-
-            return res.json({
-                success: true,
-                input: { hash: imageHash },
-                matches: results
-            });
         } catch (error) {
             console.error('Error matching scanning image:', error);
-            return res.status(500).json({ success: false, message: 'Server error matching image' });
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Server error matching image',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
         }
     }
     // Get media list page
@@ -510,15 +547,68 @@ class MediaController {
             res.json({
                 success: true,
                 media
-      });
-    } catch (error) {
+            });
+        } catch (error) {
             console.error('Error getting media:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error loading media'
-      });
+            });
+        }
     }
-  }
+
+    // Get all active media (public API for mobile apps)
+    static async getAllActiveMedia(req, res) {
+        try {
+            const { page = 1, limit = 20, media_type = '' } = req.query;
+            
+            const options = {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                search: '',
+                media_type,
+                is_active: '1', // Only active media (1 = true, 0 = false)
+                sort: 'created_at',
+                order: 'desc'
+            };
+
+            const result = await Media.findAll(options);
+
+            // Format response for mobile apps
+            const mediaList = result.media.map(media => ({
+                id: media.id,
+                title: media.title,
+                description: media.description,
+                media_type: media.media_type,
+                scanning_image: media.scanning_image,
+                file_path: media.file_path,
+                file_size: media.file_size,
+                mime_type: media.mime_type,
+                created_at: media.created_at,
+                // Add full URLs for mobile apps
+                scanning_image_url: `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.scanning_image}`,
+                file_url: `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.file_path}`
+            }));
+
+            res.json({
+                success: true,
+                media: mediaList,
+                pagination: {
+                    currentPage: result.page,
+                    totalPages: result.totalPages,
+                    totalItems: result.total,
+                    hasNext: result.page < result.totalPages,
+                    hasPrev: result.page > 1
+                }
+            });
+        } catch (error) {
+            console.error('Error getting active media:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error loading media'
+            });
+        }
+    }
 
     // Update media
     static async updateMedia(req, res) {

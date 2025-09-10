@@ -33,8 +33,14 @@ router.put('/auth/profile', [
   body('email').isEmail().withMessage('Valid email is required')
 ], authController.updateProfile);
 
-// Media routes - handled by admin routes
-// Public: match scanning image by pHash (accepts multipart image or JSON with {hash})
+// Media routes - Public API for mobile applications
+// Match scanning image using OpenCV feature matching (accepts multipart image upload)
 router.post('/media/match', upload.single('image'), mediaController.matchScanningImage);
+
+// Get media by ID (public endpoint for mobile apps)
+router.get('/media/:id', mediaController.getMedia);
+
+// Get all active media (public endpoint for mobile apps)
+router.get('/media', mediaController.getAllActiveMedia);
 
 module.exports = router;

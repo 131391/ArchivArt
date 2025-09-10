@@ -28,7 +28,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fas fa-users text-white text-xl"></i>
-                </div>
+                    </div>
                 <div class="text-right">
                     <div class="text-3xl font-bold text-gray-800"><%= stats.totalUsers || 0 %></div>
                     <div class="text-sm text-blue-600 font-medium">Total Users</div>
@@ -36,8 +36,8 @@
             </div>
             <div class="flex items-center justify-between">
                 <a href="/admin/users" class="text-blue-600 hover:text-blue-700 font-medium text-sm group-hover:underline transition-all">
-                    View all users
-                </a>
+                        View all users
+                    </a>
                 <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                     <i class="fas fa-arrow-right text-blue-600 text-sm"></i>
                 </div>
@@ -49,7 +49,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fas fa-images text-white text-xl"></i>
-                </div>
+                    </div>
                 <div class="text-right">
                     <div class="text-3xl font-bold text-gray-800"><%= stats.totalMedia || 0 %></div>
                     <div class="text-sm text-emerald-600 font-medium">Total Media</div>
@@ -57,8 +57,8 @@
             </div>
             <div class="flex items-center justify-between">
                 <a href="/admin/media" class="text-emerald-600 hover:text-emerald-700 font-medium text-sm group-hover:underline transition-all">
-                    View all media
-                </a>
+                        View all media
+                    </a>
                 <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
                     <i class="fas fa-arrow-right text-emerald-600 text-sm"></i>
                 </div>
@@ -70,7 +70,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fas fa-video text-white text-xl"></i>
-                </div>
+                    </div>
                 <div class="text-right">
                     <div class="text-3xl font-bold text-gray-800"><%= stats.totalVideos || 0 %></div>
                     <div class="text-sm text-purple-600 font-medium">Videos</div>
@@ -78,8 +78,8 @@
             </div>
             <div class="flex items-center justify-between">
                 <a href="/admin/media?type=video" class="text-purple-600 hover:text-purple-700 font-medium text-sm group-hover:underline transition-all">
-                    View videos
-                </a>
+                        View videos
+                    </a>
                 <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                     <i class="fas fa-arrow-right text-purple-600 text-sm"></i>
                 </div>
@@ -91,7 +91,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fas fa-music text-white text-xl"></i>
-                </div>
+                    </div>
                 <div class="text-right">
                     <div class="text-3xl font-bold text-gray-800"><%= stats.totalAudio || 0 %></div>
                     <div class="text-sm text-orange-600 font-medium">Audio</div>
@@ -99,8 +99,8 @@
             </div>
             <div class="flex items-center justify-between">
                 <a href="/admin/media?type=audio" class="text-orange-600 hover:text-orange-700 font-medium text-sm group-hover:underline transition-all">
-                    View audio
-                </a>
+                        View audio
+                    </a>
                 <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
                     <i class="fas fa-arrow-right text-orange-600 text-sm"></i>
                 </div>
@@ -119,7 +119,7 @@
                             <i class="fas fa-user-plus text-white text-sm"></i>
                         </div>
                         Recent Users
-                    </h3>
+                </h3>
                     <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
                         <i class="fas fa-users text-white text-sm"></i>
                     </div>
@@ -127,39 +127,39 @@
             </div>
             <div class="p-6">
                 <div class="space-y-4">
-                    <% if (recentUsers && recentUsers.length > 0) { %>
+                        <% if (recentUsers && recentUsers.length > 0) { %>
                         <% recentUsers.forEach((user, index) => { %>
                             <div class="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group">
                                 <div class="relative">
                                     <img class="h-12 w-12 rounded-full ring-2 ring-white shadow-md" src="https://ui-avatars.com/api/?name=<%= user.name %>&background=random&size=48" alt="<%= user.name %>">
                                     <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
-                                </div>
-                                <div class="flex-1 min-w-0">
+                                        </div>
+                                        <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                                        <%= user.name %>
-                                    </p>
+                                                <%= user.name %>
+                                            </p>
                                     <p class="text-xs text-gray-500 truncate">
-                                        <%= user.email %>
-                                    </p>
-                                </div>
+                                                <%= user.email %>
+                                            </p>
+                                        </div>
                                 <div class="text-right">
                                     <div class="text-xs text-gray-400 font-medium">
-                                        <%= new Date(user.created_at).toLocaleDateString() %>
-                                    </div>
+                                            <%= new Date(user.created_at).toLocaleDateString() %>
+                                        </div>
                                     <div class="text-xs text-blue-500 font-medium">
                                         New
                                     </div>
                                 </div>
                             </div>
-                        <% }); %>
-                    <% } else { %>
+                            <% }); %>
+                        <% } else { %>
                         <div class="text-center py-8">
                             <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-user-plus text-gray-400 text-xl"></i>
                             </div>
                             <p class="text-gray-500 text-sm">No recent users</p>
                         </div>
-                    <% } %>
+                        <% } %>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-100">
                     <a href="/admin/users" class="w-full flex justify-center items-center px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg">
@@ -179,7 +179,7 @@
                             <i class="fas fa-upload text-white text-sm"></i>
                         </div>
                         Recent Media
-                    </h3>
+                </h3>
                     <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
                         <i class="fas fa-images text-white text-sm"></i>
                     </div>
@@ -187,7 +187,7 @@
             </div>
             <div class="p-6">
                 <div class="space-y-4">
-                    <% if (recentMedia && recentMedia.length > 0) { %>
+                        <% if (recentMedia && recentMedia.length > 0) { %>
                         <% recentMedia.forEach((media, index) => { %>
                             <div class="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group">
                                 <div class="relative">
@@ -202,34 +202,34 @@
                                         </div>
                                     <% } %>
                                     <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 border-2 border-white rounded-full"></div>
-                                </div>
-                                <div class="flex-1 min-w-0">
+                                        </div>
+                                        <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">
-                                        <%= media.title || 'Untitled' %>
-                                    </p>
+                                                <%= media.title || 'Untitled' %>
+                                            </p>
                                     <p class="text-xs text-gray-500 truncate flex items-center">
                                         <i class="fas fa-<%= media.media_type === 'video' ? 'video' : 'music' %> mr-1 text-emerald-500"></i>
-                                        <%= media.media_type %>
-                                    </p>
-                                </div>
+                                                <%= media.media_type %>
+                                            </p>
+                                        </div>
                                 <div class="text-right">
                                     <div class="text-xs text-gray-400 font-medium">
-                                        <%= new Date(media.created_at).toLocaleDateString() %>
-                                    </div>
+                                            <%= new Date(media.created_at).toLocaleDateString() %>
+                                        </div>
                                     <div class="text-xs text-emerald-500 font-medium">
                                         New
                                     </div>
                                 </div>
                             </div>
-                        <% }); %>
-                    <% } else { %>
+                            <% }); %>
+                        <% } else { %>
                         <div class="text-center py-8">
                             <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-upload text-gray-400 text-xl"></i>
                             </div>
                             <p class="text-gray-500 text-sm">No recent media</p>
                         </div>
-                    <% } %>
+                        <% } %>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-100">
                     <a href="/admin/media" class="w-full flex justify-center items-center px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm font-medium rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg">
@@ -250,7 +250,7 @@
                         <i class="fas fa-bolt text-white text-sm"></i>
                     </div>
                     Quick Actions
-                </h3>
+            </h3>
                 <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
                     <i class="fas fa-rocket text-white text-sm"></i>
                 </div>

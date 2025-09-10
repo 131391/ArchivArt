@@ -111,10 +111,15 @@ class OpenCVService {
         try {
             console.log(`🔍 Comparing image against ${storedDescriptors.length} stored descriptors`);
             
+            // Convert match count threshold to similarity threshold
+            // Python service expects similarity threshold (0.0-1.0)
+            // We'll use a simple conversion: threshold/100 = similarity
+            const similarityThreshold = Math.min(threshold / 100, 1.0);
+            
             const response = await axios.post(`${this.baseURL}/compare`, {
                 query_image_path: queryImagePath,
                 stored_descriptors: storedDescriptors,
-                threshold: threshold
+                threshold: similarityThreshold
             }, {
                 timeout: this.timeout
             });

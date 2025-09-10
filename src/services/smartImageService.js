@@ -91,7 +91,13 @@ class SmartImageService {
         const result = await this.currentService.checkForDuplicates(newImagePath, existingMedia, actualThreshold);
         
         // Add service info to result
-        result.service = this.currentService === this.primaryService ? 'opencv' : 'fallback';
+        if (this.currentService === this.primaryService) {
+            result.service = 'python-opencv';
+        } else if (this.currentService === this.secondaryService) {
+            result.service = 'node-opencv';
+        } else {
+            result.service = 'fallback';
+        }
         result.threshold = actualThreshold;
         
         return result;
@@ -108,22 +114,34 @@ class SmartImageService {
         const result = await this.currentService.findMatchingMedia(scannedImagePath, mediaList, actualThreshold);
         
         // Add service info to result
-        result.service = this.currentService === this.primaryService ? 'opencv' : 'fallback';
+        if (this.currentService === this.primaryService) {
+            result.service = 'python-opencv';
+        } else if (this.currentService === this.secondaryService) {
+            result.service = 'node-opencv';
+        } else {
+            result.service = 'fallback';
+        }
         result.threshold = actualThreshold;
         
         return result;
     }
 
     clearCache() {
-        if (this.currentService) {
+        if (this.currentService && typeof this.currentService.clearCache === 'function') {
             this.currentService.clearCache();
         }
     }
 
     getCacheStats() {
-        if (this.currentService) {
+        if (this.currentService && typeof this.currentService.getCacheStats === 'function') {
             const stats = this.currentService.getCacheStats();
-            stats.service = this.currentService === this.primaryService ? 'opencv' : 'fallback';
+            if (this.currentService === this.primaryService) {
+                stats.service = 'python-opencv';
+            } else if (this.currentService === this.secondaryService) {
+                stats.service = 'node-opencv';
+            } else {
+                stats.service = 'fallback';
+            }
             return stats;
         }
         return { service: 'none', size: 0, keys: [] };
@@ -131,9 +149,17 @@ class SmartImageService {
 
     // Get current service information
     getServiceInfo() {
+        let currentService = 'fallback';
+        if (this.currentService === this.primaryService) {
+            currentService = 'python-opencv';
+        } else if (this.currentService === this.secondaryService) {
+            currentService = 'node-opencv';
+        }
+        
         return {
-            current: this.currentService === this.primaryService ? 'opencv' : 'fallback',
-            opencvAvailable: this.currentService === this.primaryService,
+            current: currentService,
+            pythonOpenCVAvailable: this.currentService === this.primaryService,
+            nodeOpenCVAvailable: this.currentService === this.secondaryService,
             fallbackActive: this.currentService === this.fallbackService
         };
     }
