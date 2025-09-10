@@ -84,12 +84,12 @@ class MediaController {
             }
 
             // Save uploaded image temporarily
-            const tempDir = path.join(process.cwd(), 'tmp');
-            await fs.mkdir(tempDir, { recursive: true });
-            const tempPath = path.join(tempDir, `${uuidv4()}${path.extname(req.file.originalname)}`);
+                    const tempDir = path.join(process.cwd(), 'tmp');
+                    await fs.mkdir(tempDir, { recursive: true });
+                    const tempPath = path.join(tempDir, `${uuidv4()}${path.extname(req.file.originalname)}`);
             
             try {
-                await fs.writeFile(tempPath, req.file.buffer);
+                    await fs.writeFile(tempPath, req.file.buffer);
                 console.log(`📱 Mobile app uploaded image: ${req.file.originalname}`);
 
                 // Get all media with descriptors for matching
@@ -547,15 +547,15 @@ class MediaController {
             res.json({
                 success: true,
                 media
-            });
-        } catch (error) {
+      });
+    } catch (error) {
             console.error('Error getting media:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error loading media'
-            });
-        }
+      });
     }
+  }
 
     // Get all active media (public API for mobile apps)
     static async getAllActiveMedia(req, res) {
@@ -606,9 +606,9 @@ class MediaController {
             res.status(500).json({
                 success: false,
                 message: 'Error loading media'
-            });
-        }
+      });
     }
+  }
 
     // Update media
     static async updateMedia(req, res) {
