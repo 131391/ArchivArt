@@ -31,14 +31,19 @@
             <% } %>
             <!-- Search -->
             <% if (showSearch) { %>
-            <form method="GET" class="flex" id="searchForm">
-                <input type="text" name="search" placeholder="<%= searchPlaceholder || 'Search...' %>" 
+            <div class="flex relative">
+                <input type="text" 
+                       id="searchInput"
+                       placeholder="<%= searchPlaceholder || 'Search...' %>" 
                        value="<%= search %>"
-                       class="px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
+                       class="px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 w-64">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <div id="searchLoading" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden">
+                    <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                </div>
+            </div>
             <% } %>
             
             <!-- Filters -->
@@ -237,17 +242,53 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
+// Debounce function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Set up event listeners
 function setupEventListeners() {
-    // Search form
-    const searchForm = document.getElementById('searchForm');
-    if (searchForm) {
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const searchInput = this.querySelector('input[name="search"]');
-            currentSearch = searchInput.value;
+    // Search input with debouncing
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        // Debounced search function
+        const debouncedSearch = debounce(function(value) {
+            currentSearch = value;
             currentPage = 1;
             loadTableData();
+        }, 500); // 500ms delay
+        
+        // Input event listener
+        searchInput.addEventListener('input', function(e) {
+            const value = e.target.value.trim();
+            
+            // Show loading indicator
+            const loadingIndicator = document.getElementById('searchLoading');
+            if (loadingIndicator) {
+                loadingIndicator.classList.remove('hidden');
+            }
+            
+            // Debounced search
+            debouncedSearch(value);
+        });
+        
+        // Clear search on escape
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                this.value = '';
+                currentSearch = '';
+                currentPage = 1;
+                loadTableData();
+            }
         });
     }
 
@@ -311,8 +352,18 @@ function loadTableData() {
         });
     }
     
+    // Determine the correct endpoint based on current page
+    const currentPath = window.location.pathname;
+    let endpoint = '/admin/media/data'; // default
+    
+    if (currentPath.includes('/users')) {
+        endpoint = '/admin/users/data';
+    } else if (currentPath.includes('/media')) {
+        endpoint = '/admin/media/data';
+    }
+    
     // Make AJAX request
-    fetch(`/admin/media/data?${params.toString()}`, {
+    fetch(`${endpoint}?${params.toString()}`, {
         method: 'GET',
         credentials: 'same-origin', // Include cookies/session
         headers: {
@@ -351,6 +402,13 @@ function loadTableData() {
             if (typeof hideLoader === 'function') {
                 hideLoader();
             }
+            
+            // Hide search loading indicator
+            const searchLoadingIndicator = document.getElementById('searchLoading');
+            if (searchLoadingIndicator) {
+                searchLoadingIndicator.classList.add('hidden');
+            }
+            
             isLoading = false;
         });
 }
