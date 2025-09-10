@@ -91,6 +91,42 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Health check endpoint
+app.get('/health', async (req, res) => {
+  try {
+    const smartImageService = require('./services/smartImageService');
+    const serviceInfo = smartImageService.getServiceInfo();
+    const cacheStats = smartImageService.getCacheStats();
+    
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      services: {
+        imageProcessing: serviceInfo,
+        cache: cacheStats
+      },
+      version: '1.0.0'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Keep-alive endpoint for Render free tier
+app.get('/keep-alive', (req, res) => {
+  res.json({ 
+    status: 'alive', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).render('error', { 
@@ -104,6 +140,23 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Admin panel: http://localhost:${PORT}/admin`);
   console.log(`API base: http://localhost:${PORT}/api`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  
+  // Start keep-alive service for production
+  if (process.env.NODE_ENV === 'production') {
+    const keepAlive = () => {
+      setInterval(async () => {
+        try {
+          const response = await fetch(`http://localhost:${PORT}/keep-alive`);
+          console.log('Keep-alive ping sent');
+        } catch (error) {
+          console.log('Keep-alive ping failed:', error.message);
+        }
+      }, 14 * 60 * 1000); // Every 14 minutes
+    };
+    
+    setTimeout(keepAlive, 60000); // Start after 1 minute
+  }
 });
 
 module.exports = app;

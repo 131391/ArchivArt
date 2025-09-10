@@ -1,5 +1,4 @@
 const db = require('../config/database');
-const PerceptualHash = require('../utils/perceptualHash');
 
 class Media {
     constructor(data) {
@@ -7,7 +6,10 @@ class Media {
         this.title = data.title;
         this.description = data.description;
         this.scanning_image = data.scanning_image;
-        this.image_hash = data.image_hash; // Perceptual hash for similarity detection
+        // Parse descriptors from JSON string if it exists
+        this.descriptors = data.descriptors ? 
+            (typeof data.descriptors === 'string' ? JSON.parse(data.descriptors) : data.descriptors) : 
+            null;
         this.media_type = data.media_type; // 'image', 'video', 'audio'
         this.file_path = data.file_path;
         this.file_size = data.file_size;
@@ -30,7 +32,7 @@ class Media {
                 file_size,
                 mime_type,
                 uploaded_by,
-                image_hash
+                descriptors
             } = mediaData;
 
             // Check if scanning image already exists by filename
@@ -39,25 +41,12 @@ class Media {
                 throw new Error('Scanning image filename already exists. Please use a different image.');
             }
 
-            // Check if scanning image already exists by perceptual hash (similarity detection)
-            if (image_hash) {
-                // First check for exact matches
-                const existingMediaByHash = await Media.findByImageHash(image_hash);
-                if (existingMediaByHash) {
-                    throw new Error('This scanning image content already exists. Please use a different image.');
-                }
-
-                // Then check for similar images (compressed, resized, etc.)
-                const similarMedia = await Media.findSimilarByImageHash(image_hash, 5);
-                if (similarMedia.length > 0) {
-                    const similarTitles = similarMedia.map(m => m.title).join(', ');
-                    throw new Error(`A similar scanning image already exists (${similarTitles}). Please use a different image.`);
-                }
-            }
+            // Note: Duplicate checking with OpenCV descriptors is now handled in the controller
+            // before calling this method to avoid blocking the database operation
 
             const query = `
                 INSERT INTO media (
-                    title, description, scanning_image, image_hash, media_type, 
+                    title, description, scanning_image, descriptors, media_type, 
                     file_path, file_size, mime_type, uploaded_by, is_active
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
             `;
@@ -66,7 +55,7 @@ class Media {
                 title,
                 description,
                 scanning_image,
-                image_hash,
+                JSON.stringify(descriptors),
                 media_type,
                 file_path,
                 file_size,
@@ -151,6 +140,22 @@ class Media {
     static async findIdenticalByImageHash(image_hash) {
         try {
             return await this.findSimilarByImageHash(image_hash, 0);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Get all media with descriptors for duplicate checking
+    static async findAllWithDescriptors() {
+        try {
+            const query = `
+                SELECT id, title, scanning_image, descriptors, media_type, file_path
+                FROM media 
+                WHERE descriptors IS NOT NULL AND descriptors != 'null' AND descriptors != ''
+                ORDER BY created_at DESC
+            `;
+            const [rows] = await db.execute(query);
+            return rows.map(row => new Media(row));
         } catch (error) {
             throw error;
         }
@@ -246,7 +251,7 @@ class Media {
                 title,
                 description,
                 scanning_image,
-                image_hash,
+                descriptors,
                 media_type,
                 is_active
             } = updateData;
@@ -261,7 +266,7 @@ class Media {
 
             const query = `
                 UPDATE media 
-                SET title = ?, description = ?, scanning_image = ?, image_hash = ?,
+                SET title = ?, description = ?, scanning_image = ?, descriptors = ?,
                     media_type = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `;
@@ -270,7 +275,7 @@ class Media {
                 title,
                 description,
                 scanning_image || this.scanning_image,
-                image_hash || this.image_hash,
+                descriptors ? JSON.stringify(descriptors) : this.descriptors,
                 media_type,
                 is_active,
                 this.id

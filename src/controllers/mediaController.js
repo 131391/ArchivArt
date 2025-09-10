@@ -1,5 +1,5 @@
 const Media = require('../models/Media');
-const PerceptualHash = require('../utils/perceptualHash');
+const smartImageService = require('../services/smartImageService');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
@@ -337,13 +337,32 @@ class MediaController {
                         });
                     }
 
-                    // Generate perceptual hash of the scanning image for similarity detection
-                    let imageHash = null;
+                    // Check if image processing service is available
+                    const isServiceHealthy = await smartImageService.isHealthy();
+                    if (!isServiceHealthy) {
+                        console.error('Image processing service is not available');
+                        // Delete uploaded files
+                        await fs.unlink(mediaFile.path);
+                        await fs.unlink(scanningImageFile.path);
+                        
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Image processing service is temporarily unavailable. Please try again later.'
+                        });
+                    }
+
+                    // Extract features from the scanning image
+                    let descriptors = null;
                     try {
-                        imageHash = await PerceptualHash.generateScanningImageHash(scanningImageFile.filename);
-                        console.log('Generated perceptual hash:', imageHash);
-                    } catch (hashError) {
-                        console.error('Error generating perceptual hash:', hashError);
+                        const featureResult = await smartImageService.extractFeatures(scanningImageFile.path);
+                        if (featureResult.success) {
+                            descriptors = featureResult.descriptors;
+                            console.log(`Extracted ${featureResult.featureCount} features from scanning image using ${featureResult.service} service`);
+                        } else {
+                            throw new Error(featureResult.error);
+                        }
+                    } catch (featureError) {
+                        console.error('Error extracting features:', featureError);
                         // Delete uploaded files
                         await fs.unlink(mediaFile.path);
                         await fs.unlink(scanningImageFile.path);
@@ -354,15 +373,43 @@ class MediaController {
                         });
                     }
 
-                    // Duplicate detection is now handled in Media.create() method
-                    // This includes both filename and perceptual hash similarity checks
+                    // Check for duplicate images using feature matching
+                    try {
+                        const existingMedia = await Media.findAllWithDescriptors();
+                        const duplicateCheck = await smartImageService.checkForDuplicates(
+                            scanningImageFile.path, 
+                            existingMedia
+                        );
+
+                        if (duplicateCheck.success && duplicateCheck.isDuplicate) {
+                            console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia.title} using ${duplicateCheck.service} service`);
+                            // Delete uploaded files
+                            await fs.unlink(mediaFile.path);
+                            await fs.unlink(scanningImageFile.path);
+                            
+                            return res.status(400).json({
+                                success: false,
+                                message: `This scanning image is too similar to existing media: "${duplicateCheck.duplicateMedia.title}". Please use a different image.`,
+                                duplicateMedia: {
+                                    id: duplicateCheck.duplicateMedia.id,
+                                    title: duplicateCheck.duplicateMedia.title,
+                                    matchScore: duplicateCheck.matchScore
+                                },
+                                service: duplicateCheck.service
+                            });
+                        }
+                    } catch (duplicateError) {
+                        console.error('Error checking for duplicates:', duplicateError);
+                        // Continue with upload even if duplicate check fails
+                        console.log('Continuing with upload despite duplicate check error');
+                    }
 
                     // Create media record
                     const mediaData = {
                         title,
                         description,
                         scanning_image: scanningImageFile.filename,
-                        image_hash: imageHash,
+                        descriptors: descriptors,
                         media_type,
                         file_path: mediaFile.filename,
                         file_size: mediaFile.size,
@@ -501,44 +548,78 @@ class MediaController {
 
             // Handle scanning image upload if provided
             if (req.file) {
-                const PerceptualHash = require('../utils/perceptualHash');
                 const fs = require('fs').promises;
                 const path = require('path');
 
                 try {
-                    // Generate perceptual hash for the new scanning image
                     const imagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', req.file.filename);
-                    const imageHash = await PerceptualHash.generateHash(imagePath);
-
-                    // Check if this scanning image already exists (excluding current media)
-                    const existingMedia = await Media.findByScanningImage(req.file.filename);
-                    if (existingMedia && existingMedia.id !== parseInt(id)) {
-                        // Delete the uploaded file since it's a duplicate
+                    
+                    // Check if image processing service is available
+                    const isServiceHealthy = await smartImageService.isHealthy();
+                    if (!isServiceHealthy) {
+                        console.error('Image processing service is not available');
                         await fs.unlink(imagePath);
-                        return res.status(400).json({
+                        return res.status(500).json({
                             success: false,
-                            message: 'This scanning image already exists. Please use a different image.'
+                            message: 'Image processing service is temporarily unavailable. Please try again later.'
                         });
                     }
 
-                    // Check for similar images using perceptual hash
-                    if (imageHash) {
-                        const similarMedia = await Media.findSimilarByImageHash(imageHash, 5);
-                        const similarMediaExcludingCurrent = similarMedia.filter(m => m.id !== parseInt(id));
-                        if (similarMediaExcludingCurrent.length > 0) {
-                            // Delete the uploaded file since it's similar to existing
-                            await fs.unlink(imagePath);
-                            const similarTitles = similarMediaExcludingCurrent.map(m => m.title).join(', ');
-                            return res.status(400).json({
-                                success: false,
-                                message: `A similar scanning image already exists (${similarTitles}). Please use a different image.`
-                            });
+                    // Extract features from the new scanning image
+                    let descriptors = null;
+                    try {
+                        const featureResult = await smartImageService.extractFeatures(imagePath);
+                        if (featureResult.success) {
+                            descriptors = featureResult.descriptors;
+                            console.log(`Extracted ${featureResult.featureCount} features from new scanning image using ${featureResult.service} service`);
+                        } else {
+                            throw new Error(featureResult.error);
                         }
+                    } catch (featureError) {
+                        console.error('Error extracting features:', featureError);
+                        await fs.unlink(imagePath);
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Error processing scanning image. Please try again.'
+                        });
+                    }
+
+                    // Check for duplicate images using feature matching (excluding current media)
+                    try {
+                        const existingMedia = await Media.findAllWithDescriptors();
+                        const otherMedia = existingMedia.filter(m => m.id !== parseInt(id));
+                        
+                        if (otherMedia.length > 0) {
+                            const duplicateCheck = await smartImageService.checkForDuplicates(
+                                imagePath, 
+                                otherMedia
+                            );
+
+                            if (duplicateCheck.success && duplicateCheck.isDuplicate) {
+                                console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia.title} using ${duplicateCheck.service} service`);
+                                await fs.unlink(imagePath);
+                                
+                                return res.status(400).json({
+                                    success: false,
+                                    message: `This scanning image is too similar to existing media: "${duplicateCheck.duplicateMedia.title}". Please use a different image.`,
+                                    duplicateMedia: {
+                                        id: duplicateCheck.duplicateMedia.id,
+                                        title: duplicateCheck.duplicateMedia.title,
+                                        matchScore: duplicateCheck.matchScore
+                                    },
+                                    service: duplicateCheck.service
+                                });
+                            }
+                        }
+                    } catch (duplicateError) {
+                        console.error('Error checking for duplicates:', duplicateError);
+                        // Continue with update even if duplicate check fails
+                        console.log('Continuing with update despite duplicate check error');
                     }
 
                     // Delete old scanning image file if it exists
                     if (media.scanning_image) {
-                        const oldImagePath = path.join(__dirname, '..', 'public', 'uploads', 'media', media.scanning_image);
+                        const oldImagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', media.scanning_image);
                         try {
                             await fs.unlink(oldImagePath);
                         } catch (error) {
@@ -548,15 +629,12 @@ class MediaController {
 
                     // Update with new scanning image
                     updateData.scanning_image = req.file.filename;
-                    updateData.image_hash = imageHash;
-                } catch (hashError) {
-                    console.error('Error processing scanning image:', hashError);
-                    // Delete the uploaded file if hash generation failed
-                    try {
-                        await fs.unlink(path.join(__dirname, '..', 'public', 'uploads', 'media', req.file.filename));
-                    } catch (deleteError) {
-                        console.error('Error deleting uploaded file:', deleteError);
-                    }
+                    updateData.descriptors = descriptors;
+                } catch (error) {
+                    console.error('Error processing scanning image:', error);
+                    // Delete the uploaded file
+                    const imagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', req.file.filename);
+                    await fs.unlink(imagePath);
                     return res.status(500).json({
                         success: false,
                         message: 'Error processing scanning image'
