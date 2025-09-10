@@ -285,6 +285,12 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Found tabs:', mediaTabs.length);
     console.log('Tab elements:', mediaTabs);
     
+    // Check if we're on the media upload page
+    if (mediaTabs.length === 0) {
+        console.log('Media tabs not found - not on media upload page');
+        return;
+    }
+    
     // Add event listeners to tabs
     mediaTabs.forEach((tab, index) => {
         console.log(`Adding event listener to tab ${index}:`, tab);
@@ -303,6 +309,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
+    
+    // Check if we're on the media upload page
+    if (!dropZone || !fileInput) {
+        console.log('Media upload elements not found - not on media upload page');
+        return;
+    }
 
     // Scanning image elements
     const scanningImageDropZone = document.getElementById('scanning-image-drop-zone');

@@ -572,26 +572,162 @@ class AdminController {
   // Settings page
   async settings(req, res) {
     try {
+      // Get current settings from database
+      const [settings] = await db.execute('SELECT * FROM settings LIMIT 1');
+      const currentSettings = settings.length > 0 ? settings[0] : {};
+      
       res.render('admin/settings', {
-        title: 'Settings'
+        title: 'Settings',
+        settings: currentSettings
       });
     } catch (error) {
       console.error('Settings error:', error);
       req.flash('error_msg', 'Error loading settings');
-      res.render('admin/settings', { title: 'Settings' });
+      res.render('admin/settings', { 
+        title: 'Settings',
+        settings: {}
+      });
     }
   }
 
   // Update settings
   async updateSettings(req, res) {
     try {
-      // Handle settings update logic here
-      req.flash('success_msg', 'Settings updated successfully');
-      res.redirect('/admin/settings');
+      const settingsType = req.headers['x-settings-type'] || 'general';
+      const path = require('path');
+      const fs = require('fs').promises;
+      const { logoUpload } = require('../config/multer');
+      
+      console.log('Settings update request - Type:', settingsType);
+      console.log('Settings update request - Headers:', req.headers);
+      console.log('Settings update request - Body:', req.body);
+      console.log('Settings update request - Files:', req.files);
+      console.log('Settings update request - File:', req.file);
+      
+      // Handle different settings types
+      if (settingsType === 'brand') {
+        // Handle brand settings with potential logo upload
+        logoUpload(req, res, async (err) => {
+          if (err) {
+            console.error('Upload error:', err);
+            return res.status(400).json({
+              success: false,
+              message: err.message
+            });
+          }
+          
+          try {
+            const { site_name, site_tagline, primary_color } = req.body;
+            let logoPath = null;
+            
+            console.log('Brand settings update - req.file:', req.file);
+            console.log('Brand settings update - req.body:', req.body);
+            
+            // Handle logo upload
+            if (req.file) {
+              logoPath = `/uploads/logos/${req.file.filename}`;
+              console.log('Logo uploaded successfully:', logoPath);
+              
+              // Delete old logo if exists
+              const [oldSettings] = await db.execute('SELECT logo_path FROM settings LIMIT 1');
+              if (oldSettings.length > 0 && oldSettings[0].logo_path) {
+                const oldLogoPath = path.join('src/public', oldSettings[0].logo_path);
+                try {
+                  await fs.unlink(oldLogoPath);
+                  console.log('Old logo deleted:', oldLogoPath);
+                } catch (unlinkError) {
+                  console.log('Old logo file not found or already deleted:', unlinkError.message);
+                }
+              }
+            } else {
+              console.log('No logo file uploaded');
+            }
+            
+            // Update or insert settings
+            const [existingSettings] = await db.execute('SELECT id FROM settings LIMIT 1');
+            
+            if (existingSettings.length > 0) {
+              // Update existing settings
+              const updateFields = ['site_name = ?', 'site_tagline = ?', 'primary_color = ?'];
+              const updateValues = [site_name, site_tagline, primary_color];
+              
+              if (logoPath) {
+                updateFields.push('logo_path = ?');
+                updateValues.push(logoPath);
+              }
+              
+              updateValues.push(existingSettings[0].id);
+              
+              await db.execute(
+                `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+                updateValues
+              );
+            } else {
+              // Insert new settings
+              await db.execute(
+                'INSERT INTO settings (site_name, site_tagline, primary_color, logo_path, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
+                [site_name, site_tagline, primary_color, logoPath]
+              );
+            }
+            
+            res.json({
+              success: true,
+              message: 'Brand settings saved successfully'
+            });
+          } catch (error) {
+            console.error('Brand settings error:', error);
+            res.status(500).json({
+              success: false,
+              message: 'Error saving brand settings'
+            });
+          }
+        });
+      } else {
+        // Handle other settings types (system, aws, security, email)
+        const settingsData = req.body;
+        
+        // Update or insert settings based on type
+        const [existingSettings] = await db.execute('SELECT id FROM settings LIMIT 1');
+        
+        if (existingSettings.length > 0) {
+          // Update existing settings
+          const updateFields = [];
+          const updateValues = [];
+          
+          Object.keys(settingsData).forEach(key => {
+            updateFields.push(`${key} = ?`);
+            updateValues.push(settingsData[key]);
+          });
+          
+          updateValues.push(existingSettings[0].id);
+          
+          await db.execute(
+            `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+            updateValues
+          );
+        } else {
+          // Insert new settings
+          const fields = Object.keys(settingsData);
+          const values = Object.values(settingsData);
+          const placeholders = fields.map(() => '?').join(', ');
+          
+          await db.execute(
+            `INSERT INTO settings (${fields.join(', ')}, created_at, updated_at) VALUES (${placeholders}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+            values
+          );
+        }
+        
+        res.json({
+          success: true,
+          message: `${settingsType.charAt(0).toUpperCase() + settingsType.slice(1)} settings saved successfully`
+        });
+      }
     } catch (error) {
       console.error('Update settings error:', error);
-      req.flash('error_msg', 'Error updating settings');
-      res.redirect('/admin/settings');
+      res.status(500).json({
+        success: false,
+        message: 'Error updating settings'
+      });
     }
   }
 

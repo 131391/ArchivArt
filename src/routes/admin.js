@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const { requireAuth, requireAdminWeb, redirectIfAuthenticated } = require('../middleware/auth');
+const { loadSettings } = require('../middleware/settings');
 const authController = require('../controllers/authController');
 const adminController = require('../controllers/adminController');
 const mediaController = require('../controllers/mediaController');
@@ -16,7 +17,7 @@ router.get('/', (req, res) => {
 });
 
 // Login routes
-router.get('/login', redirectIfAuthenticated, (req, res) => {
+router.get('/login', redirectIfAuthenticated, loadSettings, (req, res) => {
   res.render('admin/login', { 
     title: 'Login',
     email: req.query.email || '',
@@ -32,10 +33,10 @@ router.post('/login', [
 router.get('/logout', authController.webLogout);
 
 // Dashboard
-router.get('/dashboard', requireAdminWeb, adminController.dashboard);
+router.get('/dashboard', requireAdminWeb, loadSettings, adminController.dashboard);
 
 // User management routes
-router.get('/users', requireAdminWeb, adminController.getUsers);
+router.get('/users', requireAdminWeb, loadSettings, adminController.getUsers);
 router.get('/users/data', requireAdminWeb, adminController.getUsersData);
 router.get('/users/:id', requireAdminWeb, adminController.getUser);
 router.put('/users/:id', requireAdminWeb, adminController.updateUser);
@@ -47,11 +48,12 @@ router.delete('/users/:id', requireAdminWeb, adminController.deleteUser);
 router.use('/media', require('./media'));
 
 // Settings
-router.get('/settings', requireAdminWeb, adminController.settings);
+router.get('/settings', requireAdminWeb, loadSettings, adminController.settings);
 router.post('/settings', requireAdminWeb, adminController.updateSettings);
 
+
 // Profile
-router.get('/profile', requireAuth, adminController.profile);
+router.get('/profile', requireAuth, loadSettings, adminController.profile);
 router.post('/profile', requireAuth, adminController.updateProfile);
 
 module.exports = router;

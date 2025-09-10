@@ -48,12 +48,23 @@
         <div class="glass-effect rounded-2xl shadow-2xl p-8 space-y-6">
             <!-- Header -->
             <div class="text-center">
-                <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg">
-                    <i class="fas fa-magic text-white text-2xl"></i>
-                </div>
-                <h2 class="mt-6 text-3xl font-bold text-gray-800">
-                    ArchivArt Admin
-                </h2>
+                <% if (settings && settings.logo_path) { %>
+                    <!-- Show uploaded logo -->
+                    <div class="mx-auto h-28 w-28 flex items-center justify-center rounded-full bg-white shadow-lg p-4">
+                        <img src="<%= settings.logo_path %>" alt="<%= settings.site_name || 'ArchivArt' %>" class="h-20 w-auto object-contain">
+                    </div>
+                    <h2 class="mt-6 text-3xl font-bold text-gray-800">
+                        <%= settings.site_name || 'ArchivArt' %> Admin
+                    </h2>
+                <% } else { %>
+                    <!-- Show icon when no logo -->
+                    <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg">
+                        <i class="fas fa-magic text-white text-2xl"></i>
+                    </div>
+                    <h2 class="mt-6 text-3xl font-bold text-gray-800">
+                        ArchivArt Admin
+                    </h2>
+                <% } %>
                 <p class="mt-2 text-gray-600">
                     Sign in to your admin account
                 </p>

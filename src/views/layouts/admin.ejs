@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> - ArchivArt Admin</title>
+    <title><%= title %> - <%= settings && settings.site_name ? settings.site_name : 'ArchivArt' %> Admin</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -48,6 +48,10 @@
         .sidebar-collapsed .ml-3 {
             margin-left: 0 !important;
         }
+        .sidebar-logo img {
+            object-fit: contain;
+            border-radius: 4px;
+        }
         .main-content-expanded {
             margin-left: 0;
         }
@@ -83,17 +87,28 @@
                 left: 0 !important;
             }
         }
+        
+        
+        /* Ensure logo container has proper padding and background */
+        .sidebar-header {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border-bottom: 2px solid #374151;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body class="bg-gray-100">
     <!-- Sidebar -->
     <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 sidebar-transition">
         <!-- Sidebar Header -->
-        <div class="flex items-center justify-center h-16 bg-gray-800">
+        <div class="flex items-center justify-center h-16 bg-gray-800 sidebar-header">
+            <!-- Show site name from settings -->
             <h1 class="text-white text-xl font-bold">
-                <i class="fas fa-magic mr-2"></i>ArchivArt
+                <i class="fas fa-magic mr-2"></i>
+                <%= settings && settings.site_name ? settings.site_name : 'ArchivArt' %>
             </h1>
-            <!-- Logo icon for collapsed mode -->
+            <!-- Site name icon for collapsed mode -->
             <div class="sidebar-logo-icon hidden">
                 <i class="fas fa-magic text-white text-2xl"></i>
             </div>
@@ -304,8 +319,15 @@
     <script src="/js/table.js"></script>
 
 
-<!-- media upload javascript 111-->
-<script src="/js/media-upload.js"></script>
+    <!-- Media upload javascript - only loaded on media upload pages -->
+    <% if (typeof title !== 'undefined' && title.includes('Upload Media')) { %>
+        <script src="/js/media-upload.js"></script>
+    <% } %>
+
+    <!-- Settings javascript - only loaded on settings pages -->
+    <% if (typeof title !== 'undefined' && title.includes('Settings')) { %>
+        <script src="/js/settings.js"></script>
+    <% } %>
 
 
     <!-- Users page specific JavaScript -->

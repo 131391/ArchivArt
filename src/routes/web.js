@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const { loadSettings } = require('../middleware/settings');
 
 // Home page
-router.get('/', (req, res) => {
+router.get('/', loadSettings, (req, res) => {
   res.render('index', { 
     title: 'ArchivArt - AR Media Platform',
     message: 'Welcome to ArchivArt'
@@ -10,7 +11,7 @@ router.get('/', (req, res) => {
 });
 
 // API documentation
-router.get('/api-docs', (req, res) => {
+router.get('/api-docs', loadSettings, (req, res) => {
   res.render('api-docs', { 
     title: 'API Documentation',
     endpoints: [

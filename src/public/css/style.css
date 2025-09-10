@@ -173,3 +173,117 @@
         color: #f9fafb;
     }
 }
+
+/* Settings page specific styles */
+.settings-card {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.settings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.settings-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Form input focus effects */
+.form-input-enhanced {
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+}
+
+.form-input-enhanced:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Button hover effects */
+.btn-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Logo upload area */
+.logo-upload-area {
+    transition: all 0.3s ease;
+    border: 2px dashed #d1d5db;
+}
+
+.logo-upload-area:hover {
+    border-color: #4f46e5;
+    background-color: #f8fafc;
+}
+
+.logo-upload-area.drag-over {
+    border-color: #4f46e5;
+    background-color: #eef2ff;
+    transform: scale(1.02);
+}
+
+/* System info cards */
+.system-info-card {
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.system-info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Color picker enhancement */
+.color-picker-enhanced {
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+}
+
+.color-picker-enhanced:hover {
+    border-color: #4f46e5;
+    transform: scale(1.05);
+}
+
+/* Loading animation for settings */
+.settings-loading {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .5;
+    }
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .settings-card {
+        margin: 0.5rem;
+    }
+    
+    .gradient-header {
+        padding: 1rem;
+    }
+    
+    .gradient-header h1 {
+        font-size: 2rem;
+    }
+}

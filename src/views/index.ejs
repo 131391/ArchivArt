@@ -18,9 +18,15 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <h1 class="text-xl font-bold text-indigo-600">
-                            <i class="fas fa-magic mr-2"></i>ArchivArt
-                        </h1>
+                        <% if (settings && settings.logo_path) { %>
+                            <!-- Show uploaded logo -->
+                            <img src="<%= settings.logo_path %>" alt="<%= settings.site_name || 'ArchivArt' %>" class="h-16 w-auto max-w-80 object-contain">
+                        <% } else { %>
+                            <!-- Show icon and text when no logo -->
+                            <h1 class="text-xl font-bold text-indigo-600">
+                                <i class="fas fa-magic mr-2"></i>ArchivArt
+                            </h1>
+                        <% } %>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -246,9 +252,14 @@
     <footer class="bg-white">
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h3 class="text-lg font-semibold text-gray-900">ArchivArt</h3>
+                <% if (settings && settings.logo_path) { %>
+                    <!-- Show uploaded logo in footer -->
+                    <img src="<%= settings.logo_path %>" alt="<%= settings.site_name || 'ArchivArt' %>" class="h-16 w-auto mx-auto mb-4 object-contain">
+                <% } else { %>
+                    <h3 class="text-lg font-semibold text-gray-900">ArchivArt</h3>
+                <% } %>
                 <p class="mt-2 text-sm text-gray-500">
-                    AR Media Platform - Bringing images to life with interactive content.
+                    <%= settings && settings.site_tagline ? settings.site_tagline : 'AR Media Platform - Bringing images to life with interactive content.' %>
                 </p>
                 <div class="mt-4 flex justify-center space-x-6">
                     <a href="/api-docs" class="text-gray-400 hover:text-gray-500">
