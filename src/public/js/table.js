@@ -45,6 +45,7 @@ function setupEventListeners() {
             console.log('Table.js: Debounced search triggered with value:', value);
             currentSearch = value;
             currentPage = 1;
+            console.log('Table.js: About to call loadTableData');
             loadTableData();
         }, 500); // 500ms delay
         
@@ -56,7 +57,10 @@ function setupEventListeners() {
             // Show loading indicator
             const loadingIndicator = document.getElementById('searchLoading');
             if (loadingIndicator) {
+                console.log('Table.js: Showing search loading indicator');
                 loadingIndicator.classList.remove('hidden');
+            } else {
+                console.log('Table.js: Search loading indicator not found');
             }
             
             // Debounced search
@@ -174,6 +178,15 @@ async function loadTableData() {
             hideLoader();
         } else {
             hideLoadingState();
+        }
+        
+        // Hide search loading indicator
+        const searchLoadingIndicator = document.getElementById('searchLoading');
+        if (searchLoadingIndicator) {
+            console.log('Table.js: Hiding search loading indicator');
+            searchLoadingIndicator.classList.add('hidden');
+        } else {
+            console.log('Table.js: Search loading indicator not found for hiding');
         }
     }
 }
