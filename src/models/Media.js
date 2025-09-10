@@ -246,6 +246,7 @@ class Media {
                 title,
                 description,
                 scanning_image,
+                image_hash,
                 media_type,
                 is_active
             } = updateData;
@@ -260,7 +261,7 @@ class Media {
 
             const query = `
                 UPDATE media 
-                SET title = ?, description = ?, scanning_image = ?, 
+                SET title = ?, description = ?, scanning_image = ?, image_hash = ?,
                     media_type = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `;
@@ -268,7 +269,8 @@ class Media {
             await db.execute(query, [
                 title,
                 description,
-                scanning_image,
+                scanning_image || this.scanning_image,
+                image_hash || this.image_hash,
                 media_type,
                 is_active,
                 this.id

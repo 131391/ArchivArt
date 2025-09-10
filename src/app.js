@@ -54,6 +54,11 @@ app.use((req, res, next) => {
     if (!filename) return '';
     return res.locals.imageUrl(`/uploads/media/${filename}`);
   };
+  // Convenience: scanningImageUrl to prefix uploads/media
+  res.locals.scanningImageUrl = function scanningImageUrl(filename) {
+    if (!filename) return '';
+    return res.locals.imageUrl(`/uploads/media/${filename}`);
+  };
   next();
 });
 

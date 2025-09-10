@@ -88,8 +88,38 @@ const upload = multer({
   }
 });
 
+// Scanning image upload configuration
+const scanningImageStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'src/public/uploads/media/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'scanning-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const scanningImageUpload = multer({
+  storage: scanningImageStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for scanning images
+  },
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files (JPEG, PNG, GIF, WebP) are allowed for scanning images'));
+    }
+  }
+});
+
 module.exports = {
   logoUpload: logoUpload.single('logo'),
   upload,
+  scanningImageUpload: scanningImageUpload.single('scanning_image'),
   ensureUploadDirs
 };

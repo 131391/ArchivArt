@@ -329,6 +329,11 @@
         <script src="/js/settings.js"></script>
     <% } %>
 
+    <!-- Media edit javascript - only loaded on media edit pages -->
+    <% if (typeof title !== 'undefined' && title.includes('Edit Media')) { %>
+        <script src="/js/media-edit.js"></script>
+    <% } %>
+
 
     <!-- Users page specific JavaScript -->
     <% if (typeof title !== 'undefined' && title.includes('Users')) { %>
@@ -708,47 +713,8 @@
 
         function editMedia(mediaId) {
             console.log('editMedia called with mediaId:', mediaId);
-            
-            // Show loader
-            if (typeof showAjaxLoader === 'function') {
-                showAjaxLoader({
-                    title: 'Loading Media Details...',
-                    message: 'Fetching media information for editing'
-                });
-            }
-            
-            fetch(`/admin/media/${mediaId}`, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Hide loader
-                    if (typeof hideLoader === 'function') {
-                        hideLoader();
-                    }
-                    
-                    if (data.success) {
-                        const media = data.media;
-                        document.getElementById('editMediaId').value = media.id;
-                        document.getElementById('editTitle').value = media.title;
-                        document.getElementById('editDescription').value = media.description || '';
-                        document.getElementById('editMediaType').value = media.media_type;
-                        document.getElementById('editIsActive').value = media.is_active ? 'true' : 'false';
-                        document.getElementById('editMediaModal').classList.remove('hidden');
-                    } else {
-                        showErrorToast('Error loading media details');
-                    }
-                })
-                .catch(error => {
-                    // Hide loader
-                    if (typeof hideLoader === 'function') {
-                        hideLoader();
-                    }
-                    console.error('Error in editMedia:', error);
-                    showErrorToast('Error loading media details: ' + error.message);
-                });
+            // Redirect to dedicated edit page
+            window.location.href = `/admin/media/edit/${mediaId}`;
         }
 
         function toggleMediaStatus(mediaId) {
@@ -872,69 +838,7 @@
                 });
         }
 
-        // Handle edit form submission
-        document.addEventListener('DOMContentLoaded', function() {
-            const editForm = document.getElementById('editMediaForm');
-            if (editForm) {
-                editForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(editForm);
-                    const mediaId = formData.get('id');
-                    
-                    // Show loader
-                    if (typeof showFormLoader === 'function') {
-                        showFormLoader({
-                            title: 'Updating Media...',
-                            message: 'Please wait while we update the media'
-                        });
-                    }
-                    
-                    try {
-                        const response = await fetch(`/admin/media/${mediaId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                title: formData.get('title'),
-                                description: formData.get('description'),
-                                media_type: formData.get('media_type'),
-                                is_active: formData.get('is_active')
-                            })
-                        });
-                        
-                        const data = await response.json();
-                        
-                        // Hide loader
-                        if (typeof hideLoader === 'function') {
-                            hideLoader();
-                        }
-                        
-                        if (data.success) {
-                            showSuccessToast('Media updated successfully');
-                            closeModal('editMediaModal');
-                            // Reload table data
-                            if (typeof TableUtils !== 'undefined' && typeof TableUtils.loadTableData === 'function') {
-                                TableUtils.loadTableData();
-                            } else {
-                                location.reload();
-                            }
-                        } else {
-                            showErrorToast('Error updating media: ' + data.message);
-                        }
-                    } catch (error) {
-                        // Hide loader
-                        if (typeof hideLoader === 'function') {
-                            hideLoader();
-                        }
-                        console.error('Update media error:', error);
-                        showErrorToast('Error updating media: ' + error.message);
-                    }
-                });
-            }
-        });
+        // Edit form submission handler removed - now using dedicated edit page
 
         // Initialize table for AJAX operations (search, sort, pagination)
         document.addEventListener('DOMContentLoaded', function() {

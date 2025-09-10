@@ -425,6 +425,28 @@ class MediaController {
         }
     }
 
+    // Show edit media form
+    static async showEditForm(req, res) {
+        try {
+            const { id } = req.params;
+            const media = await Media.findById(id);
+
+            if (!media) {
+                req.flash('error', 'Media not found');
+                return res.redirect('/admin/media');
+            }
+
+            res.render('admin/media-edit', {
+                title: `Edit Media: ${media.title}`,
+                media: media
+            });
+        } catch (error) {
+            console.error('Error loading media edit form:', error);
+            req.flash('error', 'Error loading media edit form');
+            res.redirect('/admin/media');
+        }
+    }
+
     // Get single media
     static async getMedia(req, res) {
         try {
@@ -453,31 +475,105 @@ class MediaController {
 
     // Update media
     static async updateMedia(req, res) {
-    try {
-      const { id } = req.params;
+        try {
+            const { id } = req.params;
             const { title, description, media_type, is_active } = req.body;
+            
+            console.log('Update media request:', { id, title, description, media_type, is_active });
+            console.log('File uploaded:', req.file ? req.file.filename : 'No file');
 
             const media = await Media.findById(id);
             if (!media) {
+                console.log('Media not found for ID:', id);
                 return res.status(404).json({
                     success: false,
                     message: 'Media not found'
                 });
             }
 
-            const updatedMedia = await media.update({
+            // Prepare update data
+            const updateData = {
                 title,
                 description,
                 media_type,
                 is_active: is_active === 'true'
-            });
+            };
+
+            // Handle scanning image upload if provided
+            if (req.file) {
+                const PerceptualHash = require('../utils/perceptualHash');
+                const fs = require('fs').promises;
+                const path = require('path');
+
+                try {
+                    // Generate perceptual hash for the new scanning image
+                    const imagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', req.file.filename);
+                    const imageHash = await PerceptualHash.generateHash(imagePath);
+
+                    // Check if this scanning image already exists (excluding current media)
+                    const existingMedia = await Media.findByScanningImage(req.file.filename);
+                    if (existingMedia && existingMedia.id !== parseInt(id)) {
+                        // Delete the uploaded file since it's a duplicate
+                        await fs.unlink(imagePath);
+                        return res.status(400).json({
+                            success: false,
+                            message: 'This scanning image already exists. Please use a different image.'
+                        });
+                    }
+
+                    // Check for similar images using perceptual hash
+                    if (imageHash) {
+                        const similarMedia = await Media.findSimilarByImageHash(imageHash, 5);
+                        const similarMediaExcludingCurrent = similarMedia.filter(m => m.id !== parseInt(id));
+                        if (similarMediaExcludingCurrent.length > 0) {
+                            // Delete the uploaded file since it's similar to existing
+                            await fs.unlink(imagePath);
+                            const similarTitles = similarMediaExcludingCurrent.map(m => m.title).join(', ');
+                            return res.status(400).json({
+                                success: false,
+                                message: `A similar scanning image already exists (${similarTitles}). Please use a different image.`
+                            });
+                        }
+                    }
+
+                    // Delete old scanning image file if it exists
+                    if (media.scanning_image) {
+                        const oldImagePath = path.join(__dirname, '..', 'public', 'uploads', 'media', media.scanning_image);
+                        try {
+                            await fs.unlink(oldImagePath);
+                        } catch (error) {
+                            console.log('Old scanning image file not found or already deleted:', oldImagePath);
+                        }
+                    }
+
+                    // Update with new scanning image
+                    updateData.scanning_image = req.file.filename;
+                    updateData.image_hash = imageHash;
+                } catch (hashError) {
+                    console.error('Error processing scanning image:', hashError);
+                    // Delete the uploaded file if hash generation failed
+                    try {
+                        await fs.unlink(path.join(__dirname, '..', 'public', 'uploads', 'media', req.file.filename));
+                    } catch (deleteError) {
+                        console.error('Error deleting uploaded file:', deleteError);
+                    }
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Error processing scanning image'
+                    });
+                }
+            }
+
+            const updatedMedia = await media.update(updateData);
+            
+            console.log('Media updated successfully:', updatedMedia);
 
             res.json({
                 success: true,
                 message: 'Media updated successfully',
                 media: updatedMedia
-      });
-    } catch (error) {
+            });
+        } catch (error) {
             console.error('Error updating media:', error);
             res.status(500).json({
                 success: false,

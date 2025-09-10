@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MediaController = require('../controllers/mediaController');
 const { requireAdminWeb, requireAdmin } = require('../middleware/auth');
+const { scanningImageUpload } = require('../config/multer');
 
 // Media list page
 router.get('/', requireAdminWeb, MediaController.getMediaList);
@@ -18,11 +19,14 @@ router.post('/upload', requireAdminWeb, MediaController.uploadMedia);
 // Media view page
 router.get('/view/:id', requireAdminWeb, MediaController.getMediaView);
 
+// Media edit page
+router.get('/edit/:id', requireAdminWeb, MediaController.showEditForm);
+
 // Get single media (API)
 router.get('/:id', requireAdminWeb, MediaController.getMedia);
 
 // Update media
-router.put('/:id', requireAdminWeb, MediaController.updateMedia);
+router.put('/:id', requireAdminWeb, scanningImageUpload, MediaController.updateMedia);
 
 // Toggle media status
 router.patch('/:id/toggle', requireAdminWeb, MediaController.toggleMediaStatus);
