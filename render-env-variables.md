@@ -106,7 +106,7 @@ After setting up environment variables, test these URLs:
 Since you're using a single service, the Python OpenCV service will run internally on port 5001. The Node.js app will connect to it using:
 
 ```bash
-OPENCV_SERVICE_URL=http://localhost:5001
+OPENCV_SERVICE_URL=http://127.0.0.1:5001
 ```
 
 ## ⚠️ **Important Notes**
