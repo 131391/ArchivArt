@@ -276,6 +276,11 @@
         navLinks.forEach(link => {
             const linkHref = link.getAttribute('href');
             
+            // Special case: Don't highlight Media tab when on upload media page
+            if (linkHref === '/admin/media' && currentPath === '/admin/media/upload') {
+                return; // Skip highlighting for this case
+            }
+            
             // Check for exact match or if current path starts with the link href
             // This handles sub-paths like /admin/media/edit/1 matching /admin/media
             if (linkHref === currentPath || currentPath.startsWith(linkHref + '/')) {
