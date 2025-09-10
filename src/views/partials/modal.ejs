@@ -1,33 +1,40 @@
-<!-- Modal Alert System -->
-<div id="customModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex items-center justify-between mb-4">
+<!-- Enhanced Modal Alert System -->
+<div id="customModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-sm">
+    <div class="relative top-20 mx-auto p-0 border-0 w-96 shadow-2xl rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="modalContainer">
+        <!-- Modal Header with Gradient -->
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-t-2xl p-6 text-white">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <div id="modalIcon" class="flex-shrink-0 mr-3">
+                    <div id="modalIcon" class="flex-shrink-0 mr-4">
                         <!-- Icon will be inserted here -->
                     </div>
-                    <h3 id="modalTitle" class="text-lg font-medium text-gray-900">
+                    <h3 id="modalTitle" class="text-xl font-bold">
                         <!-- Title will be inserted here -->
                     </h3>
                 </div>
-                <button onclick="closeCustomModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
+                <button onclick="closeCustomModal()" class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                    <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
-            <div class="mb-4">
-                <p id="modalMessage" class="text-sm text-gray-600">
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <div class="mb-6">
+                <p id="modalMessage" class="text-gray-700 text-base leading-relaxed">
                     <!-- Message will be inserted here -->
                 </p>
             </div>
+            
+            <!-- Modal Actions -->
             <div class="flex justify-end space-x-3">
-                <button id="modalCancelBtn" onclick="closeCustomModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 hidden">
+                <button id="modalCancelBtn" onclick="closeCustomModal()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 font-medium hidden">
                     Cancel
                 </button>
-                <button id="modalConfirmBtn" onclick="confirmCustomModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 hidden">
+                <button id="modalConfirmBtn" onclick="confirmCustomModal()" class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105 hidden">
                     Confirm
                 </button>
-                <button id="modalOkBtn" onclick="closeCustomModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                <button id="modalOkBtn" onclick="closeCustomModal()" class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
                     OK
                 </button>
             </div>
@@ -61,6 +68,7 @@
 
     function showCustomModal(type, title, message, callback = null) {
         const modal = document.getElementById('customModal');
+        const modalContainer = document.getElementById('modalContainer');
         const modalIcon = document.getElementById('modalIcon');
         const modalTitle = document.getElementById('modalTitle');
         const modalMessage = document.getElementById('modalMessage');
@@ -74,29 +82,41 @@
 
         // Set icon and colors based on type
         let iconHtml = '';
+        let headerGradient = '';
         let confirmBtnClass = '';
         
         switch(type) {
             case 'success':
-                iconHtml = '<i class="fas fa-check-circle text-green-500 text-2xl"></i>';
-                confirmBtnClass = 'bg-green-600 hover:bg-green-700';
+                iconHtml = '<i class="fas fa-check-circle text-white text-3xl"></i>';
+                headerGradient = 'bg-gradient-to-r from-emerald-500 to-green-600';
+                confirmBtnClass = 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700';
                 break;
             case 'error':
-                iconHtml = '<i class="fas fa-exclamation-circle text-red-500 text-2xl"></i>';
-                confirmBtnClass = 'bg-red-600 hover:bg-red-700';
+                iconHtml = '<i class="fas fa-exclamation-circle text-white text-3xl"></i>';
+                headerGradient = 'bg-gradient-to-r from-red-500 to-pink-600';
+                confirmBtnClass = 'bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700';
                 break;
             case 'warning':
-                iconHtml = '<i class="fas fa-exclamation-triangle text-yellow-500 text-2xl"></i>';
-                confirmBtnClass = 'bg-yellow-600 hover:bg-yellow-700';
+                iconHtml = '<i class="fas fa-exclamation-triangle text-white text-3xl"></i>';
+                headerGradient = 'bg-gradient-to-r from-yellow-500 to-orange-500';
+                confirmBtnClass = 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600';
                 break;
             case 'info':
-                iconHtml = '<i class="fas fa-info-circle text-blue-500 text-2xl"></i>';
-                confirmBtnClass = 'bg-blue-600 hover:bg-blue-700';
+                iconHtml = '<i class="fas fa-info-circle text-white text-3xl"></i>';
+                headerGradient = 'bg-gradient-to-r from-blue-500 to-indigo-600';
+                confirmBtnClass = 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700';
                 break;
             case 'confirm':
-                iconHtml = '<i class="fas fa-question-circle text-blue-500 text-2xl"></i>';
-                confirmBtnClass = 'bg-blue-600 hover:bg-blue-700';
+                iconHtml = '<i class="fas fa-question-circle text-white text-3xl"></i>';
+                headerGradient = 'bg-gradient-to-r from-indigo-500 to-purple-600';
+                confirmBtnClass = 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700';
                 break;
+        }
+
+        // Update header gradient
+        const header = modalContainer.querySelector('.bg-gradient-to-r');
+        if (header) {
+            header.className = header.className.replace(/bg-gradient-to-r from-\w+-\d+ to-\w+-\d+/, headerGradient);
         }
 
         modalIcon.innerHTML = iconHtml;
@@ -106,22 +126,39 @@
             modalCancelBtn.classList.remove('hidden');
             modalConfirmBtn.classList.remove('hidden');
             modalOkBtn.classList.add('hidden');
-            modalConfirmBtn.className = `px-4 py-2 ${confirmBtnClass} text-white rounded-md`;
+            modalConfirmBtn.className = `px-6 py-3 ${confirmBtnClass} text-white rounded-xl hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200 font-medium shadow-lg transform hover:scale-105`;
             customModalCallback = callback;
         } else {
             modalCancelBtn.classList.add('hidden');
             modalConfirmBtn.classList.add('hidden');
             modalOkBtn.classList.remove('hidden');
-            modalOkBtn.className = `px-4 py-2 ${confirmBtnClass} text-white rounded-md`;
+            modalOkBtn.className = `px-6 py-3 ${confirmBtnClass} text-white rounded-xl hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200 font-medium shadow-lg transform hover:scale-105`;
             customModalCallback = null;
         }
 
-        // Show modal
+        // Show modal with animation
         modal.classList.remove('hidden');
+        
+        // Trigger animation
+        setTimeout(() => {
+            modalContainer.classList.remove('scale-95', 'opacity-0');
+            modalContainer.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
     function closeCustomModal() {
-        document.getElementById('customModal').classList.add('hidden');
+        const modal = document.getElementById('customModal');
+        const modalContainer = document.getElementById('modalContainer');
+        
+        // Trigger closing animation
+        modalContainer.classList.remove('scale-100', 'opacity-100');
+        modalContainer.classList.add('scale-95', 'opacity-0');
+        
+        // Hide modal after animation
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+        
         customModalCallback = null;
     }
 
