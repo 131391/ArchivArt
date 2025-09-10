@@ -3,7 +3,8 @@ const path = require('path');
 
 class OpenCVService {
     constructor() {
-        this.baseURL = process.env.OPENCV_SERVICE_URL || 'http://localhost:5001';
+        // Use 127.0.0.1 for Docker container communication
+        this.baseURL = process.env.OPENCV_SERVICE_URL || 'http://127.0.0.1:5001';
         this.timeout = 30000; // 30 seconds timeout
     }
 
