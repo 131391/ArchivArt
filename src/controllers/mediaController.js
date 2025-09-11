@@ -83,20 +83,18 @@ class MediaController {
                 });
             }
 
-            // Save uploaded image temporarily
-                    const tempDir = path.join(process.cwd(), 'tmp');
-                    await fs.mkdir(tempDir, { recursive: true });
-                    const tempPath = path.join(tempDir, `${uuidv4()}${path.extname(req.file.originalname)}`);
+            // Use the uploaded file directly since multer.diskStorage saves it to disk
+            // Convert to absolute path for Python service
+            const tempPath = path.resolve(req.file.path);
+            console.log(`📱 Mobile app uploaded image: ${req.file.originalname} at ${tempPath}`);
             
             try {
-                    await fs.writeFile(tempPath, req.file.buffer);
-                console.log(`📱 Mobile app uploaded image: ${req.file.originalname}`);
 
                 // Get all media with descriptors for matching
                 const existingMedia = await Media.findAllWithDescriptors();
                 
                 if (existingMedia.length === 0) {
-                    // Clean up temp file
+                    // Clean up uploaded file
                     await fs.unlink(tempPath).catch(() => {});
                     return res.json({
                         success: true,
@@ -113,7 +111,7 @@ class MediaController {
                     threshold
                 );
 
-                // Clean up temp file
+                // Clean up uploaded file
                 await fs.unlink(tempPath).catch(() => {});
 
                 if (matchResult.success && matchResult.matchedMedia) {
@@ -163,6 +161,10 @@ class MediaController {
 
         } catch (error) {
             console.error('Error matching scanning image:', error);
+            // Clean up uploaded file on error
+            if (req.file && req.file.path) {
+                await fs.unlink(req.file.path).catch(() => {});
+            }
             return res.status(500).json({ 
                 success: false, 
                 message: 'Server error matching image',
