@@ -9,9 +9,11 @@ const { body } = require('express-validator');
 // Authentication routes
 router.post('/auth/register', [
   body('name').notEmpty().withMessage('Name is required'),
+  body('username').optional().isLength({ min: 3, max: 50 }).withMessage('Username must be between 3 and 50 characters'),
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('role').optional().isIn(['user', 'admin']).withMessage('Invalid role')
+  body('mobile').optional().matches(/^\+[1-9]\d{1,14}$/).withMessage('Mobile must be in international format (e.g., +1234567890)'),
+  body('role').optional().isIn(['user']).withMessage('Invalid role - only user role allowed')
 ], authController.register);
 
 router.post('/auth/login', [
@@ -23,8 +25,16 @@ router.post('/auth/social-login', [
   body('provider').isIn(['google', 'facebook']).withMessage('Invalid provider'),
   body('providerId').notEmpty().withMessage('Provider ID is required'),
   body('name').notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Valid email is required')
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('profilePicture').optional().isURL().withMessage('Profile picture must be a valid URL'),
+  body('mobile').optional().matches(/^\+[1-9]\d{1,14}$/).withMessage('Mobile must be in international format (e.g., +1234567890)')
 ], authController.socialLogin);
+
+// Refresh token endpoint
+router.post('/auth/refresh', authController.refreshToken);
+
+// Logout endpoint
+router.post('/auth/logout', authController.logout);
 
 router.get('/auth/profile', authenticateToken, authController.getProfile);
 router.put('/auth/profile', [

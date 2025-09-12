@@ -16,43 +16,113 @@ class AuthController {
         });
       }
 
-      const { name, email, password, role = 'user' } = req.body;
+      const { name, username, email, password, mobile, role = 'user' } = req.body;
 
-      // Check if user already exists
-      const [existingUsers] = await db.execute(
+      // Ensure only user role can be created through API registration
+      if (role !== 'user') {
+        return res.status(400).json({ error: 'Invalid role - only user role allowed' });
+      }
+
+      // Check if user already exists by email
+      const [existingUsersByEmail] = await db.execute(
         'SELECT id FROM users WHERE email = ?',
         [email]
       );
 
-      if (existingUsers.length > 0) {
+      if (existingUsersByEmail.length > 0) {
         return res.status(400).json({ error: 'User already exists with this email' });
+      }
+
+      // Check if username is taken (if provided)
+      if (username) {
+        const [existingUsersByUsername] = await db.execute(
+          'SELECT id FROM users WHERE username = ?',
+          [username]
+        );
+
+        if (existingUsersByUsername.length > 0) {
+          return res.status(400).json({ error: 'Username is already taken' });
+        }
+      }
+
+      // Check if mobile is taken (if provided)
+      if (mobile) {
+        const [existingUsersByMobile] = await db.execute(
+          'SELECT id FROM users WHERE mobile = ?',
+          [mobile]
+        );
+
+        if (existingUsersByMobile.length > 0) {
+          return res.status(400).json({ error: 'Mobile number is already registered' });
+        }
       }
 
       // Hash password
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+      // Generate unique username if not provided
+      let finalUsername = username;
+      if (!finalUsername) {
+        const baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        let counter = 1;
+        finalUsername = baseUsername;
+        
+        while (true) {
+          const [existingUsername] = await db.execute(
+            'SELECT id FROM users WHERE username = ?',
+            [finalUsername]
+          );
+          
+          if (existingUsername.length === 0) {
+            break;
+          }
+          
+          finalUsername = `${baseUsername}${counter}`;
+          counter++;
+        }
+      }
+
       // Insert new user
       const [result] = await db.execute(
-        'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-        [name, email, hashedPassword, role]
+        'INSERT INTO users (name, username, email, password, mobile, role, auth_provider, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [name, finalUsername, email, hashedPassword, mobile, role, 'local', false]
       );
 
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: result.insertId, email, role },
+      // Generate JWT access token (short-lived)
+      const accessToken = jwt.sign(
+        { userId: result.insertId, email, role, username: finalUsername },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '15m' } // Short-lived access token
+      );
+
+      // Generate refresh token (long-lived)
+      const refreshToken = jwt.sign(
+        { userId: result.insertId, type: 'refresh' },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' } // Long-lived refresh token
+      );
+
+      // Store refresh token in database
+      const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      await db.execute(
+        'INSERT INTO user_sessions (user_id, session_token, refresh_token, expires_at, is_active) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY), true)',
+        [result.insertId, crypto.createHash('sha256').update(accessToken).digest('hex'), refreshTokenHash]
       );
 
       res.status(201).json({
         message: 'User registered successfully',
-        token,
+        accessToken,
+        refreshToken,
+        expiresIn: 900, // 15 minutes in seconds
         user: {
           id: result.insertId,
           name,
+          username: finalUsername,
           email,
-          role
+          mobile,
+          role,
+          is_verified: false
         }
       });
     } catch (error) {
@@ -97,21 +167,46 @@ class AuthController {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role },
+      // Generate JWT access token (short-lived)
+      const accessToken = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role, username: user.username },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '15m' } // Short-lived access token
+      );
+
+      // Generate refresh token (long-lived)
+      const refreshToken = jwt.sign(
+        { userId: user.id, type: 'refresh' },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' } // Long-lived refresh token
+      );
+
+      // Store refresh token in database
+      const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      await db.execute(
+        'INSERT INTO user_sessions (user_id, session_token, refresh_token, expires_at, is_active, last_activity_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY), true, CURRENT_TIMESTAMP)',
+        [user.id, crypto.createHash('sha256').update(accessToken).digest('hex'), refreshTokenHash]
+      );
+
+      // Update user login tracking
+      await db.execute(
+        'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?',
+        [user.id]
       );
 
       res.json({
         message: 'Login successful',
-        token,
+        accessToken,
+        refreshToken,
+        expiresIn: 900, // 15 minutes in seconds
         user: {
           id: user.id,
           name: user.name,
+          username: user.username,
           email: user.email,
-          role: user.role
+          mobile: user.mobile,
+          role: user.role,
+          is_verified: user.is_verified
         }
       });
     } catch (error) {
@@ -173,6 +268,16 @@ class AuthController {
         });
       }
 
+      // Check if user has admin role
+      if (user.role !== 'admin') {
+        req.flash('error_msg', 'Access denied. Admin privileges required.');
+        return res.render('admin/login', { 
+          title: 'Login',
+          email: req.body.email,
+          layout: false
+        });
+      }
+
       // Set session
       req.session.user = {
         id: user.id,
@@ -197,11 +302,11 @@ class AuthController {
   // Social login (Google/Facebook)
   async socialLogin(req, res) {
     try {
-      const { provider, providerId, name, email } = req.body;
+      const { provider, providerId, name, email, profilePicture, mobile } = req.body;
 
       // Check if user exists with this provider
       const [existingUsers] = await db.execute(
-        'SELECT id, name, email, role, is_active, is_blocked FROM users WHERE provider_id = ? AND auth_provider = ?',
+        'SELECT id, name, username, email, mobile, role, is_active, is_blocked, is_verified FROM users WHERE provider_id = ? AND auth_provider = ?',
         [providerId, provider]
       );
 
@@ -209,39 +314,80 @@ class AuthController {
 
       if (existingUsers.length > 0) {
         user = existingUsers[0];
+        
+        // Update last login
+        await db.execute(
+          'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?',
+          [user.id]
+        );
       } else {
         // Check if user exists with same email
         const [emailUsers] = await db.execute(
-          'SELECT id FROM users WHERE email = ?',
+          'SELECT id, username FROM users WHERE email = ?',
           [email]
         );
 
         if (emailUsers.length > 0) {
           // Update existing user with provider info
+          const existingUser = emailUsers[0];
+          const providerData = {
+            profilePicture,
+            providerId,
+            connectedAt: new Date().toISOString()
+          };
+
           await db.execute(
-            'UPDATE users SET auth_provider = ?, provider_id = ? WHERE email = ?',
-            [provider, providerId, email]
+            'UPDATE users SET auth_provider = ?, provider_id = ?, provider_data = ?, profile_picture = ?, last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE email = ?',
+            [provider, providerId, JSON.stringify(providerData), profilePicture, email]
           );
 
           const [updatedUsers] = await db.execute(
-            'SELECT id, name, email, role, is_active, is_blocked FROM users WHERE email = ?',
+            'SELECT id, name, username, email, mobile, role, is_active, is_blocked, is_verified FROM users WHERE email = ?',
             [email]
           );
           user = updatedUsers[0];
         } else {
-          // Create new user
+          // Create new user with Google auth
+          const baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          let finalUsername = baseUsername;
+          let counter = 1;
+          
+          // Generate unique username
+          while (true) {
+            const [existingUsername] = await db.execute(
+              'SELECT id FROM users WHERE username = ?',
+              [finalUsername]
+            );
+            
+            if (existingUsername.length === 0) {
+              break;
+            }
+            
+            finalUsername = `${baseUsername}${counter}`;
+            counter++;
+          }
+
+          const providerData = {
+            profilePicture,
+            providerId,
+            connectedAt: new Date().toISOString()
+          };
+
           const [result] = await db.execute(
-            'INSERT INTO users (name, email, auth_provider, provider_id, role) VALUES (?, ?, ?, ?, ?)',
-            [name, email, provider, providerId, 'user']
+            'INSERT INTO users (name, username, email, mobile, auth_provider, provider_id, provider_data, profile_picture, role, is_verified, last_login_at, login_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1)',
+            [name, finalUsername, email, mobile, provider, providerId, JSON.stringify(providerData), profilePicture, 'user', true]
           );
 
           user = {
             id: result.insertId,
             name,
+            username: finalUsername,
             email,
+            mobile,
             role: 'user',
             is_active: true,
-            is_blocked: false
+            is_blocked: false,
+            is_verified: true
           };
         }
       }
@@ -251,25 +397,154 @@ class AuthController {
         return res.status(401).json({ error: 'Account is inactive or blocked' });
       }
 
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role },
+      // Generate JWT access token (short-lived)
+      const accessToken = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role, username: user.username },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '15m' } // Short-lived access token
+      );
+
+      // Generate refresh token (long-lived)
+      const refreshToken = jwt.sign(
+        { userId: user.id, type: 'refresh' },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' } // Long-lived refresh token
+      );
+
+      // Store refresh token in database
+      const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      await db.execute(
+        'INSERT INTO user_sessions (user_id, session_token, refresh_token, expires_at, is_active, last_activity_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY), true, CURRENT_TIMESTAMP)',
+        [user.id, crypto.createHash('sha256').update(accessToken).digest('hex'), refreshTokenHash]
       );
 
       res.json({
         message: 'Social login successful',
-        token,
+        accessToken,
+        refreshToken,
+        expiresIn: 900, // 15 minutes in seconds
         user: {
           id: user.id,
           name: user.name,
+          username: user.username,
           email: user.email,
-          role: user.role
+          mobile: user.mobile,
+          role: user.role,
+          is_verified: user.is_verified,
+          profile_picture: user.profile_picture
         }
       });
     } catch (error) {
       console.error('Social login error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  // Refresh token endpoint
+  async refreshToken(req, res) {
+    try {
+      const { refreshToken } = req.body;
+
+      if (!refreshToken) {
+        return res.status(401).json({ error: 'Refresh token required' });
+      }
+
+      // Verify refresh token
+      const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+      
+      if (decoded.type !== 'refresh') {
+        return res.status(401).json({ error: 'Invalid token type' });
+      }
+
+      // Check if refresh token exists in database
+      const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      const [sessions] = await db.execute(
+        'SELECT user_id, expires_at FROM user_sessions WHERE refresh_token = ? AND is_active = true',
+        [refreshTokenHash]
+      );
+
+      if (sessions.length === 0) {
+        return res.status(401).json({ error: 'Invalid refresh token' });
+      }
+
+      const session = sessions[0];
+
+      // Check if refresh token is expired
+      if (new Date() > new Date(session.expires_at)) {
+        // Mark session as inactive
+        await db.execute(
+          'UPDATE user_sessions SET is_active = false WHERE refresh_token = ?',
+          [refreshTokenHash]
+        );
+        return res.status(401).json({ error: 'Refresh token expired' });
+      }
+
+      // Get user information
+      const [users] = await db.execute(
+        'SELECT id, name, email, role, username, mobile, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+        [session.user_id]
+      );
+
+      if (users.length === 0) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      const user = users[0];
+
+      if (!user.is_active || user.is_blocked) {
+        return res.status(401).json({ error: 'Account is inactive or blocked' });
+      }
+
+      // Generate new access token
+      const newAccessToken = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role, username: user.username },
+        process.env.JWT_SECRET,
+        { expiresIn: '15m' }
+      );
+
+      // Update session with new access token
+      await db.execute(
+        'UPDATE user_sessions SET session_token = ?, last_activity_at = CURRENT_TIMESTAMP WHERE refresh_token = ?',
+        [crypto.createHash('sha256').update(newAccessToken).digest('hex'), refreshTokenHash]
+      );
+
+      res.json({
+        message: 'Token refreshed successfully',
+        accessToken: newAccessToken,
+        expiresIn: 900, // 15 minutes in seconds
+        user: {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          mobile: user.mobile,
+          role: user.role,
+          is_verified: user.is_verified
+        }
+      });
+    } catch (error) {
+      console.error('Refresh token error:', error);
+      res.status(401).json({ error: 'Invalid refresh token' });
+    }
+  }
+
+  // Logout (API)
+  async logout(req, res) {
+    try {
+      const { refreshToken } = req.body;
+
+      if (refreshToken) {
+        // Invalidate refresh token
+        const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+        await db.execute(
+          'UPDATE user_sessions SET is_active = false WHERE refresh_token = ?',
+          [refreshTokenHash]
+        );
+      }
+
+      res.json({ message: 'Logout successful' });
+    } catch (error) {
+      console.error('Logout error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }

@@ -53,7 +53,7 @@ router.post('/settings', requireAdminWeb, adminController.updateSettings);
 
 
 // Profile
-router.get('/profile', requireAuth, loadSettings, adminController.profile);
-router.post('/profile', requireAuth, adminController.updateProfile);
+router.get('/profile', requireAdminWeb, loadSettings, adminController.profile);
+router.post('/profile', requireAdminWeb, adminController.updateProfile);
 
 module.exports = router;
