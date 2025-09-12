@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beautiful Title Styles Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .demo-section {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            border-radius: 15px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+        .demo-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .demo-description {
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+        .code-snippet {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 style="text-align: center; color: #374151; margin-bottom: 3rem; font-size: 2.5rem;">🎨 Beautiful Title Styles Demo</h1>
+        
+        <!-- Modern Title -->
+        <div class="demo-section">
+            <div class="demo-title">1. Modern Gradient Title</div>
+            <div class="demo-description">Animated gradient with glowing underline effect</div>
+            <h1 class="modern-title">Upload Content</h1>
+            <p class="beautiful-subtitle">Upload new content and generate QR codes</p>
+            <div class="code-snippet">
+&lt;h1 class="modern-title"&gt;Upload Content&lt;/h1&gt;
+&lt;p class="beautiful-subtitle"&gt;Upload new content and generate QR codes&lt;/p&gt;
+            </div>
+        </div>
+
+        <!-- Beautiful Title -->
+        <div class="demo-section">
+            <div class="demo-title">2. Beautiful Animated Title</div>
+            <div class="demo-description">Glowing gradient with shadow animation</div>
+            <h1 class="beautiful-title">Upload Content</h1>
+            <p class="beautiful-subtitle">Upload new content and generate QR codes</p>
+            <div class="code-snippet">
+&lt;h1 class="beautiful-title"&gt;Upload Content&lt;/h1&gt;
+&lt;p class="beautiful-subtitle"&gt;Upload new content and generate QR codes&lt;/p&gt;
+            </div>
+        </div>
+
+        <!-- Creative Title -->
+        <div class="demo-section">
+            <div class="demo-title">3. Creative Title with Icon</div>
+            <div class="demo-description">Gradient text with animated icon</div>
+            <h1 class="creative-title">
+                <i class="fas fa-cloud-upload-alt title-icon"></i>
+                Upload Content
+            </h1>
+            <p class="beautiful-subtitle">Upload new content and generate QR codes</p>
+            <div class="code-snippet">
+&lt;h1 class="creative-title"&gt;
+    &lt;i class="fas fa-cloud-upload-alt title-icon"&gt;&lt;/i&gt;
+    Upload Content
+&lt;/h1&gt;
+&lt;p class="beautiful-subtitle"&gt;Upload new content and generate QR codes&lt;/p&gt;
+            </div>
+        </div>
+
+        <!-- Elegant Title -->
+        <div class="demo-section">
+            <div class="demo-title">4. Elegant Title</div>
+            <div class="demo-description">Clean design with decorative lines</div>
+            <h1 class="elegant-title">Upload Content</h1>
+            <p class="beautiful-subtitle">Upload new content and generate QR codes</p>
+            <div class="code-snippet">
+&lt;h1 class="elegant-title"&gt;Upload Content&lt;/h1&gt;
+&lt;p class="beautiful-subtitle"&gt;Upload new content and generate QR codes&lt;/p&gt;
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: #f0f9ff; border-radius: 15px; border: 2px solid #0ea5e9;">
+            <h3 style="color: #0369a1; margin-bottom: 1rem;">💡 How to Use</h3>
+            <p style="color: #0c4a6e; margin-bottom: 1rem;">To change the title style, simply uncomment the desired option in the media-upload-header.ejs file and comment out the current one.</p>
+            <p style="color: #0c4a6e; font-size: 0.9rem;">All styles are fully responsive and will look great on mobile devices!</p>
+        </div>
+    </div>
+</body>
+</html>
