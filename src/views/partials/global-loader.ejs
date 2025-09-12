@@ -1,29 +1,5 @@
 <!-- Global Loader -->
-<div id="globalLoader" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 transition-opacity duration-300 ease-in-out pointer-events-none" style="display: none !important; visibility: hidden !important;">
-
-<script>
-// IMMEDIATELY hide all loaders - runs before any other JavaScript
-(function() {
-    const globalLoader = document.getElementById('globalLoader');
-    const fullScreenLoader = document.getElementById('fullScreenLoader');
-    
-    if (globalLoader) {
-        globalLoader.style.display = 'none';
-        globalLoader.style.visibility = 'hidden';
-        globalLoader.style.opacity = '0';
-        globalLoader.style.pointerEvents = 'none';
-        globalLoader.style.zIndex = '-9999';
-    }
-    
-    if (fullScreenLoader) {
-        fullScreenLoader.style.display = 'none';
-        fullScreenLoader.style.visibility = 'hidden';
-        fullScreenLoader.style.opacity = '0';
-        fullScreenLoader.style.pointerEvents = 'none';
-        fullScreenLoader.style.zIndex = '-9999';
-    }
-})();
-</script>
+<div id="globalLoader" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 transition-opacity duration-300 ease-in-out pointer-events-none" style="display: none !important;">
     <div class="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4">
         <!-- Animated Logo/Icon -->
         <div class="flex justify-center mb-6">
@@ -63,7 +39,7 @@
 </div>
 
 <!-- Alternative Full Screen Loader -->
-<div id="fullScreenLoader" class="fixed inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center z-50 opacity-0 transition-opacity duration-500 ease-in-out pointer-events-none" style="display: none !important; visibility: hidden !important;">
+<div id="fullScreenLoader" class="fixed inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center z-50 opacity-0 transition-opacity duration-500 ease-in-out pointer-events-none" style="display: none !important;">
     <div class="text-center">
         <!-- Animated Logo -->
         <div class="mb-8">

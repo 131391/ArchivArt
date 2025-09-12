@@ -251,65 +251,14 @@ class GlobalLoader {
 // Create global instance
 window.GlobalLoader = new GlobalLoader();
 
-// COMPLETELY DISABLE LOADER - Override all methods to do nothing
-window.GlobalLoader.show = function() { 
-    console.log('Loader show() called but disabled');
-    return; 
-};
-window.GlobalLoader.hide = function() { 
-    console.log('Loader hide() called but disabled');
-    return; 
-};
-window.GlobalLoader.showFullScreen = function() { 
-    console.log('Loader showFullScreen() called but disabled');
-    return; 
-};
-window.GlobalLoader.showTemporary = function() { 
-    console.log('Loader showTemporary() called but disabled');
-    return; 
-};
-window.GlobalLoader.showForAjax = function() { 
-    console.log('Loader showForAjax() called but disabled');
-    return; 
-};
-window.GlobalLoader.showForForm = function() { 
-    console.log('Loader showForForm() called but disabled');
-    return; 
-};
-window.GlobalLoader.showForUpload = function() { 
-    console.log('Loader showForUpload() called but disabled');
-    return; 
-};
-
-// Convenience functions - ALL DISABLED
-window.showLoader = function() { 
-    console.log('showLoader() called but disabled');
-    return; 
-};
-window.hideLoader = function() { 
-    console.log('hideLoader() called but disabled');
-    return; 
-};
-window.showFullScreenLoader = function() { 
-    console.log('showFullScreenLoader() called but disabled');
-    return; 
-};
-window.showTemporaryLoader = function() { 
-    console.log('showTemporaryLoader() called but disabled');
-    return; 
-};
-window.showAjaxLoader = function() { 
-    console.log('showAjaxLoader() called but disabled');
-    return; 
-};
-window.showFormLoader = function() { 
-    console.log('showFormLoader() called but disabled');
-    return; 
-};
-window.showUploadLoader = function() { 
-    console.log('showUploadLoader() called but disabled');
-    return; 
-};
+// Convenience functions
+window.showLoader = (options) => window.GlobalLoader.show(options);
+window.hideLoader = () => window.GlobalLoader.hide();
+window.showFullScreenLoader = (options) => window.GlobalLoader.showFullScreen(options);
+window.showTemporaryLoader = (options) => window.GlobalLoader.showTemporary(options);
+window.showAjaxLoader = (options) => window.GlobalLoader.showForAjax(options);
+window.showFormLoader = (options) => window.GlobalLoader.showForForm(options);
+window.showUploadLoader = (options) => window.GlobalLoader.showForUpload(options);
 
 // Auto-hide loader on page unload
 window.addEventListener('beforeunload', () => {
