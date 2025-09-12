@@ -17,7 +17,7 @@ class GlobalLoader {
             message = 'Please wait while we process your request',
             showProgress = false,
             progress = 0,
-            delay = 200 // Delay before showing (ms)
+            delay = 100 // Delay before showing (ms) - reduced to prevent flash
         } = options;
 
         // Clear any existing timeout
@@ -320,7 +320,7 @@ document.addEventListener('submit', function(event) {
     });
 });
 
-// Intercept link clicks for navigation
+// Intercept link clicks for navigation - Only show loader when explicitly requested
 document.addEventListener('click', function(event) {
     const link = event.target.closest('a');
     
@@ -330,12 +330,16 @@ document.addEventListener('click', function(event) {
         const linkDomain = new URL(link.href).origin;
         
         if (linkDomain === currentDomain && !link.hasAttribute('target')) {
-            // Show navigation loader
-            window.GlobalLoader.show({
-                title: 'Loading...',
-                message: 'Please wait while we load the page',
-                showProgress: false
-            });
+            // Only show loader if explicitly requested with data-show-loader attribute
+            if (link.hasAttribute('data-show-loader')) {
+                // Show navigation loader with longer delay to prevent flash
+                window.GlobalLoader.show({
+                    title: 'Loading...',
+                    message: 'Please wait while we load the page',
+                    showProgress: false,
+                    delay: 500 // Increased delay to prevent flash for quick navigation
+                });
+            }
         }
     }
 });
