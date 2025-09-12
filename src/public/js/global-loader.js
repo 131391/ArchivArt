@@ -288,6 +288,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     }
     
+    // Force hide all loaders immediately on page load
+    const globalLoader = document.getElementById('globalLoader');
+    const fullScreenLoader = document.getElementById('fullScreenLoader');
+    
+    if (globalLoader) {
+        globalLoader.style.display = 'none';
+        globalLoader.style.opacity = '0';
+        globalLoader.classList.add('pointer-events-none');
+    }
+    
+    if (fullScreenLoader) {
+        fullScreenLoader.style.display = 'none';
+        fullScreenLoader.style.opacity = '0';
+        fullScreenLoader.classList.add('pointer-events-none');
+    }
+    
     // Only hide if we're not in the middle of a navigation
     if (!isPageNavigating) {
         // Ensure loader is hidden on page load
@@ -320,26 +336,26 @@ document.addEventListener('submit', function(event) {
     });
 });
 
-// Intercept link clicks for navigation - Only show loader when explicitly requested
-document.addEventListener('click', function(event) {
-    const link = event.target.closest('a');
-    
-    if (link && link.href && !link.hasAttribute('data-no-loader')) {
-        // Check if it's an internal link
-        const currentDomain = window.location.origin;
-        const linkDomain = new URL(link.href).origin;
-        
-        if (linkDomain === currentDomain && !link.hasAttribute('target')) {
-            // Only show loader if explicitly requested with data-show-loader attribute
-            if (link.hasAttribute('data-show-loader')) {
-                // Show navigation loader with longer delay to prevent flash
-                window.GlobalLoader.show({
-                    title: 'Loading...',
-                    message: 'Please wait while we load the page',
-                    showProgress: false,
-                    delay: 500 // Increased delay to prevent flash for quick navigation
-                });
-            }
-        }
-    }
-});
+// Intercept link clicks for navigation - DISABLED to prevent loader flash
+// document.addEventListener('click', function(event) {
+//     const link = event.target.closest('a');
+//     
+//     if (link && link.href && !link.hasAttribute('data-no-loader')) {
+//         // Check if it's an internal link
+//         const currentDomain = window.location.origin;
+//         const linkDomain = new URL(link.href).origin;
+//         
+//         if (linkDomain === currentDomain && !link.hasAttribute('target')) {
+//             // Only show loader if explicitly requested with data-show-loader attribute
+//             if (link.hasAttribute('data-show-loader')) {
+//                 // Show navigation loader with longer delay to prevent flash
+//                 window.GlobalLoader.show({
+//                     title: 'Loading...',
+//                     message: 'Please wait while we load the page',
+//                     showProgress: false,
+//                     delay: 500 // Increased delay to prevent flash for quick navigation
+//                 });
+//             }
+//         }
+//     }
+// });
