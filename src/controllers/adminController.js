@@ -287,6 +287,7 @@ class AdminController {
       if (sortColumn === 'status') {
         // Sort by is_active first, then by is_blocked
         query += ` ORDER BY is_active ${sortOrder}, is_blocked ${sortOrder === 'ASC' ? 'DESC' : 'ASC'}`;
+        console.log('Status sorting query:', query);
       } else {
         query += ` ORDER BY ${sortColumn} ${sortOrder}`;
       }
@@ -294,6 +295,9 @@ class AdminController {
       // Pagination - use string interpolation for LIMIT and OFFSET
       query += ` LIMIT ${limit} OFFSET ${offset}`;
 
+      console.log('Executing query:', query);
+      console.log('Query params:', queryParams);
+      
       const [users] = await db.execute(query, queryParams);
       const [countResult] = await db.execute(countQuery, countParams);
       const totalUsers = countResult[0].total;
@@ -401,6 +405,8 @@ class AdminController {
       });
     } catch (error) {
       console.error('Get users error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       req.flash('error_msg', 'Error loading users');
       res.render('admin/users', {
         title: 'Users Management',
