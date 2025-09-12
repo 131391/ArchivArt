@@ -99,7 +99,18 @@ class AdminController {
       }
 
       // Add sorting
-      query += ` ORDER BY ${sort} ${order.toUpperCase()}`;
+      const validSortColumns = ['name', 'email', 'role', 'created_at', 'updated_at', 'status'];
+      const sortColumn = validSortColumns.includes(sort) ? sort : 'created_at';
+      const sortOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+      
+      // Handle status sorting specially since it's a virtual column
+      if (sortColumn === 'status') {
+        // Sort by is_active first, then by is_blocked
+        query += ` ORDER BY is_active ${sortOrder}, is_blocked ${sortOrder === 'ASC' ? 'DESC' : 'ASC'}`;
+        console.log('getUsersData - Status sorting query:', query);
+      } else {
+        query += ` ORDER BY ${sortColumn} ${sortOrder}`;
+      }
 
       // Add pagination
       query += ` LIMIT ${limit} OFFSET ${offset}`;
@@ -221,6 +232,8 @@ class AdminController {
 
     } catch (error) {
       console.error('Get users data error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       res.status(500).json({
         success: false,
         message: 'Error loading users data'
