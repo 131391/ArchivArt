@@ -273,6 +273,24 @@
     }
 }
 
+/* Completely disable global loader - Force hide */
+#globalLoader,
+#fullScreenLoader {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+}
+
+/* Disable all loader animations */
+.animate-spin,
+.animate-pulse,
+.animate-bounce,
+.animate-ping {
+    animation: none !important;
+}
+
 /* Responsive improvements */
 @media (max-width: 768px) {
     .settings-card {
