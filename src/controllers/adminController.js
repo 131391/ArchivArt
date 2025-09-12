@@ -279,10 +279,17 @@ class AdminController {
       }
 
       // Sorting
-      const validSortColumns = ['name', 'email', 'role', 'created_at', 'updated_at'];
-      const sortColumn = validSortColumns.includes(sort) ? sort : 'created_at';
+      const validSortColumns = ['name', 'email', 'role', 'created_at', 'updated_at', 'status'];
+      let sortColumn = validSortColumns.includes(sort) ? sort : 'created_at';
       const sortOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
-      query += ` ORDER BY ${sortColumn} ${sortOrder}`;
+      
+      // Handle status sorting specially since it's a virtual column
+      if (sortColumn === 'status') {
+        // Sort by is_active first, then by is_blocked
+        query += ` ORDER BY is_active ${sortOrder}, is_blocked ${sortOrder === 'ASC' ? 'DESC' : 'ASC'}`;
+      } else {
+        query += ` ORDER BY ${sortColumn} ${sortOrder}`;
+      }
 
       // Pagination - use string interpolation for LIMIT and OFFSET
       query += ` LIMIT ${limit} OFFSET ${offset}`;
@@ -300,18 +307,21 @@ class AdminController {
             key: 'name',
             label: 'User',
             type: 'avatar',
+            sortable: true,
             subtitle: (user) => user.email
           },
           {
             key: 'role',
             label: 'Role',
             type: 'badge',
+            sortable: true,
             badgeClass: (user) => user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
           },
           {
             key: 'status',
             label: 'Status',
             type: 'badge',
+            sortable: true,
             formatter: (user) => {
               if (user.is_blocked == 1 || user.is_blocked === true) return 'Blocked';
               if (user.is_active == 1 || user.is_active === true) return 'Active';
@@ -326,7 +336,8 @@ class AdminController {
           {
             key: 'created_at',
             label: 'Created',
-            type: 'date'
+            type: 'date',
+            sortable: true
           }
         ]),
         actions: TableUtils.generateActions([
