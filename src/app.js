@@ -5,6 +5,18 @@ const expressLayouts = require('express-ejs-layouts');
 const path = require('path');
 require('dotenv').config();
 
+// Security middleware
+const {
+  securityHeaders,
+  cors,
+  apiRateLimit,
+  speedLimiter,
+  requestLogger,
+  mongoSanitize,
+  hpp,
+  xss
+} = require('./middleware/security');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const IMAGE_BASE_URL = process.env.IMAGE_BASE_URL || `http://localhost:${PORT}`;
@@ -12,9 +24,24 @@ const IMAGE_BASE_URL = process.env.IMAGE_BASE_URL || `http://localhost:${PORT}`;
 // Database connection
 const db = require('./config/database');
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Security middleware (must be first)
+app.use(securityHeaders);
+app.use(cors);
+app.use(requestLogger);
+
+// Trust proxy for accurate IP addresses
+app.set('trust proxy', 1);
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Security middleware
+app.use(mongoSanitize);
+app.use(hpp);
+app.use(xss);
+
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Session configuration
@@ -22,7 +49,13 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'archivart_secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'strict'
+  },
+  name: 'archivart.sid' // Change default session name
 }));
 
 app.use(flash());
@@ -77,18 +110,42 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-app.use('/api', require('./routes/api'));
+// Rate limiting and speed limiting
+app.use(speedLimiter);
+
+// Routes with rate limiting
+app.use('/api', apiRateLimit, require('./routes/api'));
 app.use('/admin', require('./routes/admin'));
 app.use('/', require('./routes/web'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).render('error', { 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err : {}
-  });
+  
+  // Handle CORS errors specifically
+  if (err.message && err.message.includes('Not allowed by CORS')) {
+    return res.status(403).json({
+      error: 'CORS Error',
+      message: err.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Handle other errors
+  if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+    // AJAX request - return JSON error
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong!',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    // Regular request - render error page
+    res.status(500).render('error', { 
+      message: 'Something went wrong!',
+      error: process.env.NODE_ENV === 'development' ? err : {}
+    });
+  }
 });
 
 // Health check endpoint

@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const db = require('../config/database');
 const crypto = require('crypto');
+const SecurityService = require('../services/securityService');
+const { securityUtils } = require('../config/security');
 
 class AuthController {
   // Register new user
@@ -57,8 +59,17 @@ class AuthController {
         }
       }
 
-      // Hash password
-      const saltRounds = 10;
+      // Validate password strength
+      const passwordValidation = securityUtils.validatePasswordStrength(password);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({
+          error: 'Password does not meet security requirements',
+          details: passwordValidation.errors
+        });
+      }
+
+      // Hash password with higher salt rounds for better security
+      const saltRounds = 12;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Generate unique username if not provided
@@ -85,9 +96,16 @@ class AuthController {
 
       // Insert new user
       const [result] = await db.execute(
-        'INSERT INTO users (name, username, email, password, mobile, role, auth_provider, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO users (name, username, email, password, mobile, role, auth_provider, is_verified, password_changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
         [name, finalUsername, email, hashedPassword, mobile, role, 'local', false]
       );
+
+      // Log security event
+      await SecurityService.logSecurityEvent('user_registered', req, {
+        userId: result.insertId,
+        email,
+        username: finalUsername
+      });
 
       // Generate JWT access token (short-lived)
       const accessToken = jwt.sign(
@@ -143,6 +161,27 @@ class AuthController {
       }
 
       const { email, password } = req.body;
+      const clientIP = securityUtils.getClientIP(req);
+
+      // Check if IP is blocked
+      const isIPBlocked = await SecurityService.isIPBlocked(clientIP);
+      if (isIPBlocked) {
+        await SecurityService.logSecurityEvent('blocked_ip_login_attempt', req, { email, ip: clientIP });
+        return res.status(403).json({ 
+          error: 'Access denied - IP address is blocked',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Check if email is blocked
+      const isEmailBlocked = await SecurityService.isEmailBlocked(email);
+      if (isEmailBlocked) {
+        await SecurityService.logSecurityEvent('blocked_email_login_attempt', req, { email, ip: clientIP });
+        return res.status(403).json({ 
+          error: 'Access denied - Email address is blocked',
+          timestamp: new Date().toISOString()
+        });
+      }
 
       // Find user by email
       const [users] = await db.execute(
@@ -151,6 +190,7 @@ class AuthController {
       );
 
       if (users.length === 0) {
+        await SecurityService.recordFailedLogin(email, req);
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
@@ -158,14 +198,19 @@ class AuthController {
 
       // Check if account is active
       if (!user.is_active || user.is_blocked) {
+        await SecurityService.recordFailedLogin(email, req);
         return res.status(401).json({ error: 'Account is inactive or blocked' });
       }
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
+        await SecurityService.recordFailedLogin(email, req);
         return res.status(401).json({ error: 'Invalid credentials' });
       }
+
+      // Clear failed login attempts on successful login
+      await SecurityService.clearFailedLogins(email, clientIP);
 
       // Generate JWT access token (short-lived)
       const accessToken = jwt.sign(
@@ -184,15 +229,22 @@ class AuthController {
       // Store refresh token in database
       const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
       await db.execute(
-        'INSERT INTO user_sessions (user_id, session_token, refresh_token, expires_at, is_active, last_activity_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY), true, CURRENT_TIMESTAMP)',
-        [user.id, crypto.createHash('sha256').update(accessToken).digest('hex'), refreshTokenHash]
+        'INSERT INTO user_sessions (user_id, session_token, refresh_token, expires_at, is_active, last_activity_at, ip_address, user_agent) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY), true, CURRENT_TIMESTAMP, ?, ?)',
+        [user.id, crypto.createHash('sha256').update(accessToken).digest('hex'), refreshTokenHash, clientIP, req.get('User-Agent')]
       );
 
       // Update user login tracking
       await db.execute(
-        'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?',
+        'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1, last_activity_at = CURRENT_TIMESTAMP WHERE id = ?',
         [user.id]
       );
+
+      // Log successful login
+      await SecurityService.logSecurityEvent('successful_login', req, {
+        userId: user.id,
+        email: user.email,
+        ip: clientIP
+      });
 
       res.json({
         message: 'Login successful',

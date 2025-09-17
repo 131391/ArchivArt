@@ -496,9 +496,12 @@
             }
             
             fetch(`/admin/users/${userId}`, {
+                method: 'GET',
                 headers: {
-                    'Accept': 'application/json'
-                }
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
             })
                 .then(response => response.json())
                 .then(data => {
@@ -612,9 +615,12 @@
         function editUser(userId) {
             console.log('editUser called with userId:', userId);
             fetch(`/admin/users/${userId}`, {
+                method: 'GET',
                 headers: {
-                    'Accept': 'application/json'
-                }
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
             })
                 .then(response => response.json())
                 .then(data => {
@@ -743,6 +749,7 @@
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     name: formData.get('name'),
                     email: formData.get('email'),
@@ -791,7 +798,8 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
-                    }
+                    },
+                    credentials: 'same-origin'
                 })
                 .then(response => {
                     console.log('Response status:', response.status);
@@ -833,7 +841,8 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
-                    }
+                    },
+                    credentials: 'same-origin'
                 })
                 .then(response => {
                     console.log('Delete response status:', response.status);
@@ -889,9 +898,12 @@
             }
             
             fetch(`/admin/media/${mediaId}`, {
+                method: 'GET',
                 headers: {
-                    'Accept': 'application/json'
-                }
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
             })
                 .then(response => response.json())
                 .then(data => {
@@ -1007,7 +1019,8 @@
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'same-origin'
             })
                 .then(response => response.json())
                 .then(data => {
@@ -1066,8 +1079,10 @@
             fetch(`/admin/media/${mediaId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Accept': 'application/json'
-                }
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
             })
                 .then(response => response.json())
                 .then(data => {

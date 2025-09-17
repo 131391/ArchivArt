@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
+const crypto = require('crypto');
 
 // Middleware to check if user is authenticated
 const authenticateToken = async (req, res, next) => {
