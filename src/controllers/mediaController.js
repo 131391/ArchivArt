@@ -249,10 +249,7 @@ class MediaController {
                 sort,
                 order
             };
-
-            console.log('Media.findAll called with options:', options);
             const result = await Media.findAll(options);
-            console.log('Media.findAll result:', { total: result.total, mediaCount: result.media.length });
 
             // Generate table rows HTML
             const tableRows = result.media.map(media => `

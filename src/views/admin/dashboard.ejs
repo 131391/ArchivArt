@@ -315,3 +315,19 @@
         </div>
     </div>
 </div>
+
+<% if (success_msg && success_msg.length > 0) { %>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show login success toaster
+        if (typeof showSuccessToast === 'function') {
+            showSuccessToast('<%= success_msg %>');
+        } else if (typeof toaster !== 'undefined') {
+            toaster.success({
+                title: 'Success!',
+                description: '<%= success_msg %>'
+            });
+        }
+    });
+</script>
+<% } %>

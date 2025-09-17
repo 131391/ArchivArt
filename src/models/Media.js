@@ -164,7 +164,6 @@ class Media {
     // Get all media with pagination
     static async findAll(options = {}) {
         try {
-            console.log('Media.findAll called with options:', options);
             const {
                 page = 1,
                 limit = 10,

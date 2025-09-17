@@ -224,6 +224,7 @@ class AuthController {
         return res.render('admin/login', { 
           title: 'Login',
           email: req.body.email,
+          error_msg: req.flash('error_msg'),
           layout: false
         });
       }
@@ -241,6 +242,7 @@ class AuthController {
         return res.render('admin/login', { 
           title: 'Login',
           email: req.body.email,
+          error_msg: req.flash('error_msg'),
           layout: false
         });
       }
@@ -253,6 +255,7 @@ class AuthController {
         return res.render('admin/login', { 
           title: 'Login',
           email: req.body.email,
+          error_msg: req.flash('error_msg'),
           layout: false
         });
       }
@@ -264,6 +267,7 @@ class AuthController {
         return res.render('admin/login', { 
           title: 'Login',
           email: req.body.email,
+          error_msg: req.flash('error_msg'),
           layout: false
         });
       }
@@ -274,6 +278,7 @@ class AuthController {
         return res.render('admin/login', { 
           title: 'Login',
           email: req.body.email,
+          error_msg: req.flash('error_msg'),
           layout: false
         });
       }
@@ -286,7 +291,8 @@ class AuthController {
         role: user.role
       };
 
-      req.flash('success_msg', 'Login successful');
+      // Set login success flash message
+      req.flash('success_msg', 'Login successful! Welcome to ArchivArt Admin Panel');
       res.redirect('/admin/dashboard');
     } catch (error) {
       console.error('Web login error:', error);
@@ -294,6 +300,7 @@ class AuthController {
       res.render('admin/login', { 
         title: 'Login',
         email: req.body.email,
+        error_msg: req.flash('error_msg'),
         layout: false
       });
     }
