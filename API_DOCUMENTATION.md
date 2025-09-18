@@ -2,9 +2,43 @@
 
 ## Authentication Endpoints
 
-### Base URL
+### Base URLs
+
+**Development (Local Machine):**
 ```
 http://localhost:3000/api
+```
+
+**Local Network (Mobile App Testing):**
+```
+http://172.20.10.5:3000/api
+```
+
+**Production (Replace with your domain):**
+```
+https://yourdomain.com/api
+```
+
+**Note:** For mobile app development, use your computer's local network IP address (like `172.20.10.5:3000`) so your mobile device can connect to the development server.
+
+### Finding Your Local Network IP Address
+
+**Windows:**
+```bash
+ipconfig
+# Look for "IPv4 Address" under your network adapter
+```
+
+**macOS/Linux:**
+```bash
+ifconfig
+# Look for "inet" address (usually starts with 192.168.x.x or 10.x.x.x)
+```
+
+**Alternative (all platforms):**
+```bash
+# Get your local IP address
+node -e "const os = require('os'); const interfaces = os.networkInterfaces(); Object.keys(interfaces).forEach(name => { interfaces[name].forEach(iface => { if (iface.family === 'IPv4' && !iface.internal) console.log(name + ': ' + iface.address); }); });"
 ```
 
 ### Content Type
@@ -433,7 +467,7 @@ Authorization: Bearer <access_token>
 
 ```javascript
 // 1. Login
-const loginResponse = await fetch('http://localhost:3000/api/auth/login', {
+const loginResponse = await fetch('http://172.20.10.5:3000/api/auth/login', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -450,7 +484,7 @@ const loginData = await loginResponse.json();
 const { accessToken, refreshToken } = loginData;
 
 // 3. Use access token for API requests
-const profileResponse = await fetch('http://localhost:3000/api/auth/profile', {
+const profileResponse = await fetch('http://172.20.10.5:3000/api/auth/profile', {
   headers: {
     'Authorization': `Bearer ${accessToken}`,
     'Content-Type': 'application/json'
@@ -528,7 +562,7 @@ After running the database migration, you can use these test credentials:
 
 **Register User:**
 ```bash
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://172.20.10.5:3000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test User",
@@ -540,7 +574,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 
 **Login:**
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://172.20.10.5:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
