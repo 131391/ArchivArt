@@ -177,8 +177,22 @@ class Media {
             } = options;
 
             // Validate sort column to prevent SQL injection
-            const allowedSortColumns = ['id', 'title', 'description', 'media_type', 'is_active', 'created_at', 'updated_at'];
+            const allowedSortColumns = ['id', 'title', 'description', 'media_type', 'is_active', 'created_at', 'updated_at', 'uploaded_by_name'];
             const validSort = allowedSortColumns.includes(sort) ? sort : 'created_at';
+            
+            // Map sort columns to proper SQL references
+            const sortColumnMapping = {
+                'id': 'm.id',
+                'title': 'm.title',
+                'description': 'm.description', 
+                'media_type': 'm.media_type',
+                'is_active': 'm.is_active',
+                'created_at': 'm.created_at',
+                'updated_at': 'm.updated_at',
+                'uploaded_by_name': 'u.name'
+            };
+            
+            const sortColumn = sortColumnMapping[validSort] || 'm.created_at';
             
             // Validate order direction
             const validOrder = ['asc', 'desc'].includes(order.toLowerCase()) ? order.toUpperCase() : 'DESC';
@@ -222,7 +236,7 @@ class Media {
                 FROM media m
                 LEFT JOIN users u ON m.uploaded_by = u.id
                 ${whereClause}
-                ORDER BY m.${validSort} ${validOrder}
+                ORDER BY ${sortColumn} ${validOrder}
                 LIMIT ${limit} OFFSET ${offset}
             `;
             
