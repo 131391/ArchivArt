@@ -15,6 +15,8 @@ class Media {
         this.file_size = data.file_size;
         this.mime_type = data.mime_type;
         this.uploaded_by = data.uploaded_by;
+        this.uploaded_by_name = data.uploaded_by_name; // User name from JOIN
+        this.uploaded_by_email = data.uploaded_by_email; // User email from JOIN
         this.is_active = data.is_active;
         this.created_at = data.created_at;
         this.updated_at = data.updated_at;
