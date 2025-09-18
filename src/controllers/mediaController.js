@@ -65,7 +65,7 @@ class MediaController {
     static async matchScanningImage(req, res) {
         try {
             // Accept uploaded image file
-            const threshold = parseInt(req.body.threshold || '50', 10); // Default threshold for OpenCV matching
+            const threshold = parseInt(req.body.threshold || '20', 10); // Default threshold for OpenCV matching (20% similarity)
             
             if (!req.file) {
                 return res.status(400).json({ 

@@ -138,7 +138,7 @@ class OpenCVService {
                 };
 
                 if (result.bestMatch) {
-                    console.log(`✅ Best match found: ${result.bestMatch.id} (score: ${result.bestMatch.score})`);
+                    console.log(`✅ Best match found: ${result.bestMatch.id} (score: ${result.bestMatch.similarity})`);
                 } else {
                     console.log('❌ No match found below threshold');
                 }
@@ -199,7 +199,7 @@ class OpenCVService {
                     success: true,
                     isDuplicate: true,
                     duplicateMedia: duplicateMedia,
-                    matchScore: comparisonResult.bestMatch.score,
+                    matchScore: comparisonResult.bestMatch.similarity,
                     matchCount: comparisonResult.bestMatch.match_count
                 };
             } else {
@@ -257,7 +257,7 @@ class OpenCVService {
                 return {
                     success: true,
                     matchedMedia: matchedMedia,
-                    matchScore: comparisonResult.bestMatch.score,
+                    matchScore: comparisonResult.bestMatch.similarity,
                     matchCount: comparisonResult.bestMatch.match_count
                 };
             } else {
