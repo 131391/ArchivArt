@@ -750,6 +750,12 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('scanning_image', selectedScanningImage);
         
         try {
+            console.log('Sending FormData to /admin/media/upload');
+            console.log('FormData contents:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            
             const response = await fetch('/admin/media/upload', {
                 method: 'POST',
                 body: formData,
@@ -797,21 +803,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Using global toaster system for notifications
 
-    // Add form submission event listener
-    const mediaForm = document.getElementById('media-form');
-    if (mediaForm) {
-        console.log('Adding form submission event listener');
-        mediaForm.addEventListener('submit', function(event) {
-            console.log('Form submit event triggered');
-            if (typeof saveMedia === 'function') {
-                saveMedia(event);
-            } else {
-                console.error('saveMedia function not available');
-            }
-        });
-    } else {
-        console.log('Media form not found');
-    }
+    // Form submission is already handled above at line 714
+    // No need for duplicate handlers
 
     console.log('=== UPLOAD MEDIA SYSTEM READY ===');
 });

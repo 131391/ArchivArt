@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MediaController = require('../controllers/mediaController');
 const { requireAdminWeb, requireAdmin } = require('../middleware/auth');
-const { scanningImageUpload } = require('../config/multer');
+const { combinedUpload } = require('../config/multer');
 const { 
   uploadRateLimit, 
   strictRateLimit,
@@ -35,7 +35,7 @@ router.get('/upload', [
 router.post('/upload', [
   requireAdminWeb, 
   uploadRateLimit,
-  scanningImageUpload,
+  combinedUpload,
   validateFileUpload,
   preventSQLInjection,
   commonValidations.title,
