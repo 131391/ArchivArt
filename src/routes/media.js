@@ -47,24 +47,51 @@ router.post('/upload', [
 router.get('/view/:id', [
   requireAdminWeb, 
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid media ID is required'),
-  validateInput
+  (req, res, next) => {
+    // Validate ID parameter
+    const id = parseInt(req.params.id);
+    if (!id || id < 1 || !Number.isInteger(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid media ID is required'
+      });
+    }
+    next();
+  }
 ], MediaController.getMediaView);
 
 // Media edit page
 router.get('/edit/:id', [
   requireAdminWeb, 
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid media ID is required'),
-  validateInput
+  (req, res, next) => {
+    // Validate ID parameter
+    const id = parseInt(req.params.id);
+    if (!id || id < 1 || !Number.isInteger(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid media ID is required'
+      });
+    }
+    next();
+  }
 ], MediaController.showEditForm);
 
 // Get single media (API)
 router.get('/:id', [
   requireAdminWeb, 
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid media ID is required'),
-  validateInput
+  (req, res, next) => {
+    // Validate ID parameter
+    const id = parseInt(req.params.id);
+    if (!id || id < 1 || !Number.isInteger(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid media ID is required'
+      });
+    }
+    next();
+  }
 ], MediaController.getMedia);
 
 // Update media
@@ -74,7 +101,17 @@ router.put('/:id', [
   scanningImageUpload,
   validateFileUpload,
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid media ID is required'),
+  (req, res, next) => {
+    // Validate ID parameter
+    const id = parseInt(req.params.id);
+    if (!id || id < 1 || !Number.isInteger(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid media ID is required'
+      });
+    }
+    next();
+  },
   commonValidations.title,
   commonValidations.description,
   validateInput
@@ -85,8 +122,17 @@ router.patch('/:id/toggle', [
   requireAdminWeb, 
   strictRateLimit,
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid media ID is required'),
-  validateInput
+  (req, res, next) => {
+    // Validate ID parameter
+    const id = parseInt(req.params.id);
+    if (!id || id < 1 || !Number.isInteger(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid media ID is required'
+      });
+    }
+    next();
+  }
 ], MediaController.toggleMediaStatus);
 
 // Delete media
@@ -94,8 +140,17 @@ router.delete('/:id', [
   requireAdminWeb, 
   strictRateLimit,
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid media ID is required'),
-  validateInput
+  (req, res, next) => {
+    // Validate ID parameter
+    const id = parseInt(req.params.id);
+    if (!id || id < 1 || !Number.isInteger(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid media ID is required'
+      });
+    }
+    next();
+  }
 ], MediaController.deleteMedia);
 
 module.exports = router;
