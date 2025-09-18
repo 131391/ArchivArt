@@ -1,182 +1,112 @@
-<!-- Upload Content Page -->
-<div class="flex-1 min-h-screen bg-gray-50">
-    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
-        <!-- Page Header -->
-        <%- include('../partials/media-upload-header') %>
-
-        <!-- Content Type Tabs -->
-        <%- include('../components/content-type-tabs') %>
-
-        <!-- Main Content Area -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            
-            <!-- Upload Card -->
-            <%- include('../components/upload-card') %>
-
-            <!-- Details Card -->
-            <%- include('../components/details-form') %>
+<!-- Modern Upload Content Page -->
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Modern Page Header -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-6 shadow-lg">
+                <i class="fas fa-cloud-upload-alt text-2xl text-white"></i>
+            </div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
+                Upload AR Content
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                Create immersive AR experiences by uploading your media content and scanning images
+            </p>
         </div>
 
+        <!-- Modern Content Type Selector -->
+        <div class="mb-8">
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-2 max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <button type="button" class="media-tab active group relative overflow-hidden rounded-xl p-6 transition-all duration-300 hover:scale-105" data-type="video">
+                        <div class="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                        <div class="relative text-center">
+                            <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl mb-3 shadow-lg">
+                                <i class="fas fa-video text-white text-lg"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-1">Video Content</h3>
+                            <p class="text-sm text-gray-600">MP4, AVI, MOV</p>
+                        </div>
+                    </button>
+                    
+                    <button type="button" class="media-tab group relative overflow-hidden rounded-xl p-6 transition-all duration-300 hover:scale-105" data-type="audio">
+                        <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                        <div class="relative text-center">
+                            <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl mb-3 shadow-lg">
+                                <i class="fas fa-music text-white text-lg"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-1">Audio Content</h3>
+                            <p class="text-sm text-gray-600">MP3, WAV, AAC</p>
+                        </div>
+                    </button>
+                    
+                    <button type="button" class="media-tab group relative overflow-hidden rounded-xl p-6 transition-all duration-300 hover:scale-105" data-type="image">
+                        <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                        <div class="relative text-center">
+                            <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl mb-3 shadow-lg">
+                                <i class="fas fa-image text-white text-lg"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-1">Image Content</h3>
+                            <p class="text-sm text-gray-600">JPG, PNG, GIF</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Upload Interface -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            
+            <!-- Modern Upload Zone -->
+            <div class="space-y-6">
+                <!-- Media Upload Card -->
+                <%- include('../components/modern-upload-card') %>
+
+                <!-- Scanning Image Upload Card -->
+                <%- include('../components/modern-scanning-card') %>
+            </div>
+
+            <!-- Modern Details Form -->
+            <div class="space-y-6">
+                <%- include('../components/modern-details-form') %>
+
+                <!-- Tips Card -->
+                <%- include('../components/tips-card') %>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
-/* Active Tab Styling - Override Tailwind Classes */
-button.media-tab.active,
-.media-tab.active,
-button[class*="media-tab"][class*="active"],
-button.media-tab.active.flex-1,
-button.media-tab.active.py-3,
-button.media-tab.active.px-4,
-button.media-tab.active.rounded-md,
-button.media-tab.active.font-medium,
-button.media-tab.active.text-sm,
-button.media-tab.active.transition-all,
-button.media-tab.active.duration-200 {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    color: #374151 !important; /* gray-700 */
-    border: 1px solid #e5e7eb !important;
-    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06) !important;
-    transform: translateY(-1px) !important;
-    font-weight: 600 !important;
-    z-index: 10 !important;
-    position: relative !important;
-    transition: all 0.2s ease-in-out !important;
-    border-radius: 8px !important;
-}
-
-/* Target the exact button with all classes */
-button.media-tab.active.flex-1.py-3.px-4.rounded-md.font-medium.text-sm.transition-all.duration-200 {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    color: #374151 !important;
-    border: 1px solid #e5e7eb !important;
-    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06) !important;
-    transform: translateY(-1px) !important;
-    font-weight: 600 !important;
-}
-
-button.media-tab.active:hover,
-.media-tab.active:hover,
-button[class*="media-tab"][class*="active"]:hover {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    color: #374151 !important;
-    border-color: #d1d5db !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-}
-
-button.media-tab.active i,
-.media-tab.active i,
-button[class*="media-tab"][class*="active"] i {
-    color: #374151 !important; /* gray-700 */
-}
-
-button.media-tab.active span,
-.media-tab.active span,
-button[class*="media-tab"][class*="active"] span {
-    color: #374151 !important; /* gray-700 */
-    font-weight: 600 !important;
-}
-
-button.media-tab.active .flex,
-.media-tab.active .flex,
-button[class*="media-tab"][class*="active"] .flex {
-    color: #374151 !important; /* gray-700 */
-}
-
-button.media-tab.active div,
-.media-tab.active div,
-button[class*="media-tab"][class*="active"] div {
-    color: #374151 !important; /* gray-700 */
-}
-
-/* Inactive Tab Styling - Light Gray Design */
-button.media-tab:not(.active) {
-    background-color: #f9fafb !important; /* gray-50 */
-    color: #6b7280 !important; /* gray-500 */
-    border: 1px solid #e5e7eb !important;
-    transition: all 0.2s ease-in-out;
-    border-radius: 8px !important;
-}
-
-button.media-tab:not(.active):hover {
-    background-color: #f3f4f6 !important; /* gray-100 */
-    color: #4b5563 !important; /* gray-600 */
-    border-color: #d1d5db !important;
-}
-
-button.media-tab:not(.active) i {
-    color: #6b7280 !important; /* gray-500 */
-}
-
-button.media-tab:not(.active) span {
-    color: #6b7280 !important; /* gray-500 */
-    font-weight: 500 !important;
-}
-
-/* Base Tab Styling - Simple */
-.media-tab {
-    position: relative;
-    border: 1px solid transparent;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    z-index: 1;
-    pointer-events: auto;
-    border-radius: 8px;
-}
-
-/* Ensure tab container doesn't block clicks */
-.media-tab * {
-    pointer-events: none;
-}
-
-.media-tab {
-    pointer-events: auto;
-}
-
-/* Make sure tabs are clickable */
-.media-tab:hover {
-    cursor: pointer;
-}
-
-.media-tab:focus {
-    outline: 2px solid #7c3aed;
-    outline-offset: 2px;
-    border-radius: 8px;
-}
-
-/* Simple hover effects */
-.media-tab:hover:not(.active) {
-    transform: translateY(-1px);
-}
-
-/* Additional active tab styling for better visibility */
+/* Modern Tab Styling */
 .media-tab.active {
-    z-index: 10;
-    position: relative;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+    border: 2px solid #e2e8f0 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    transform: translateY(-2px) !important;
 }
 
-/* Ensure proper contrast for inactive tabs */
 .media-tab:not(.active) {
-    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: 2px solid transparent !important;
+    transition: all 0.3s ease !important;
 }
 
 .media-tab:not(.active):hover {
-    opacity: 1;
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: #e2e8f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Drag and Drop Styling */
+/* Drag and Drop Animations */
 #drop-zone.dragover,
 #scanning-image-drop-zone.dragover {
-    border-color: #3b82f6;
-    background-color: #eff6ff;
+    border-color: #3b82f6 !important;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+    transform: scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.04);
 }
 
 /* File Upload Animation */
@@ -185,21 +115,220 @@ button.media-tab:not(.active) span {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.7; 
+        transform: scale(1.05);
+    }
 }
 
-/* Focus States for Accessibility */
-.media-tab:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
+/* Smooth Transitions */
+* {
+    transition: all 0.3s ease;
 }
 
-.media-tab.active:focus {
-    outline-color: #ffffff;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+}
+
+/* Focus States */
+input:focus, textarea:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Button Hover Effects */
+button:hover {
+    transform: translateY(-1px);
+}
+
+/* Glassmorphism Effect */
+.backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Gradient Text */
+.bg-clip-text {
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* Loading Animation */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
 }
 </style>
 
-<!-- Media Upload JavaScript - loaded from admin layout -->
- 
+<!-- Enhanced JavaScript for Modern UI -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced tab switching with smooth animations
+    const tabs = document.querySelectorAll('.media-tab');
+    const uploadTitle = document.getElementById('upload-title');
+    const uploadSubtitle = document.getElementById('upload-subtitle');
+    const uploadIcon = document.getElementById('upload-icon');
+    const uploadText = document.getElementById('upload-text');
+    const fileInput = document.getElementById('file-input');
+    
+    const contentTypes = {
+        video: {
+            title: 'Upload Video',
+            subtitle: 'Drag & drop or click to browse video files',
+            icon: 'fas fa-video',
+            text: 'Drop your video files here',
+            accept: 'video/*',
+            formats: 'MP4, AVI, MOV (Max: 100MB)'
+        },
+        audio: {
+            title: 'Upload Audio',
+            subtitle: 'Drag & drop or click to browse audio files',
+            icon: 'fas fa-music',
+            text: 'Drop your audio files here',
+            accept: 'audio/*',
+            formats: 'MP3, WAV, AAC (Max: 100MB)'
+        },
+        image: {
+            title: 'Upload Image',
+            subtitle: 'Drag & drop or click to browse image files',
+            icon: 'fas fa-image',
+            text: 'Drop your image files here',
+            accept: 'image/*',
+            formats: 'JPG, PNG, GIF (Max: 100MB)'
+        }
+    };
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Get content type
+            const type = this.dataset.type;
+            const config = contentTypes[type];
+            
+            // Update UI with smooth transitions
+            if (config) {
+                // Animate icon change
+                uploadIcon.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    uploadIcon.className = config.icon + ' text-3xl text-blue-600';
+                    uploadIcon.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        uploadIcon.style.transform = 'scale(1)';
+                    }, 200);
+                }, 150);
+                
+                // Update text content
+                uploadTitle.textContent = config.title;
+                uploadSubtitle.textContent = config.subtitle;
+                uploadText.textContent = config.text;
+                
+                // Update file input accept attribute
+                fileInput.accept = config.accept;
+            }
+        });
+    });
+    
+    // Enhanced drag and drop with visual feedback
+    const dropZones = document.querySelectorAll('#drop-zone, #scanning-image-drop-zone');
+    
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        
+        zone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+        
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+    });
+    
+    // Enhanced form submission with loading state
+    const form = document.getElementById('media-form');
+    const submitButton = document.getElementById('submit-button');
+    const submitText = document.getElementById('submit-text');
+    
+    if (form && submitButton && submitText) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+            submitText.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i>Creating AR Experience...';
+            
+            // Simulate processing (replace with actual form submission)
+            setTimeout(() => {
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+                submitText.innerHTML = '<i class="fas fa-rocket mr-2"></i>Create AR Experience';
+                
+                // Show success message
+                showSuccessToast('AR experience created successfully!');
+            }, 2000);
+        });
+    }
+});
 
+// Enhanced toast notifications
+function showSuccessToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+    toast.innerHTML = `
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.transform = 'translateX(full)';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+</script>
