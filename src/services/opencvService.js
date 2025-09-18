@@ -31,10 +31,12 @@ class OpenCVService {
      */
     async extractFeatures(imagePath) {
         try {
-            console.log(`🔍 Extracting features from: ${imagePath}`);
+            // Convert relative path to absolute path
+            const absolutePath = path.isAbsolute(imagePath) ? imagePath : path.resolve(imagePath);
+            console.log(`🔍 Extracting features from: ${imagePath} (absolute: ${absolutePath})`);
             
             const response = await axios.post(`${this.baseURL}/extract`, {
-                image_path: imagePath
+                image_path: absolutePath
             }, {
                 timeout: this.timeout
             });
@@ -110,7 +112,9 @@ class OpenCVService {
      */
     async compareImage(queryImagePath, storedDescriptors, threshold = 50) {
         try {
-            console.log(`🔍 Comparing image against ${storedDescriptors.length} stored descriptors`);
+            // Convert relative path to absolute path
+            const absolutePath = path.isAbsolute(queryImagePath) ? queryImagePath : path.resolve(queryImagePath);
+            console.log(`🔍 Comparing image against ${storedDescriptors.length} stored descriptors (path: ${absolutePath})`);
             
             // Convert match count threshold to similarity threshold
             // Python service expects similarity threshold (0.0-1.0)
@@ -118,7 +122,7 @@ class OpenCVService {
             const similarityThreshold = Math.min(threshold / 100, 1.0);
             
             const response = await axios.post(`${this.baseURL}/compare`, {
-                query_image_path: queryImagePath,
+                query_image_path: absolutePath,
                 stored_descriptors: storedDescriptors,
                 threshold: similarityThreshold
             }, {
@@ -165,7 +169,9 @@ class OpenCVService {
      */
     async checkForDuplicates(newImagePath, existingMedia, threshold = 50) {
         try {
-            console.log(`🔍 Checking for duplicates against ${existingMedia.length} existing images`);
+            // Convert relative path to absolute path
+            const absolutePath = path.isAbsolute(newImagePath) ? newImagePath : path.resolve(newImagePath);
+            console.log(`🔍 Checking for duplicates against ${existingMedia.length} existing images (path: ${absolutePath})`);
             
             // Prepare stored descriptors for comparison
             const storedDescriptors = existingMedia
@@ -185,7 +191,7 @@ class OpenCVService {
             }
 
             // Compare the new image against existing ones
-            const comparisonResult = await this.compareImage(newImagePath, storedDescriptors, threshold);
+            const comparisonResult = await this.compareImage(absolutePath, storedDescriptors, threshold);
 
             if (comparisonResult.success && comparisonResult.bestMatch) {
                 const duplicateMedia = existingMedia.find(media => media.id === comparisonResult.bestMatch.id);
@@ -222,7 +228,9 @@ class OpenCVService {
      */
     async findMatchingMedia(scannedImagePath, mediaList, threshold = 50) {
         try {
-            console.log(`🔍 Finding matching media for scanned image against ${mediaList.length} media items`);
+            // Convert relative path to absolute path
+            const absolutePath = path.isAbsolute(scannedImagePath) ? scannedImagePath : path.resolve(scannedImagePath);
+            console.log(`🔍 Finding matching media for scanned image against ${mediaList.length} media items (path: ${absolutePath})`);
             
             // Prepare stored descriptors for comparison
             const storedDescriptors = mediaList
@@ -242,7 +250,7 @@ class OpenCVService {
             }
 
             // Compare the scanned image against all media
-            const comparisonResult = await this.compareImage(scannedImagePath, storedDescriptors, threshold);
+            const comparisonResult = await this.compareImage(absolutePath, storedDescriptors, threshold);
 
             if (comparisonResult.success && comparisonResult.bestMatch) {
                 const matchedMedia = mediaList.find(media => media.id === comparisonResult.bestMatch.id);
