@@ -245,6 +245,47 @@ const validateFileUpload = (req, res, next) => {
   next();
 };
 
+// Single file upload validation for (req.file)
+const validateSingleFileUpload = (req, res, next) => {
+  if (!req.file) {
+    return res.status(400).json({ 
+      success: false,
+      message: 'Image file is required. Please upload an image file.' 
+    });
+  }
+  
+  const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  const maxFileSize = 50 * 1024 * 1024; // 50MB
+  
+  // Check file size
+  if (req.file.size > maxFileSize) {
+    return res.status(400).json({ 
+      success: false,
+      message: `File ${req.file.originalname} is too large. Maximum size is 50MB` 
+    });
+  }
+  
+  // Check file type for image uploads
+  if (!allowedImageTypes.includes(req.file.mimetype)) {
+    return res.status(400).json({ 
+      success: false,
+      message: `Invalid image type for ${req.file.originalname}. Allowed types: JPEG, PNG, GIF, WebP` 
+    });
+  }
+  
+  // Check for malicious file extensions
+  const maliciousExtensions = ['.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.js', '.jar'];
+  const fileExtension = path.extname(req.file.originalname).toLowerCase();
+  if (maliciousExtensions.includes(fileExtension)) {
+    return res.status(400).json({ 
+      success: false,
+      message: `File type ${fileExtension} is not allowed` 
+    });
+  }
+  
+  next();
+};
+
 // SQL injection prevention middleware
 const preventSQLInjection = (req, res, next) => {
   const sqlInjectionPatterns = [
@@ -344,6 +385,7 @@ module.exports = {
   validateInput,
   commonValidations,
   validateFileUpload,
+  validateSingleFileUpload,
   preventSQLInjection,
   requestLogger,
   ipWhitelist,

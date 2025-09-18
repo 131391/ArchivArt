@@ -12,6 +12,7 @@ const {
   validateInput, 
   commonValidations, 
   validateFileUpload,
+  validateSingleFileUpload,
   preventSQLInjection 
 } = require('../middleware/security');
 
@@ -78,7 +79,7 @@ router.put('/auth/profile', [
 router.post('/media/match', [
   uploadRateLimit,
   upload.single('image'),
-  validateFileUpload,
+  validateSingleFileUpload,
   preventSQLInjection
 ], mediaController.matchScanningImage);
 
