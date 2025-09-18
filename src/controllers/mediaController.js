@@ -791,12 +791,38 @@ class MediaController {
                 });
             }
 
-            // Delete files from filesystem
-            const mediaPath = path.join(__dirname, '../public/uploads/media', media.file_path);
-            const scanningImagePath = path.join(__dirname, '../public/uploads/media', media.scanning_image);
+            // Delete files from filesystem (handle both old and new file path formats)
+            try {
+                // Try to delete the main media file
+                if (media.file_path) {
+                    // Handle both old format (uploads/media/filename) and new format (just filename)
+                    const fileName = media.file_path.includes('/') ? 
+                        path.basename(media.file_path) : media.file_path;
+                    const mediaPath = path.join(__dirname, '../public/uploads/media', fileName);
+                    
+                    if (fs.existsSync(mediaPath)) {
+                        await fs.unlink(mediaPath);
+                        console.log(`Deleted media file: ${mediaPath}`);
+                    } else {
+                        console.log(`Media file not found: ${mediaPath}`);
+                    }
+                }
 
-            await fs.unlink(mediaPath).catch(() => {});
-            await fs.unlink(scanningImagePath).catch(() => {});
+                // Try to delete the scanning image file
+                if (media.scanning_image) {
+                    const scanningImagePath = path.join(__dirname, '../public/uploads/scanning-images', media.scanning_image);
+                    
+                    if (fs.existsSync(scanningImagePath)) {
+                        await fs.unlink(scanningImagePath);
+                        console.log(`Deleted scanning image: ${scanningImagePath}`);
+                    } else {
+                        console.log(`Scanning image not found: ${scanningImagePath}`);
+                    }
+                }
+            } catch (fileError) {
+                console.warn('Error deleting files (continuing with database deletion):', fileError.message);
+                // Continue with database deletion even if file deletion fails
+            }
 
       // Delete from database
             await media.delete();
