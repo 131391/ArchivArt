@@ -98,7 +98,7 @@ const createRateLimit = (windowMs, max, message) => {
 // Different rate limits for different endpoints
 const authRateLimit = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  5, // 5 attempts per window
+  process.env.NODE_ENV === 'production' ? 5 : 20, // 5 attempts in production, 20 in development
   'Too many authentication attempts, please try again later'
 );
 
