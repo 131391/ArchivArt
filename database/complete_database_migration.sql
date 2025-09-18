@@ -274,9 +274,9 @@ ON DUPLICATE KEY UPDATE site_name = VALUES(site_name);
 COMMIT;
 
 -- Show migration summary
-SELECT '=====================================================' as separator;
+SELECT '=====================================================' as info;
 SELECT 'ArchivArt Database Migration Completed Successfully!' as status;
-SELECT '=====================================================' as separator;
+SELECT '=====================================================' as info;
 
 -- Show table counts
 SELECT 'USERS' as table_name, COUNT(*) as record_count FROM users
@@ -304,11 +304,11 @@ SELECT 'Media Type Distribution:' as info;
 SELECT media_type, COUNT(*) as count FROM media GROUP BY media_type;
 
 -- Show admin credentials
-SELECT '=====================================================' as separator;
+SELECT '=====================================================' as info;
 SELECT 'ADMIN LOGIN CREDENTIALS:' as info;
 SELECT 'Email: admin@archivart.com' as credential;
 SELECT 'Password: password' as credential;
-SELECT '=====================================================' as separator;
+SELECT '=====================================================' as info;
 
 -- =====================================================
 -- MIGRATION COMPLETE
