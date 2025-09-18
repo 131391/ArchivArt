@@ -346,32 +346,22 @@ class MediaController {
     // Handle file upload
     static async uploadMedia(req, res) {
         try {
-            const uploadMiddleware = upload.fields([
-                { name: 'media_file', maxCount: 1 },
-                { name: 'scanning_image', maxCount: 1 }
-            ]);
+            // Files are already processed by combinedUpload middleware in route
+            console.log('Upload request received');
+            console.log('Request body:', req.body);
+            console.log('Request files:', req.files);
+            
+            const { title, description, media_type } = req.body;
+            const mediaFile = req.files.media_file ? req.files.media_file[0] : null;
+            const scanningImageFile = req.files.scanning_image ? req.files.scanning_image[0] : null;
 
-            uploadMiddleware(req, res, async (err) => {
-        if (err) {
-                    console.error('Upload error:', err);
-                    return res.status(400).json({
-                        success: false,
-                        message: err.message
-                    });
-                }
-
-                try {
-                    const { title, description, media_type } = req.body;
-                    const mediaFile = req.files.media_file ? req.files.media_file[0] : null;
-                    const scanningImageFile = req.files.scanning_image ? req.files.scanning_image[0] : null;
-
-                    // Validate required fields
-                    if (!title || !mediaFile || !scanningImageFile) {
-                        return res.status(400).json({
-                            success: false,
-                            message: 'Title, media file, and scanning image are required'
-                        });
-                    }
+            // Validate required fields
+            if (!title || !mediaFile || !scanningImageFile) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Title, media file, and scanning image are required'
+                });
+            }
 
                     // Check if image processing service is available
                     const isServiceHealthy = await smartImageService.isHealthy();
@@ -455,33 +445,25 @@ class MediaController {
 
                     const newMedia = await Media.create(mediaData);
 
-                    res.json({
-                        success: true,
-                        message: 'Media uploaded successfully',
-                        media: newMedia
-                    });
-                } catch (error) {
-                    console.error('Error creating media:', error);
-                    
-                    // Clean up uploaded files on error
-                    if (req.files.media_file) {
-                        await fs.unlink(req.files.media_file[0].path).catch(() => {});
-                    }
-                    if (req.files.scanning_image) {
-                        await fs.unlink(req.files.scanning_image[0].path).catch(() => {});
-                    }
-
-                    res.status(500).json({
-                        success: false,
-                        message: error.message
-                    });
-                }
+            res.json({
+                success: true,
+                message: 'Media uploaded successfully',
+                media: newMedia
             });
         } catch (error) {
             console.error('Upload error:', error);
+            
+            // Clean up uploaded files on error
+            if (req.files && req.files.media_file) {
+                await fs.unlink(req.files.media_file[0].path).catch(() => {});
+            }
+            if (req.files && req.files.scanning_image) {
+                await fs.unlink(req.files.scanning_image[0].path).catch(() => {});
+            }
+            
             res.status(500).json({
                 success: false,
-                message: 'Error uploading media'
+                message: error.message || 'Error uploading media'
             });
         }
     }
