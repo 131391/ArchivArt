@@ -110,7 +110,7 @@ const apiRateLimit = createRateLimit(
 
 const uploadRateLimit = createRateLimit(
   60 * 60 * 1000, // 1 hour
-  10, // 10 uploads per hour
+  process.env.NODE_ENV === 'production' ? 50 : 200, // 50 uploads/hour in production, 200 in development
   'Too many file uploads, please try again later'
 );
 
