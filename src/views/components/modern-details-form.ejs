@@ -30,17 +30,55 @@
                 <textarea id="media-description" name="description" rows="4" placeholder="Describe your AR experience and what users will see..." class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-all duration-200 bg-white/50 backdrop-blur-sm resize-none"></textarea>
             </div>
 
-            <!-- AR Experience Preview -->
-            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-200">
-                <div class="flex items-center space-x-3 mb-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-magic text-white text-sm"></i>
+            <!-- AR Trigger Image Upload -->
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold text-gray-700">
+                    <i class="fas fa-qrcode mr-2 text-purple-600"></i>AR Trigger Image *
+                </label>
+                <p class="text-xs text-gray-500 mb-3">This image will be used to trigger your AR content</p>
+                
+                <!-- Hidden Scanning Image Input -->
+                <input type="file" id="scanning-image-input" accept="image/*" style="display: none;">
+                
+                <!-- Scanning Image Drop Zone -->
+                <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-purple-400 hover:bg-purple-50/50 transition-all duration-300 cursor-pointer" id="scanning-image-drop-zone">
+                    <div class="space-y-2">
+                        <div class="mx-auto w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-image text-purple-600" id="scanning-image-icon"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-900" id="scanning-image-text">Upload AR Trigger</h4>
+                            <p class="text-xs text-gray-600">Drag & drop or click to browse</p>
+                            <div class="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-1">
+                                <span>JPG, PNG, GIF</span>
+                                <span>•</span>
+                                <span>Max 10MB</span>
+                            </div>
+                        </div>
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl" id="choose-scanning-image-btn">
+                            <i class="fas fa-upload mr-1"></i>
+                            Choose Image
+                        </button>
                     </div>
-                    <h4 class="font-semibold text-gray-900">AR Experience Preview</h4>
                 </div>
-                <p class="text-sm text-gray-600">
-                    When users scan your trigger image with their device, they'll see your uploaded content in augmented reality.
-                </p>
+                
+                <!-- Scanning Image Preview -->
+                <div id="scanning-image-preview" class="mt-2 hidden">
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-2 border border-purple-200">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-shrink-0">
+                                <img id="scanning-image-thumbnail" class="h-8 w-8 rounded object-cover border border-white shadow-sm" src="" alt="AR trigger preview">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-semibold text-gray-900 truncate" id="scanning-image-name"></p>
+                                <p class="text-xs text-gray-600" id="scanning-image-size"></p>
+                            </div>
+                            <button type="button" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors" id="remove-scanning-image">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Submit Button -->
