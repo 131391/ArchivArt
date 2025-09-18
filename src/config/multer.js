@@ -130,9 +130,18 @@ const combinedUpload = multer({
     
     if (file.fieldname === 'media_file') {
       // Media file validation
-      const allowedTypes = /jpeg|jpg|png|gif|mp4|avi|mov|wmv|flv|webm|mp3|wav|ogg|m4a/;
-      const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-      const mimetype = allowedTypes.test(file.mimetype);
+      const allowedExtensions = /\.(jpeg|jpg|png|gif|mp4|avi|mov|wmv|flv|webm|mp3|wav|ogg|m4a)$/i;
+      const allowedMimeTypes = /^(image|video|audio)\//;
+      
+      const extname = allowedExtensions.test(file.originalname);
+      const mimetype = allowedMimeTypes.test(file.mimetype);
+      
+      console.log('Media file validation:', {
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        extname: extname,
+        mimetypeValid: mimetype
+      });
       
       if (mimetype && extname) {
         console.log('Combined upload - Media file accepted');
@@ -143,9 +152,18 @@ const combinedUpload = multer({
       }
     } else if (file.fieldname === 'scanning_image') {
       // Scanning image validation
-      const allowedTypes = /jpeg|jpg|png|gif|webp/;
-      const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-      const mimetype = allowedTypes.test(file.mimetype);
+      const allowedExtensions = /\.(jpeg|jpg|png|gif|webp)$/i;
+      const allowedMimeTypes = /^image\//;
+      
+      const extname = allowedExtensions.test(file.originalname);
+      const mimetype = allowedMimeTypes.test(file.mimetype);
+      
+      console.log('Scanning image validation:', {
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        extname: extname,
+        mimetypeValid: mimetype
+      });
       
       if (mimetype && extname) {
         console.log('Combined upload - Scanning image accepted');
