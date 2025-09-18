@@ -98,7 +98,7 @@ router.get('/:id', [
 router.put('/:id', [
   requireAdminWeb, 
   strictRateLimit,
-  scanningImageUpload,
+  combinedUpload,
   validateFileUpload,
   preventSQLInjection,
   (req, res, next) => {
