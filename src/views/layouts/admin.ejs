@@ -1084,7 +1084,13 @@
                 },
                 credentials: 'same-origin'
             })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Delete response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     // Hide loader
                     if (typeof hideLoader === 'function') {
@@ -1109,7 +1115,18 @@
                         hideLoader();
                     }
                     console.error('Delete media error:', error);
-                    showErrorToast('Error deleting media: ' + error.message);
+                    
+                    // Better error message handling
+                    let errorMessage = 'Unknown error occurred';
+                    if (error.message) {
+                        errorMessage = error.message;
+                    } else if (typeof error === 'string') {
+                        errorMessage = error;
+                    } else if (error.response && error.response.data && error.response.data.message) {
+                        errorMessage = error.response.data.message;
+                    }
+                    
+                    showErrorToast('Error deleting media: ' + errorMessage);
                 });
         }
 

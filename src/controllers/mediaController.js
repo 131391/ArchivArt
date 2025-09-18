@@ -782,14 +782,19 @@ class MediaController {
     static async deleteMedia(req, res) {
     try {
       const { id } = req.params;
+            console.log(`🗑️ Attempting to delete media with ID: ${id}`);
+            
             const media = await Media.findById(id);
 
             if (!media) {
+                console.log(`❌ Media not found with ID: ${id}`);
                 return res.status(404).json({
                     success: false,
                     message: 'Media not found'
                 });
             }
+            
+            console.log(`✅ Found media: ${media.title} (${media.file_path})`);
 
             // Delete files from filesystem (handle both old and new file path formats)
             try {
@@ -825,7 +830,9 @@ class MediaController {
             }
 
       // Delete from database
+            console.log(`🗃️ Deleting media from database...`);
             await media.delete();
+            console.log(`✅ Media deleted from database successfully`);
 
             res.json({
                 success: true,
@@ -835,7 +842,7 @@ class MediaController {
             console.error('Error deleting media:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error deleting media'
+                message: error.message || 'Error deleting media'
             });
         }
     }
