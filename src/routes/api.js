@@ -7,6 +7,7 @@ const mediaController = require('../controllers/mediaController');
 const { body } = require('express-validator');
 const { 
   authRateLimit, 
+  apiRateLimit,
   uploadRateLimit, 
   strictRateLimit,
   validateInput, 
@@ -60,6 +61,12 @@ router.post('/auth/logout', [
   strictRateLimit,
   preventSQLInjection
 ], authController.logout);
+
+// Username availability check endpoint
+router.get('/auth/check-username', [
+  apiRateLimit,
+  preventSQLInjection
+], authController.checkUsernameAvailability);
 
 router.get('/auth/profile', [
   authenticateToken,

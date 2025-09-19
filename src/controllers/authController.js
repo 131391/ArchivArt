@@ -675,6 +675,133 @@ class AuthController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
+
+  // Check username availability and suggest alternatives
+  async checkUsernameAvailability(req, res) {
+    try {
+      const { username } = req.query;
+
+      if (!username) {
+        return res.status(400).json({ 
+          error: 'Username is required',
+          available: false 
+        });
+      }
+
+      // Validate username format
+      const usernameRegex = /^[a-zA-Z0-9_]{3,50}$/;
+      if (!usernameRegex.test(username)) {
+        return res.status(400).json({
+          error: 'Username must be 3-50 characters long and contain only letters, numbers, and underscores',
+          available: false,
+          suggestions: []
+        });
+      }
+
+      // Check if username exists
+      const [existingUsers] = await db.execute(
+        'SELECT id FROM users WHERE username = ?',
+        [username]
+      );
+
+      const isAvailable = existingUsers.length === 0;
+
+      // Generate suggestions if username is taken
+      let suggestions = [];
+      if (!isAvailable) {
+        try {
+          suggestions = await this.generateUsernameSuggestions(username);
+        } catch (suggestionError) {
+          console.error('Error generating suggestions:', suggestionError);
+          // Continue without suggestions if generation fails
+          suggestions = [];
+        }
+      }
+
+      res.json({
+        username: username,
+        available: isAvailable,
+        suggestions: suggestions,
+        message: isAvailable ? 'Username is available' : 'Username is already taken'
+      });
+
+    } catch (error) {
+      console.error('Username availability check error:', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        available: false 
+      });
+    }
+  }
+
+  // Generate username suggestions
+  async generateUsernameSuggestions(baseUsername) {
+    const suggestions = [];
+    const maxSuggestions = 5;
+
+    // Strategy 1: Add numbers
+    for (let i = 1; i <= 99 && suggestions.length < maxSuggestions; i++) {
+      const suggestion = `${baseUsername}${i}`;
+      if (suggestion.length <= 50) {
+        const [existing] = await db.execute(
+          'SELECT id FROM users WHERE username = ?',
+          [suggestion]
+        );
+        if (existing.length === 0) {
+          suggestions.push(suggestion);
+        }
+      }
+    }
+
+    // Strategy 2: Add random numbers
+    if (suggestions.length < maxSuggestions) {
+      for (let i = 0; i < 20 && suggestions.length < maxSuggestions; i++) {
+        const randomNum = Math.floor(Math.random() * 1000) + 100;
+        const suggestion = `${baseUsername}${randomNum}`;
+        if (suggestion.length <= 50) {
+          const [existing] = await db.execute(
+            'SELECT id FROM users WHERE username = ?',
+            [suggestion]
+          );
+          if (existing.length === 0 && !suggestions.includes(suggestion)) {
+            suggestions.push(suggestion);
+          }
+        }
+      }
+    }
+
+    // Strategy 3: Add common suffixes
+    const suffixes = ['_user', '_official', '_real', '_new', '_pro'];
+    for (const suffix of suffixes) {
+      if (suggestions.length >= maxSuggestions) break;
+      
+      const suggestion = `${baseUsername}${suffix}`;
+      if (suggestion.length <= 50) {
+        const [existing] = await db.execute(
+          'SELECT id FROM users WHERE username = ?',
+          [suggestion]
+        );
+        if (existing.length === 0 && !suggestions.includes(suggestion)) {
+          suggestions.push(suggestion);
+        }
+      }
+    }
+
+    // Strategy 4: Add year
+    const currentYear = new Date().getFullYear();
+    const suggestion = `${baseUsername}${currentYear}`;
+    if (suggestion.length <= 50 && suggestions.length < maxSuggestions) {
+      const [existing] = await db.execute(
+        'SELECT id FROM users WHERE username = ?',
+        [suggestion]
+      );
+      if (existing.length === 0 && !suggestions.includes(suggestion)) {
+        suggestions.push(suggestion);
+      }
+    }
+
+    return suggestions.slice(0, maxSuggestions);
+  }
 }
 
 module.exports = new AuthController();
