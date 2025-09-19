@@ -179,7 +179,8 @@ const commonValidations = {
     .withMessage('Username can only contain letters, numbers, and underscores'),
     
   mobile: body('mobile')
-    .optional()
+    .notEmpty()
+    .withMessage('Mobile number is required')
     .matches(/^\+[1-9]\d{1,14}$/)
     .withMessage('Mobile must be in international format (e.g., +1234567890)'),
     
