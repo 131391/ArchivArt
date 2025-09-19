@@ -495,6 +495,8 @@ class AuthController {
       });
     } catch (error) {
       console.error('Social login error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
