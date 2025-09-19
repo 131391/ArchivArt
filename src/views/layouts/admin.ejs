@@ -466,23 +466,10 @@
     <% } %>
 
 
-    <!-- Users page specific JavaScript -->
-    <% if (typeof title !== 'undefined' && title.includes('Users')) { %>
-        <script>
-        // Initialize table for users page
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof TableUtils !== 'undefined') {
-                TableUtils.initTable({
-                    sort: { column: 'created_at', direction: 'desc' },
-                    page: 1,
-                    search: '',
-                    filters: {}
-                });
-            }
-        });
-
-        // User management functions
-        function viewUser(userId) {
+    <!-- User management functions - always available -->
+    <script>
+    // User management functions
+    function viewUser(userId) {
             console.log('viewUser called with userId:', userId);
             
             // Show loader immediately without delay
@@ -865,8 +852,22 @@
                     showErrorToast(`Error deleting user: ${error.message}`);
                 });
         }
+    </script>
 
-        // Table initialization is now handled by individual page scripts
+    <!-- Users page specific JavaScript -->
+    <% if (typeof title !== 'undefined' && title.includes('Users')) { %>
+        <script>
+        // Initialize table for users page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof TableUtils !== 'undefined') {
+                TableUtils.initTable({
+                    sort: { column: 'created_at', direction: 'desc' },
+                    page: 1,
+                    search: '',
+                    filters: {}
+                });
+            }
+        });
         </script>
     <% } %>
 

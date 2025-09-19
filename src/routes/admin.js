@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { body } = require('express-validator');
+const { body, param } = require('express-validator');
 const { requireAuth, requireAdminWeb, redirectIfAuthenticated } = require('../middleware/auth');
 const { loadSettings } = require('../middleware/settings');
 const authController = require('../controllers/authController');
@@ -61,7 +61,12 @@ router.get('/users/data', [
 router.get('/users/:id', [
   requireAdminWeb, 
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
+  param('id').custom((value) => {
+    if (!value || isNaN(value) || parseInt(value) < 1) {
+      throw new Error('Valid user ID is required');
+    }
+    return true;
+  }),
   validateInput
 ], adminController.getUser);
 
