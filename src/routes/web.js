@@ -10,5 +10,12 @@ router.get('/', loadSettings, (req, res) => {
   });
 });
 
+// Registration page
+router.get('/register', loadSettings, (req, res) => {
+  res.render('admin/register', { 
+    title: 'Register - ArchivArt',
+    layout: false
+  });
+});
 
 module.exports = router;

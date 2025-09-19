@@ -6,6 +6,87 @@ const crypto = require('crypto');
 const SecurityService = require('../services/securityService');
 const { securityUtils } = require('../config/security');
 
+// Standalone function for generating username suggestions
+async function generateUsernameSuggestions(baseUsername) {
+  console.log('Starting suggestion generation for:', baseUsername);
+  const suggestions = [];
+  const maxSuggestions = 5;
+
+  try {
+    // Strategy 1: Add numbers
+    for (let i = 1; i <= 99 && suggestions.length < maxSuggestions; i++) {
+      const suggestion = `${baseUsername}${i}`;
+      if (suggestion.length <= 50) {
+        try {
+          const [existing] = await db.execute(
+            'SELECT id FROM users WHERE username = ?',
+            [suggestion]
+          );
+          if (existing.length === 0) {
+            suggestions.push(suggestion);
+            console.log('Added suggestion:', suggestion);
+          }
+        } catch (dbError) {
+          console.error('Database error in suggestion generation:', dbError);
+          throw dbError;
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error in strategy 1:', error);
+    throw error;
+  }
+
+  // Strategy 2: Add random numbers
+  if (suggestions.length < maxSuggestions) {
+    for (let i = 0; i < 20 && suggestions.length < maxSuggestions; i++) {
+      const randomNum = Math.floor(Math.random() * 1000) + 100;
+      const suggestion = `${baseUsername}${randomNum}`;
+      if (suggestion.length <= 50) {
+        const [existing] = await db.execute(
+          'SELECT id FROM users WHERE username = ?',
+          [suggestion]
+        );
+        if (existing.length === 0 && !suggestions.includes(suggestion)) {
+          suggestions.push(suggestion);
+        }
+      }
+    }
+  }
+
+  // Strategy 3: Add common suffixes
+  const suffixes = ['_user', '_official', '_real', '_new', '_pro'];
+  for (const suffix of suffixes) {
+    if (suggestions.length >= maxSuggestions) break;
+    
+    const suggestion = `${baseUsername}${suffix}`;
+    if (suggestion.length <= 50) {
+      const [existing] = await db.execute(
+        'SELECT id FROM users WHERE username = ?',
+        [suggestion]
+      );
+      if (existing.length === 0 && !suggestions.includes(suggestion)) {
+        suggestions.push(suggestion);
+      }
+    }
+  }
+
+  // Strategy 4: Add year
+  const currentYear = new Date().getFullYear();
+  const suggestion = `${baseUsername}${currentYear}`;
+  if (suggestion.length <= 50 && suggestions.length < maxSuggestions) {
+    const [existing] = await db.execute(
+      'SELECT id FROM users WHERE username = ?',
+      [suggestion]
+    );
+    if (existing.length === 0 && !suggestions.includes(suggestion)) {
+      suggestions.push(suggestion);
+    }
+  }
+
+  return suggestions.slice(0, maxSuggestions);
+}
+
 class AuthController {
   // Register new user
   async register(req, res) {
@@ -712,9 +793,12 @@ class AuthController {
       let suggestions = [];
       if (!isAvailable) {
         try {
-          suggestions = await this.generateUsernameSuggestions(username);
+          console.log('Generating suggestions for username:', username);
+          suggestions = await generateUsernameSuggestions(username);
+          console.log('Generated suggestions:', suggestions);
         } catch (suggestionError) {
           console.error('Error generating suggestions:', suggestionError);
+          console.error('Suggestion error stack:', suggestionError.stack);
           // Continue without suggestions if generation fails
           suggestions = [];
         }
@@ -738,21 +822,33 @@ class AuthController {
 
   // Generate username suggestions
   async generateUsernameSuggestions(baseUsername) {
+    console.log('Starting suggestion generation for:', baseUsername);
     const suggestions = [];
     const maxSuggestions = 5;
 
-    // Strategy 1: Add numbers
-    for (let i = 1; i <= 99 && suggestions.length < maxSuggestions; i++) {
-      const suggestion = `${baseUsername}${i}`;
-      if (suggestion.length <= 50) {
-        const [existing] = await db.execute(
-          'SELECT id FROM users WHERE username = ?',
-          [suggestion]
-        );
-        if (existing.length === 0) {
-          suggestions.push(suggestion);
+    try {
+      // Strategy 1: Add numbers
+      for (let i = 1; i <= 99 && suggestions.length < maxSuggestions; i++) {
+        const suggestion = `${baseUsername}${i}`;
+        if (suggestion.length <= 50) {
+          try {
+            const [existing] = await db.execute(
+              'SELECT id FROM users WHERE username = ?',
+              [suggestion]
+            );
+            if (existing.length === 0) {
+              suggestions.push(suggestion);
+              console.log('Added suggestion:', suggestion);
+            }
+          } catch (dbError) {
+            console.error('Database error in suggestion generation:', dbError);
+            throw dbError;
+          }
         }
       }
+    } catch (error) {
+      console.error('Error in strategy 1:', error);
+      throw error;
     }
 
     // Strategy 2: Add random numbers
@@ -804,6 +900,7 @@ class AuthController {
 
     return suggestions.slice(0, maxSuggestions);
   }
+
 }
 
 module.exports = new AuthController();

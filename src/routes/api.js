@@ -68,6 +68,7 @@ router.get('/auth/check-username', [
   preventSQLInjection
 ], authController.checkUsernameAvailability);
 
+
 router.get('/auth/profile', [
   authenticateToken,
   preventSQLInjection
