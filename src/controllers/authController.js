@@ -96,7 +96,7 @@ class AuthController {
 
       // Insert new user
       const [result] = await db.execute(
-        'INSERT INTO users (name, username, email, password, mobile, role, auth_provider, is_verified, password_changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+        'INSERT INTO users (name, username, email, password, mobile, role, auth_provider, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [name, finalUsername, email, hashedPassword, mobile, role, 'local', false]
       );
 
