@@ -374,3 +374,4 @@ pids/
 # Security
 .secrets/
 secrets.json
+src/public/builds/*.apk

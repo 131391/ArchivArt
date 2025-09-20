@@ -38,6 +38,9 @@
                     <a href="#features" class="text-white/80 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
                         Features
                     </a>
+                    <a href="#download" class="text-white/80 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Download
+                    </a>
                     <a href="#how-it-works" class="text-white/80 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
                         How It Works
                     </a>
@@ -60,8 +63,14 @@
                     <a href="#features" class="block text-white/80 hover:text-white px-3 py-2 rounded-md text-base font-medium transition-colors">
                         Features
                     </a>
+                    <a href="#download" class="block text-white/80 hover:text-white px-3 py-2 rounded-md text-base font-medium transition-colors">
+                        Download
+                    </a>
                     <a href="#how-it-works" class="block text-white/80 hover:text-white px-3 py-2 rounded-md text-base font-medium transition-colors">
                         How It Works
+                    </a>
+                    <a href="/builds/ArchivART-V1.apk" class="block bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-2 rounded-md text-base font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-300" download="ArchivART-V1.apk" onclick="trackDownload()">
+                        <i class="fab fa-android mr-2"></i>Download App
                     </a>
                     <a href="/admin/login" class="block bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-2 rounded-md text-base font-medium hover:from-purple-700 hover:to-indigo-700 transition-all duration-300">
                         Admin Portal
@@ -97,6 +106,11 @@
                 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                    <a href="/builds/ArchivART-V1.apk" class="group bg-gradient-to-r from-green-600 to-emerald-600 text-white px-10 py-5 rounded-full text-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl" download="ArchivART-V1.apk" onclick="trackDownload()">
+                        <i class="fab fa-android mr-3 group-hover:animate-bounce"></i>
+                        Download Mobile App
+                        <div class="text-sm font-normal mt-1 opacity-90">APK v1.0 • 118MB</div>
+                    </a>
                     <a href="#how-it-works" class="group bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-10 py-5 rounded-full text-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
                         <i class="fas fa-play mr-3 group-hover:animate-pulse"></i>
                         See How It Works
@@ -143,6 +157,104 @@
             </div>
         </div>
     </div>
+
+    <!-- Download Section -->
+    <section id="download" class="py-24 bg-gradient-to-br from-green-900 to-emerald-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-base text-green-400 font-semibold tracking-wide uppercase mb-6">Download</h2>
+                <p class="text-5xl md:text-6xl font-bold text-white mb-8">
+                    Get the
+                    <span class="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">Mobile App</span>
+                </p>
+                <p class="text-xl text-white max-w-4xl mx-auto leading-relaxed">
+                    Download our Android app to start scanning images and experiencing AR magic on your mobile device.
+                </p>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-12 border border-white/20 shadow-2xl">
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div class="space-y-8">
+                            <h3 class="text-4xl font-bold text-white">ArchivART Mobile App</h3>
+                            <p class="text-white text-xl leading-relaxed">
+                                Experience augmented reality like never before. Our mobile app provides seamless image scanning and AR content playback.
+                            </p>
+                            
+                            <div class="space-y-6">
+                                <div class="flex items-center space-x-4 text-white">
+                                    <div class="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full">
+                                        <i class="fas fa-camera text-white text-lg"></i>
+                                    </div>
+                                    <span class="text-lg font-medium">Real-time Image Scanning</span>
+                                </div>
+                                <div class="flex items-center space-x-4 text-white">
+                                    <div class="flex items-center justify-center w-12 h-12 bg-emerald-500 rounded-full">
+                                        <i class="fas fa-mobile-alt text-white text-lg"></i>
+                                    </div>
+                                    <span class="text-lg font-medium">Optimized for Mobile</span>
+                                </div>
+                                <div class="flex items-center space-x-4 text-white">
+                                    <div class="flex items-center justify-center w-12 h-12 bg-green-600 rounded-full">
+                                        <i class="fas fa-wifi text-white text-lg"></i>
+                                    </div>
+                                    <span class="text-lg font-medium">Offline Capable</span>
+                                </div>
+                            </div>
+
+                            <div class="pt-6">
+                                <a href="/builds/ArchivART-V1.apk" class="group bg-gradient-to-r from-green-600 to-emerald-600 text-white px-10 py-5 rounded-full text-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl inline-flex items-center" download="ArchivART-V1.apk" onclick="trackDownload()">
+                                    <i class="fab fa-android mr-4 text-2xl group-hover:animate-bounce"></i>
+                                    <div class="text-left">
+                                        <div>Download APK</div>
+                                        <div class="text-sm font-normal opacity-90">Version 1.0 • 118MB</div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="bg-gradient-to-br from-green-500/30 to-emerald-500/30 rounded-3xl p-10 border border-white/20 shadow-xl">
+                                <div class="flex items-center justify-center h-60">
+                                    <div class="text-center">
+                                        <i class="fas fa-mobile-alt text-9xl text-white mb-6"></i>
+                                        <div class="bg-white/20 rounded-full px-6 py-3 inline-block">
+                                            <span class="text-white font-bold text-lg">Android 7.0+</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="absolute -top-4 -right-4 w-12 h-12 bg-green-400 rounded-full animate-pulse shadow-lg flex items-center justify-center">
+                                    <i class="fas fa-download text-white text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Requirements -->
+                <div class="mt-12 bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
+                    <h4 class="text-2xl font-bold text-white mb-6 text-center">System Requirements</h4>
+                    <div class="grid md:grid-cols-3 gap-6 text-center">
+                        <div class="space-y-2">
+                            <i class="fas fa-mobile-alt text-3xl text-green-400"></i>
+                            <h5 class="text-lg font-bold text-white">Android Version</h5>
+                            <p class="text-white/80">7.0 (API level 24) or higher</p>
+                        </div>
+                        <div class="space-y-2">
+                            <i class="fas fa-memory text-3xl text-green-400"></i>
+                            <h5 class="text-lg font-bold text-white">RAM</h5>
+                            <p class="text-white/80">Minimum 2GB recommended</p>
+                        </div>
+                        <div class="space-y-2">
+                            <i class="fas fa-hdd text-3xl text-green-400"></i>
+                            <h5 class="text-lg font-bold text-white">Storage</h5>
+                            <p class="text-white/80">150MB free space required</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Features Section -->
     <section id="features" class="py-24 bg-gradient-to-br from-slate-800 to-slate-900">
@@ -362,6 +474,7 @@
                     <h4 class="text-xl font-bold text-white">Quick Links</h4>
                     <div class="space-y-4">
                         <a href="#features" class="block text-white hover:text-purple-400 transition-colors text-lg">Features</a>
+                        <a href="#download" class="block text-white hover:text-purple-400 transition-colors text-lg">Download App</a>
                         <a href="#how-it-works" class="block text-white hover:text-purple-400 transition-colors text-lg">How It Works</a>
                         <a href="/admin/login" class="block text-white hover:text-purple-400 transition-colors text-lg">Admin Portal</a>
                     </div>
@@ -396,8 +509,55 @@
         </div>
     </footer>
 
-    <!-- Mobile Menu JavaScript -->
+    <!-- Download Tracking and Mobile Menu JavaScript -->
     <script>
+        // Download tracking function
+        function trackDownload() {
+            // Track download event
+            console.log('APK download initiated');
+            
+            // You can add analytics tracking here
+            // Example: Google Analytics, Mixpanel, etc.
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'download', {
+                    'event_category': 'APK',
+                    'event_label': 'ArchivART-V1.apk',
+                    'value': 1
+                });
+            }
+            
+            // Show download progress notification
+            showDownloadNotification();
+        }
+        
+        // Show download notification
+        function showDownloadNotification() {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-download"></i>
+                    <span>Download started! Check your downloads folder.</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 5000);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
