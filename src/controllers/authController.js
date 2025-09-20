@@ -757,6 +757,8 @@ class AuthController {
       // Handle profile picture upload
       if (req.file) {
         profilePicturePath = `/uploads/profile-pictures/${req.file.filename}`;
+        console.log('Profile picture file received:', req.file.filename);
+        console.log('Profile picture path set to:', profilePicturePath);
       }
 
       // Build update query dynamically
@@ -778,6 +780,9 @@ class AuthController {
         updateValues.push(profilePicturePath);
       }
 
+      console.log('Update fields:', updateFields);
+      console.log('Update values:', updateValues);
+
       if (updateFields.length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
       }
@@ -787,7 +792,11 @@ class AuthController {
 
       // Update user
       const updateQuery = `UPDATE users SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-      await db.execute(updateQuery, updateValues);
+      console.log('Executing update query:', updateQuery);
+      console.log('With values:', updateValues);
+      
+      const updateResult = await db.execute(updateQuery, updateValues);
+      console.log('Update result:', updateResult);
 
       // Get updated user data
       const [users] = await db.execute(
