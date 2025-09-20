@@ -374,4 +374,5 @@ pids/
 # Security
 .secrets/
 secrets.json
-src/public/builds/*.apk
+# APK files are now handled by Git LFS
+# src/public/builds/*.apk
