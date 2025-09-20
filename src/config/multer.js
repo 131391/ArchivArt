@@ -6,7 +6,8 @@ const fs = require('fs').promises;
 const ensureUploadDirs = async () => {
   const dirs = [
     'src/public/uploads/logos',
-    'src/public/uploads/media'
+    'src/public/uploads/media',
+    'src/public/uploads/profile-pictures'
   ];
   
   for (const dir of dirs) {
@@ -117,6 +118,43 @@ const scanningImageUpload = multer({
   }
 });
 
+// Profile picture upload configuration
+const profilePictureStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'src/public/uploads/profile-pictures/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const profilePictureUpload = multer({
+  storage: profilePictureStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit for profile pictures
+  },
+  fileFilter: function (req, file, cb) {
+    console.log('Profile picture upload - File filter - originalname:', file.originalname);
+    console.log('Profile picture upload - File filter - mimetype:', file.mimetype);
+    
+    const allowedTypes = /jpeg|jpg|png|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    console.log('Profile picture upload - File filter - extname check:', extname);
+    console.log('Profile picture upload - File filter - mimetype check:', mimetype);
+    
+    if (mimetype && extname) {
+      console.log('Profile picture upload - File filter - accepted');
+      return cb(null, true);
+    } else {
+      console.log('Profile picture upload - File filter - rejected');
+      cb(new Error('Only image files (JPEG, PNG, WebP) are allowed for profile pictures'));
+    }
+  }
+});
+
 // Combined upload for media and scanning image
 const combinedUpload = multer({
   storage: mediaStorage,
@@ -183,6 +221,7 @@ module.exports = {
   logoUpload: logoUpload.single('logo'),
   upload,
   scanningImageUpload: scanningImageUpload.single('scanning_image'),
+  profilePictureUpload: profilePictureUpload.single('profile_picture'),
   combinedUpload: combinedUpload.fields([
     { name: 'media_file', maxCount: 1 },
     { name: 'scanning_image', maxCount: 1 }

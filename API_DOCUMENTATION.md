@@ -404,23 +404,27 @@ Authorization: Bearer <access_token>
 
 **Endpoint:** `PUT /api/auth/profile`
 
-**Description:** Update current user's profile information
+**Description:** Update current user's profile information (name, mobile, profile picture). Email cannot be changed as it's unique.
 
 **Authentication:** Required (Bearer token)
 
 **Headers:**
 ```
 Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
 ```
 
-**Request Body:**
-```json
-{
-  "name": "John Smith",
-  "email": "johnsmith@example.com",
-  "mobile": "+1987654321"
-}
+**Request Body (multipart/form-data):**
 ```
+name: "John Smith"
+mobile: "+1987654321"
+profile_picture: [FILE] (optional - image file)
+```
+
+**Validation Rules:**
+- `name`: 2-100 characters, letters, spaces, hyphens, apostrophes, periods only
+- `mobile`: International format with country code (optional)
+- `profile_picture`: Image file (JPEG, PNG, WebP), max 5MB (optional)
 
 **Success Response (200):**
 ```json
@@ -430,11 +434,35 @@ Authorization: Bearer <access_token>
     "id": 15,
     "name": "John Smith",
     "username": "johndoe",
-    "email": "johnsmith@example.com",
+    "email": "john@example.com",
     "mobile": "+1987654321",
     "role": "user",
+    "profile_picture": "/uploads/profile-pictures/profile-1234567890-123456789.jpg",
     "is_verified": false
   }
+}
+```
+
+**Error Responses:**
+
+**400 - No Fields to Update:**
+```json
+{
+  "error": "No fields to update"
+}
+```
+
+**400 - Invalid File Type:**
+```json
+{
+  "error": "Only image files (JPEG, PNG, WebP) are allowed for profile pictures"
+}
+```
+
+**400 - File Too Large:**
+```json
+{
+  "error": "File too large. Maximum size is 5MB"
 }
 ```
 
@@ -588,6 +616,23 @@ curl -X POST http://172.20.10.5:3000/api/auth/login \
 ```bash
 curl -X GET http://localhost:3000/api/auth/profile \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Update Profile (with profile picture):**
+```bash
+curl -X PUT http://localhost:3000/api/auth/profile \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -F "name=John Smith" \
+  -F "mobile=+1987654321" \
+  -F "profile_picture=@/path/to/profile-picture.jpg"
+```
+
+**Update Profile (without profile picture):**
+```bash
+curl -X PUT http://localhost:3000/api/auth/profile \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -F "name=John Smith" \
+  -F "mobile=+1987654321"
 ```
 
 ---

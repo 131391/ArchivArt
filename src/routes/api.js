@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { upload } = require('../config/multer');
+const { upload, profilePictureUpload } = require('../config/multer');
 const authController = require('../controllers/authController');
 const mediaController = require('../controllers/mediaController');
 const { body } = require('express-validator');
@@ -77,8 +77,8 @@ router.get('/auth/profile', [
 router.put('/auth/profile', [
   authenticateToken,
   preventSQLInjection,
+  profilePictureUpload,
   commonValidations.name,
-  commonValidations.email,
   validateInput
 ], authController.updateProfile);
 

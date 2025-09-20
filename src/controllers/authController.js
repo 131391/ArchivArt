@@ -750,26 +750,66 @@ class AuthController {
         });
       }
 
-      const { name, email } = req.body;
+      const { name, mobile } = req.body;
       const userId = req.user.id;
+      let profilePicturePath = null;
 
-      // Check if email is already taken by another user
-      const [existingUsers] = await db.execute(
-        'SELECT id FROM users WHERE email = ? AND id != ?',
-        [email, userId]
-      );
-
-      if (existingUsers.length > 0) {
-        return res.status(400).json({ error: 'Email already taken' });
+      // Handle profile picture upload
+      if (req.file) {
+        profilePicturePath = `/uploads/profile-pictures/${req.file.filename}`;
       }
 
+      // Build update query dynamically
+      let updateFields = [];
+      let updateValues = [];
+
+      if (name) {
+        updateFields.push('name = ?');
+        updateValues.push(name);
+      }
+
+      if (mobile !== undefined) {
+        updateFields.push('mobile = ?');
+        updateValues.push(mobile);
+      }
+
+      if (profilePicturePath) {
+        updateFields.push('profile_picture = ?');
+        updateValues.push(profilePicturePath);
+      }
+
+      if (updateFields.length === 0) {
+        return res.status(400).json({ error: 'No fields to update' });
+      }
+
+      // Add user ID to the end
+      updateValues.push(userId);
+
       // Update user
-      await db.execute(
-        'UPDATE users SET name = ?, email = ? WHERE id = ?',
-        [name, email, userId]
+      const updateQuery = `UPDATE users SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
+      await db.execute(updateQuery, updateValues);
+
+      // Get updated user data
+      const [users] = await db.execute(
+        'SELECT id, name, username, email, mobile, role, profile_picture, is_verified FROM users WHERE id = ?',
+        [userId]
       );
 
-      res.json({ message: 'Profile updated successfully' });
+      const user = users[0];
+
+      res.json({ 
+        message: 'Profile updated successfully',
+        user: {
+          id: user.id,
+          name: user.name,
+          username: user.username || null,
+          email: user.email,
+          mobile: user.mobile || null,
+          role: user.role,
+          profile_picture: user.profile_picture || null,
+          is_verified: user.is_verified || false
+        }
+      });
     } catch (error) {
       console.error('Update profile error:', error);
       res.status(500).json({ error: 'Internal server error' });
