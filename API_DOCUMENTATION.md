@@ -191,6 +191,7 @@ Content-Type: application/json
     "email": "john@example.com",
     "mobile": "+1234567890",
     "role": "user",
+    "profile_picture": "https://example.com/avatar.jpg",
     "is_verified": false
   }
 }

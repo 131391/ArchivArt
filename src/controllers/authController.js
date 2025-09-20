@@ -266,7 +266,7 @@ class AuthController {
 
       // Find user by email
       const [users] = await db.execute(
-        'SELECT id, name, email, password, role, is_active, is_blocked FROM users WHERE email = ?',
+        'SELECT id, name, email, password, role, profile_picture, is_active, is_blocked FROM users WHERE email = ?',
         [email]
       );
 
@@ -335,11 +335,12 @@ class AuthController {
         user: {
           id: user.id,
           name: user.name,
-          username: user.username,
+          username: user.username || null,
           email: user.email,
-          mobile: user.mobile,
+          mobile: user.mobile || null,
           role: user.role,
-          is_verified: user.is_verified
+          profile_picture: user.profile_picture || null,
+          is_verified: user.is_verified || false
         }
       });
     } catch (error) {
@@ -366,7 +367,7 @@ class AuthController {
 
       // Find user by email
       const [users] = await db.execute(
-        'SELECT id, name, email, password, role, is_active, is_blocked FROM users WHERE email = ?',
+        'SELECT id, name, email, password, role, profile_picture, is_active, is_blocked FROM users WHERE email = ?',
         [email]
       );
 
