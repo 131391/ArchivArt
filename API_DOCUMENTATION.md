@@ -404,27 +404,29 @@ Authorization: Bearer <access_token>
 
 **Endpoint:** `PUT /api/auth/profile`
 
-**Description:** Update current user's profile information (name, mobile, profile picture). Email cannot be changed as it's unique.
+**Description:** Update current user's profile information (name, mobile, profile picture). Email cannot be changed as it's unique. Profile pictures are accepted as base64 data.
 
 **Authentication:** Required (Bearer token)
 
 **Headers:**
 ```
 Authorization: Bearer <access_token>
-Content-Type: multipart/form-data
+Content-Type: application/json
 ```
 
-**Request Body (multipart/form-data):**
-```
-name: "John Smith"
-mobile: "+1987654321"
-profile_picture: [FILE] (optional - image file)
+**Request Body (JSON):**
+```json
+{
+  "name": "John Smith",
+  "mobile": "+1987654321",
+  "profile_picture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD..." // Optional - base64 image data
+}
 ```
 
 **Validation Rules:**
 - `name`: 2-100 characters, letters, spaces, hyphens, apostrophes, periods only
 - `mobile`: International format with country code (optional)
-- `profile_picture`: Image file (JPEG, PNG, WebP), max 5MB (optional)
+- `profile_picture`: Base64 image data (JPEG, PNG, WebP), max 5MB (optional)
 
 **Success Response (200):**
 ```json
@@ -437,7 +439,7 @@ profile_picture: [FILE] (optional - image file)
     "email": "john@example.com",
     "mobile": "+1987654321",
     "role": "user",
-    "profile_picture": "/uploads/profile-pictures/profile-1234567890-123456789.jpg",
+    "profile_picture": "/uploads/media/profile-1234567890-123456789.jpg",
     "is_verified": false
   }
 }
@@ -452,17 +454,24 @@ profile_picture: [FILE] (optional - image file)
 }
 ```
 
-**400 - Invalid File Type:**
+**400 - Invalid Base64 Format:**
 ```json
 {
-  "error": "Only image files (JPEG, PNG, WebP) are allowed for profile pictures"
+  "error": "Invalid profile picture format. Must be base64 image data."
+}
+```
+
+**400 - Invalid Image Type:**
+```json
+{
+  "error": "Invalid image type. Only JPEG, PNG, and WebP are allowed."
 }
 ```
 
 **400 - File Too Large:**
 ```json
 {
-  "error": "File too large. Maximum size is 5MB"
+  "error": "Profile picture too large. Maximum size is 5MB."
 }
 ```
 
@@ -622,17 +631,23 @@ curl -X GET http://localhost:3000/api/auth/profile \
 ```bash
 curl -X PUT http://localhost:3000/api/auth/profile \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -F "name=John Smith" \
-  -F "mobile=+1987654321" \
-  -F "profile_picture=@/path/to/profile-picture.jpg"
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Smith",
+    "mobile": "+1987654321",
+    "profile_picture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD..."
+  }'
 ```
 
 **Update Profile (without profile picture):**
 ```bash
 curl -X PUT http://localhost:3000/api/auth/profile \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -F "name=John Smith" \
-  -F "mobile=+1987654321"
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Smith",
+    "mobile": "+1987654321"
+  }'
 ```
 
 ---

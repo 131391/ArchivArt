@@ -77,8 +77,9 @@ router.get('/auth/profile', [
 router.put('/auth/profile', [
   authenticateToken,
   preventSQLInjection,
-  profilePictureUpload,
   commonValidations.name,
+  body('profile_picture').optional().isString().withMessage('Profile picture must be a valid base64 string'),
+  body('mobile').optional().isMobilePhone().withMessage('Invalid mobile number format'),
   validateInput
 ], authController.updateProfile);
 

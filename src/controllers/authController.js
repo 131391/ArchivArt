@@ -750,15 +750,73 @@ class AuthController {
         });
       }
 
-      const { name, mobile } = req.body;
+      const { name, mobile, profile_picture } = req.body;
       const userId = req.user.id;
       let profilePicturePath = null;
 
-      // Handle profile picture upload
-      if (req.file) {
-        profilePicturePath = `/uploads/profile-pictures/${req.file.filename}`;
-        console.log('Profile picture file received:', req.file.filename);
-        console.log('Profile picture path set to:', profilePicturePath);
+      // Handle profile picture base64 upload
+      if (profile_picture) {
+        try {
+          // Validate base64 format
+          if (!profile_picture.startsWith('data:image/')) {
+            return res.status(400).json({ error: 'Invalid profile picture format. Must be base64 image data.' });
+          }
+
+          // Extract image data from base64 string
+          const matches = profile_picture.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
+          if (!matches) {
+            return res.status(400).json({ error: 'Invalid base64 image format.' });
+          }
+
+          const imageType = matches[1];
+          const imageData = matches[2];
+
+          // Validate image type
+          const allowedTypes = ['jpeg', 'jpg', 'png', 'webp'];
+          if (!allowedTypes.includes(imageType.toLowerCase())) {
+            return res.status(400).json({ 
+              error: 'Invalid image type. Only JPEG, PNG, and WebP are allowed.' 
+            });
+          }
+
+          // Convert base64 to buffer
+          const imageBuffer = Buffer.from(imageData, 'base64');
+
+          // Validate file size (5MB limit)
+          if (imageBuffer.length > 5 * 1024 * 1024) {
+            return res.status(400).json({ error: 'Profile picture too large. Maximum size is 5MB.' });
+          }
+
+          // Generate unique filename
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const extension = imageType === 'jpeg' ? 'jpg' : imageType;
+          const filename = `profile-${uniqueSuffix}.${extension}`;
+
+          // Ensure media directory exists
+          const fs = require('fs').promises;
+          const path = require('path');
+          const mediaDir = 'src/public/uploads/media';
+          
+          try {
+            await fs.access(mediaDir);
+          } catch (error) {
+            await fs.mkdir(mediaDir, { recursive: true });
+            console.log(`Created directory: ${mediaDir}`);
+          }
+
+          // Save file to media folder
+          const filePath = path.join(mediaDir, filename);
+          await fs.writeFile(filePath, imageBuffer);
+
+          // Set profile picture path
+          profilePicturePath = `/uploads/media/${filename}`;
+          console.log('Profile picture saved:', filename);
+          console.log('Profile picture path set to:', profilePicturePath);
+
+        } catch (base64Error) {
+          console.error('Base64 processing error:', base64Error);
+          return res.status(400).json({ error: 'Failed to process profile picture.' });
+        }
       }
 
       // Build update query dynamically
