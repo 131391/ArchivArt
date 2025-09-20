@@ -16,7 +16,7 @@ const authenticateToken = async (req, res, next) => {
     
     // Get user from database
     const [users] = await db.execute(
-      'SELECT id, name, email, role, username, mobile, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+      'SELECT id, name, email, role, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
       [decoded.userId]
     );
 
@@ -58,7 +58,7 @@ const authenticateWithRefresh = async (req, res, next) => {
     
     // Get user from database
     const [users] = await db.execute(
-      'SELECT id, name, email, role, username, mobile, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+      'SELECT id, name, email, role, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
       [decoded.userId]
     );
 
@@ -120,7 +120,7 @@ const authenticateWithRefresh = async (req, res, next) => {
 
         // Get user information
         const [users] = await db.execute(
-          'SELECT id, name, email, role, username, mobile, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+          'SELECT id, name, email, role, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
           [session.user_id]
         );
 

@@ -422,6 +422,7 @@ class AuthController {
         name: user.name,
         email: user.email,
         role: user.role,
+        profile_picture: user.profile_picture,
         is_active: user.is_active,
         is_blocked: user.is_blocked
       };
@@ -484,7 +485,7 @@ class AuthController {
           );
 
           const [updatedUsers] = await db.execute(
-            'SELECT id, name, username, email, mobile, role, is_active, is_blocked, is_verified FROM users WHERE email = ?',
+            'SELECT id, name, username, email, mobile, role, profile_picture, is_active, is_blocked, is_verified FROM users WHERE email = ?',
             [email]
           );
           user = updatedUsers[0];
@@ -625,7 +626,7 @@ class AuthController {
 
       // Get user information
       const [users] = await db.execute(
-        'SELECT id, name, email, role, username, mobile, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+        'SELECT id, name, email, role, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
         [session.user_id]
       );
 
@@ -709,7 +710,7 @@ class AuthController {
   async getProfile(req, res) {
     try {
       const [users] = await db.execute(
-        'SELECT id, name, email, role, created_at FROM users WHERE id = ?',
+        'SELECT id, name, email, username, mobile, role, profile_picture, created_at FROM users WHERE id = ?',
         [req.user.id]
       );
 
@@ -717,7 +718,20 @@ class AuthController {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      res.json({ user: users[0] });
+      const user = users[0];
+      
+      res.json({ 
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          username: user.username,
+          mobile: user.mobile,
+          role: user.role,
+          profile_picture: user.profile_picture,
+          created_at: user.created_at
+        }
+      });
     } catch (error) {
       console.error('Get profile error:', error);
       res.status(500).json({ error: 'Internal server error' });

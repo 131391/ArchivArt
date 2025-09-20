@@ -389,6 +389,7 @@ Authorization: Bearer <access_token>
     "email": "john@example.com",
     "mobile": "+1234567890",
     "role": "user",
+    "profile_picture": "https://example.com/avatar.jpg",
     "is_verified": false,
     "created_at": "2025-09-18T10:00:00.000Z",
     "last_login_at": "2025-09-18T10:30:00.000Z"

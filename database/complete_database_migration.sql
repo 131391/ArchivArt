@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS users (
     mobile VARCHAR(20),
     auth_provider ENUM('local', 'google', 'facebook') DEFAULT 'local',
     provider_id VARCHAR(255),
+    provider_data JSON NULL COMMENT 'Additional provider data (profile picture, etc.)',
+    profile_picture TEXT NULL COMMENT 'User profile picture URL',
     role ENUM('admin', 'user') DEFAULT 'user',
     is_active BOOLEAN DEFAULT true,
     is_blocked BOOLEAN DEFAULT false,

@@ -439,7 +439,7 @@ class AdminController {
     try {
       const { id } = req.params;
       const [users] = await db.execute(
-        'SELECT id, name, email, role, is_active, is_blocked, created_at, updated_at FROM users WHERE id = ?',
+        'SELECT id, name, email, role, profile_picture, is_active, is_blocked, created_at, updated_at FROM users WHERE id = ?',
         [id]
       );
 
