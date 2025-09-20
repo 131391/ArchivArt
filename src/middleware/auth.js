@@ -185,6 +185,14 @@ const requireAdminWeb = (req, res, next) => {
     req.flash('error_msg', 'Admin access required');
     return res.redirect('/admin/login');
   }
+  
+  // Check if user is still active (handle existing sessions that might not have these fields)
+  if (req.session.user.is_active === false || req.session.user.is_blocked === true) {
+    req.session.destroy();
+    req.flash('error_msg', 'Your account has been deactivated');
+    return res.redirect('/admin/login');
+  }
+  
   next();
 };
 

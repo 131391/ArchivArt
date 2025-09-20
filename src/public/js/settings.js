@@ -136,6 +136,7 @@ async function handleFormSubmission(form, type) {
         const response = await fetch('/admin/settings', {
             method: 'POST',
             body: formData,
+            credentials: 'same-origin',
             headers: {
                 'X-Settings-Type': type,
                 'X-Requested-With': 'XMLHttpRequest'

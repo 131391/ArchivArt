@@ -732,11 +732,11 @@
             
             fetch(`/admin/users/${userId}`, {
                 method: 'PUT',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                credentials: 'same-origin',
                 body: JSON.stringify({
                     name: formData.get('name'),
                     email: formData.get('email'),
@@ -782,11 +782,11 @@
         function performToggleUserStatus(userId, action, actionText) {
                 fetch(`/admin/users/${userId}/${action}`, {
                     method: 'POST',
+,
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    credentials: 'same-origin'
                 })
                 .then(response => {
                     console.log('Response status:', response.status);
@@ -825,11 +825,11 @@
         function performDeleteUser(userId) {
                 fetch(`/admin/users/${userId}`, {
                     method: 'DELETE',
+,
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    credentials: 'same-origin'
                 })
                 .then(response => {
                     console.log('Delete response status:', response.status);

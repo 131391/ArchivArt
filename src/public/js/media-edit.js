@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`/admin/media/${mediaId}`, {
                 method: 'PUT',
                 body: formData,
+                credentials: 'same-origin',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }

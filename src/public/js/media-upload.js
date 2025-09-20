@@ -759,6 +759,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/admin/media/upload', {
                 method: 'POST',
                 body: formData,
+                credentials: 'same-origin',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }

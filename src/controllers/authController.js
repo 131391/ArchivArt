@@ -421,7 +421,9 @@ class AuthController {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        is_active: user.is_active,
+        is_blocked: user.is_blocked
       };
 
       // Set login success flash message

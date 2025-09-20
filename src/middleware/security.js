@@ -45,6 +45,7 @@ const corsOptions = {
       'http://127.0.0.1:3001',
       'https://archivart.vercel.app',
       'https://archivart.netlify.app',
+      'https://archivart.onrender.com',
       process.env.FRONTEND_URL,
       process.env.ADMIN_URL
     ].filter(Boolean);
@@ -70,7 +71,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Refresh-Token', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Refresh-Token', 'Accept', 'X-File-Name', 'X-File-Size', 'X-File-Type'],
   exposedHeaders: ['X-Total-Count', 'X-Page-Count', 'X-New-Access-Token', 'X-Token-Expires-In']
 };
 
