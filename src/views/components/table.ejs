@@ -97,8 +97,33 @@
                         <div class="relative">
                             <select id="roleFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
                                 <option value="">All Roles</option>
-                                <option value="admin" <%= filters.roleFilter === 'admin' ? 'selected' : '' %>>Admin</option>
-                                <option value="user" <%= filters.roleFilter === 'user' ? 'selected' : '' %>>User</option>
+                                <% if (typeof roles !== 'undefined' && roles && roles.length > 0) { %>
+                                    <% roles.forEach(role => { %>
+                                        <option value="<%= role.id %>" <%= filters.roleFilter === role.id.toString() ? 'selected' : '' %>><%= role.display_name %></option>
+                                    <% }); %>
+                                <% } else { %>
+                                    <option value="admin" <%= filters.roleFilter === 'admin' ? 'selected' : '' %>>Admin</option>
+                                    <option value="user" <%= filters.roleFilter === 'user' ? 'selected' : '' %>>User</option>
+                                <% } %>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                        </div>
+                        <% } %>
+                        <% if (filters.moduleFilter !== undefined) { %>
+                        <div class="relative">
+                            <select id="moduleFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+                                <option value="">All Modules</option>
+                                <% if (typeof modules !== 'undefined' && modules && modules.length > 0) { %>
+                                    <% modules.forEach(module => { %>
+                                        <option value="<%= module.id %>" <%= filters.moduleFilter === module.id.toString() ? 'selected' : '' %>><%= module.display_name %></option>
+                                    <% }); %>
+                                <% } else { %>
+                                    <option value="users" <%= filters.moduleFilter === 'users' ? 'selected' : '' %>>Users</option>
+                                    <option value="media" <%= filters.moduleFilter === 'media' ? 'selected' : '' %>>Media</option>
+                                    <option value="rbac" <%= filters.moduleFilter === 'rbac' ? 'selected' : '' %>>RBAC</option>
+                                <% } %>
                             </select>
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                 <i class="fas fa-chevron-down text-gray-400"></i>
@@ -111,13 +136,23 @@
                 <!-- Action Buttons -->
                 <% if (typeof headerButtons !== 'undefined' && headerButtons && headerButtons.length > 0) { %>
                     <% headerButtons.forEach(button => { %>
-                        <a href="<%= button.href %>" 
-                           class="<%= button.class || 'inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl' %>">
-                            <% if (button.icon) { %>
-                                <i class="<%= button.icon %> mr-2"></i>
-                            <% } %>
-                            <%= button.text %>
-                        </a>
+                        <% if (button.onclick) { %>
+                            <button onclick="<%= button.onclick %>" 
+                               class="<%= button.class || 'inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl' %>">
+                                <% if (button.icon) { %>
+                                    <i class="<%= button.icon %> mr-2"></i>
+                                <% } %>
+                                <%= button.text %>
+                            </button>
+                        <% } else { %>
+                            <a href="<%= button.href %>" 
+                               class="<%= button.class || 'inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl' %>">
+                                <% if (button.icon) { %>
+                                    <i class="<%= button.icon %> mr-2"></i>
+                                <% } %>
+                                <%= button.text %>
+                            </a>
+                        <% } %>
                     <% }); %>
                 <% } %>
             </div>
@@ -183,8 +218,50 @@
                                             <i class="fas fa-calendar text-gray-400 text-xs"></i>
                                             <span class="text-sm text-gray-900"><%= new Date(item[column.key]).toLocaleDateString() %></span>
                                         </div>
+                                    <% } else if (column.type === 'badge') { %>
+                                        <% if (typeof column.formatter === 'function') { %>
+                                            <!-- Inline badge formatter function -->
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= typeof column.badgeClass === 'function' ? column.badgeClass(item) : 'bg-gray-100 text-gray-800' %>">
+                                                <%- column.formatter(item) %>
+                                            </span>
+                                        <% } else { %>
+                                            <!-- External badge formatter function -->
+                                            <div class="text-sm text-gray-900" data-formatter="<%= column.formatter %>" data-item='<%= JSON.stringify(item) %>'>
+                                                <!-- Custom formatter will be applied by JavaScript -->
+                                            </div>
+                                            <script>
+                                                // Apply formatter immediately if available
+                                                (function() {
+                                                    const formatterName = '<%= column.formatter %>';
+                                                    const itemData = <%- JSON.stringify(item) %>;
+                                                    if (typeof window[formatterName] === 'function') {
+                                                        const element = document.currentScript.previousElementSibling;
+                                                        element.innerHTML = window[formatterName](itemData);
+                                                    }
+                                                })();
+                                            </script>
+                                        <% } %>
                                     <% } else if (column.type === 'custom') { %>
-                                        <%- column.formatter(item) %>
+                                        <% if (typeof column.formatter === 'function') { %>
+                                            <!-- Inline formatter function -->
+                                            <%- column.formatter(item) %>
+                                        <% } else { %>
+                                            <!-- External formatter function -->
+                                            <div class="text-sm text-gray-900" data-formatter="<%= column.formatter %>" data-item='<%= JSON.stringify(item) %>'>
+                                                <!-- Custom formatter will be applied by JavaScript -->
+                                            </div>
+                                            <script>
+                                                // Apply formatter immediately if available
+                                                (function() {
+                                                    const formatterName = '<%= column.formatter %>';
+                                                    const itemData = <%- JSON.stringify(item) %>;
+                                                    if (typeof window[formatterName] === 'function') {
+                                                        const element = document.currentScript.previousElementSibling;
+                                                        element.innerHTML = window[formatterName](itemData);
+                                                    }
+                                                })();
+                                            </script>
+                                        <% } %>
                                     <% } else { %>
                                         <div class="text-sm text-gray-900">
                                             <% if (column.key === 'scanning_image' && typeof mediaUrl === 'function') { %>
@@ -311,355 +388,3 @@
 </div>
 
 <!-- Table JavaScript is now handled by /js/table.js -->
-<script>
-// Table functionality (DEPRECATED - use /js/table.js instead)
-let currentSort = { column: 'created_at', direction: 'desc' };
-let currentPage = 1;
-let currentSearch = '';
-let currentFilters = {};
-let isLoading = false;
-
-// Initialize table on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Get current values from URL or defaults
-    const urlParams = new URLSearchParams(window.location.search);
-    currentPage = parseInt(urlParams.get('page')) || 1;
-    currentSearch = urlParams.get('search') || '';
-    currentSort.column = urlParams.get('sort') || 'created_at';
-    currentSort.direction = urlParams.get('order') || 'desc';
-    
-    // Set up event listeners
-    setupEventListeners();
-});
-
-// Debounce function
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Set up event listeners
-function setupEventListeners() {
-    console.log('Setting up event listeners...');
-    
-    // Search input with debouncing
-    const searchInput = document.getElementById('searchInput');
-    console.log('Search input element:', searchInput);
-    
-    if (searchInput) {
-        console.log('Search input found, setting up event listeners');
-        
-        // Debounced search function
-        const debouncedSearch = debounce(function(value) {
-            console.log('Debounced search triggered with value:', value);
-            currentSearch = value;
-            currentPage = 1;
-            loadTableData();
-        }, 500); // 500ms delay
-        
-        // Input event listener
-        searchInput.addEventListener('input', function(e) {
-            const value = e.target.value.trim();
-            console.log('Search input changed:', value);
-            
-            // Test alert to see if event is firing
-            if (value.length > 0) {
-                console.log('Search input has value, proceeding with search');
-            }
-            
-            // Show loading indicator
-            const loadingIndicator = document.getElementById('searchLoading');
-            if (loadingIndicator) {
-                loadingIndicator.classList.remove('hidden');
-            }
-            
-            // Immediate search for testing (remove debouncing temporarily)
-            currentSearch = value;
-            currentPage = 1;
-            loadTableData();
-            
-            // Debounced search (commented out for testing)
-            // debouncedSearch(value);
-        });
-        
-        // Clear search on escape
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                console.log('Escape key pressed, clearing search');
-                this.value = '';
-                currentSearch = '';
-                currentPage = 1;
-                loadTableData();
-            }
-        });
-        
-        console.log('Search event listeners set up successfully');
-    } else {
-        console.error('Search input element not found!');
-    }
-
-    // Filter dropdowns
-    const filters = document.querySelectorAll('select[id$="Filter"]');
-    filters.forEach(filter => {
-        filter.addEventListener('change', function() {
-            const filterName = this.id.replace('Filter', '');
-            currentFilters[filterName] = this.value;
-            currentPage = 1;
-            loadTableData();
-        });
-    });
-}
-
-// Sorting functionality
-function sortTable(column) {
-    if (currentSort.column === column) {
-        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-    } else {
-        currentSort.column = column;
-        currentSort.direction = 'asc';
-    }
-    currentPage = 1;
-    loadTableData();
-}
-
-// Pagination functionality
-function goToPage(page) {
-    currentPage = page;
-    loadTableData();
-}
-
-// Load table data via AJAX
-function loadTableData() {
-    console.log('loadTableData called with search:', currentSearch, 'page:', currentPage);
-    
-    if (isLoading) {
-        console.log('Already loading, skipping request');
-        return;
-    }
-    
-    isLoading = true;
-    
-    // Build query parameters
-    const params = new URLSearchParams({
-        page: currentPage,
-        search: currentSearch,
-        sort: currentSort.column,
-        order: currentSort.direction
-    });
-    
-    // Add filters
-    Object.keys(currentFilters).forEach(key => {
-        if (currentFilters[key]) {
-            params.append(key, currentFilters[key]);
-        }
-    });
-    
-    // Show loading state
-    if (typeof showLoader === 'function') {
-        showLoader({
-            title: 'Loading...',
-            message: 'Fetching data from server',
-            delay: 0
-        });
-    }
-    
-    // Determine the correct endpoint based on current page
-    const currentPath = window.location.pathname;
-    let endpoint = '/admin/media/data'; // default
-    
-    if (currentPath.includes('/users')) {
-        endpoint = '/admin/users/data';
-    } else if (currentPath.includes('/media')) {
-        endpoint = '/admin/media/data';
-    }
-    
-    // Make AJAX request
-    fetch(`${endpoint}?${params.toString()}`, {
-        method: 'GET',
-        credentials: 'same-origin', // Include cookies/session
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-        .then(response => {
-            if (!response.ok) {
-                if (response.status === 302 || response.status === 401) {
-                    // Authentication issue - redirect to login
-                    window.location.href = '/admin/login';
-                    return;
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.success) {
-                updateTableContent(data);
-                if (data.pagination) {
-                    updatePagination(data.pagination);
-                }
-                updateURL();
-            } else {
-                const errorMessage = data && data.message ? data.message : 'Unknown error occurred';
-                if (typeof showNotification === 'function') {
-                    showNotification('Error loading data: ' + errorMessage, 'error');
-                } else {
-                    alert('Error loading data: ' + errorMessage);
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            let errorMessage = 'Error loading data';
-            
-            if (error.message.includes('Failed to fetch')) {
-                errorMessage = 'Network error: Unable to connect to server. Please check your connection and try again.';
-            } else if (error.message.includes('HTTP error')) {
-                errorMessage = `Server error: ${error.message}`;
-            }
-            
-            if (typeof showNotification === 'function') {
-                showNotification(errorMessage, 'error');
-            } else {
-                alert(errorMessage);
-            }
-        })
-        .finally(() => {
-            if (typeof hideLoader === 'function') {
-                hideLoader();
-            }
-            
-            // Hide search loading indicator
-            const searchLoadingIndicator = document.getElementById('searchLoading');
-            if (searchLoadingIndicator) {
-                searchLoadingIndicator.classList.add('hidden');
-            }
-            
-            isLoading = false;
-        });
-}
-
-// Update table content
-function updateTableContent(data) {
-    const tbody = document.querySelector('#dataTable tbody');
-    if (!tbody) return;
-    
-    if (data.tableRows && typeof data.tableRows === 'string' && data.tableRows.trim() !== '') {
-        tbody.innerHTML = data.tableRows;
-    } else {
-        // Show empty state
-        const currentPath = window.location.pathname;
-        const isMediaPage = currentPath.includes('/media');
-        const emptyIcon = isMediaPage ? 'fas fa-images' : 'fas fa-users';
-        const emptyTitle = isMediaPage ? 'No Media Found' : 'No Users Found';
-        const emptyMessage = isMediaPage ?
-            'No media files have been uploaded yet.' :
-            'No users match your current filter criteria.';
-        
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="100%" class="px-6 py-4 text-center">
-                    <div class="flex flex-col items-center justify-center py-12">
-                        <i class="${emptyIcon} text-4xl text-gray-400 mb-4"></i>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">${emptyTitle}</h3>
-                        <p class="text-gray-500 text-center max-w-sm">
-                            ${currentSearch && currentSearch.length > 0 ? 
-                                'No items match your search criteria.' : 
-                                emptyMessage}
-                        </p>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }
-}
-
-// Update pagination
-function updatePagination(pagination) {
-    // Update pagination controls if needed
-    // For now, we'll just update the URL
-    updateURL();
-}
-
-// Update URL without page reload
-function updateURL() {
-    const params = new URLSearchParams({
-        page: currentPage,
-        search: currentSearch,
-        sort: currentSort.column,
-        order: currentSort.direction
-    });
-    
-    Object.keys(currentFilters).forEach(key => {
-        if (currentFilters[key]) {
-            params.append(key, currentFilters[key]);
-        }
-    });
-    
-    const newURL = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({}, '', newURL);
-}
-
-// Media management functions
-// editMedia function is defined in admin layout
-
-function toggleMediaStatus(mediaId) {
-    if (confirm('Are you sure you want to toggle the status of this media?')) {
-        fetch(`/admin/media/${mediaId}/toggle`, {
-            method: 'PATCH',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification('Media status updated successfully', 'success');
-                loadTableData(); // Reload table
-            } else {
-                showNotification('Error updating media status: ' + data.message, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error updating media status', 'error');
-        });
-    }
-}
-
-function deleteMedia(mediaId) {
-    if (confirm('Are you sure you want to delete this media? This action cannot be undone.')) {
-        fetch(`/admin/media/${mediaId}`, {
-            method: 'DELETE',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification('Media deleted successfully', 'success');
-                loadTableData(); // Reload table
-            } else {
-                showNotification('Error deleting media: ' + data.message, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error deleting media', 'error');
-        });
-    }
-}
-</script>

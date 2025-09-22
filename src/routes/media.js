@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MediaController = require('../controllers/mediaController');
 const { requireAdminWeb, requireAdmin } = require('../middleware/auth');
+const { addUserPermissions, hasModuleActionPermission, hasModuleActionPermissionWeb } = require('../middleware/rbac');
 const { combinedUpload } = require('../config/multer');
 const { 
   uploadRateLimit, 
@@ -15,25 +16,33 @@ const { body } = require('express-validator');
 
 // Media list page
 router.get('/', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('media', 'view'),
   preventSQLInjection
 ], MediaController.getMediaList);
 
 // Media data for AJAX
 router.get('/data', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('media', 'view'),
   preventSQLInjection
 ], MediaController.getMediaData);
 
 // Upload form page
 router.get('/upload', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('media', 'create'),
   preventSQLInjection
 ], MediaController.showUploadForm);
 
 // Upload media
 router.post('/upload', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('media', 'create'),
   uploadRateLimit,
   combinedUpload,
   validateFileUpload,
@@ -45,7 +54,9 @@ router.post('/upload', [
 
 // Media view page
 router.get('/view/:id', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('media', 'view'),
   preventSQLInjection,
   (req, res, next) => {
     // Validate ID parameter
@@ -62,7 +73,9 @@ router.get('/view/:id', [
 
 // Media edit page
 router.get('/edit/:id', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('media', 'update'),
   preventSQLInjection,
   (req, res, next) => {
     // Validate ID parameter
@@ -96,7 +109,9 @@ router.get('/:id', [
 
 // Update media
 router.put('/:id', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('media', 'update'),
   strictRateLimit,
   combinedUpload,
   validateFileUpload,
@@ -137,7 +152,9 @@ router.patch('/:id/toggle', [
 
 // Delete media
 router.delete('/:id', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('media', 'delete'),
   strictRateLimit,
   preventSQLInjection,
   (req, res, next) => {

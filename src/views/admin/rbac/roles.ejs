@@ -1,0 +1,176 @@
+<!-- Include Common Table Component -->
+<%- include('../../components/table', {
+    title: title,
+    data: data,
+    columns: [
+        { key: 'id', label: 'ID', sortable: true },
+        { key: 'display_name', label: 'Role', sortable: true },
+        { key: 'description', label: 'Description', sortable: true },
+        { key: 'user_count', label: 'Users', sortable: true },
+        { key: 'permission_count', label: 'Permissions', sortable: true },
+        { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatStatus' }
+    ],
+    actions: [
+        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewRole(${item.id})` },
+        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', onclick: (item) => `editRole(${item.id})` },
+        { name: 'permissions', label: 'Permissions', icon: 'fas fa-key', class: 'text-green-600 hover:text-green-900', onclick: (item) => `manageRolePermissions(${item.id})` },
+        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', onclick: (item) => `deleteRole(${item.id})` }
+    ],
+    pagination: pagination,
+    search: search,
+    filters: filters,
+    showSearch: true,
+    searchPlaceholder: 'Search roles...',
+    emptyIcon: 'fas fa-users-cog',
+    emptyTitle: 'No Roles Found',
+    emptyMessage: 'There are no roles to display.',
+    emptySearchMessage: 'No roles match your search criteria.',
+    headerButtons: [
+        { text: 'Create Role', href: '#', icon: 'fas fa-plus', onclick: 'createRole()' }
+    ]
+}) %>
+
+<!-- Enhanced Role View Modal -->
+<div id="viewRoleModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 backdrop-blur-sm">
+    <div class="relative top-20 mx-auto p-0 border-0 max-w-lg w-full mx-4 shadow-2xl rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="viewRoleModalContainer">
+        <!-- Modal Header with Gradient -->
+        <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-t-2xl p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 mr-4">
+                        <i class="fas fa-users-cog text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Role Details</h3>
+                </div>
+                <button onclick="closeViewModal()" class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <div id="roleDetails">
+                <!-- Role details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Role Edit Modal -->
+<div id="editRoleModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 backdrop-blur-sm">
+    <div class="relative top-20 mx-auto p-0 border-0 max-w-lg w-full mx-4 shadow-2xl rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="editRoleModalContainer">
+        <!-- Modal Header with Gradient -->
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-2xl p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 mr-4">
+                        <i class="fas fa-user-edit text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Edit Role</h3>
+                </div>
+                <button onclick="closeEditModal()" class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form id="editRoleForm">
+                <input type="hidden" id="editRoleId" name="id">
+                
+                <div class="mb-6">
+                    <label for="editRoleName" class="block text-sm font-semibold text-gray-700 mb-2">Role Name</label>
+                    <input type="text" id="editRoleName" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="editRoleDisplayName" class="block text-sm font-semibold text-gray-700 mb-2">Display Name</label>
+                    <input type="text" id="editRoleDisplayName" name="display_name" class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="editRoleDescription" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <textarea id="editRoleDescription" name="description" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"></textarea>
+                </div>
+                
+                <div class="mb-8">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="editRoleActive" name="is_active" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <span class="ml-2 text-sm font-semibold text-gray-700">Active Role</span>
+                    </label>
+                </div>
+                
+                <!-- Modal Actions -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeEditModal()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 font-medium">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <i class="fas fa-save mr-2"></i>
+                        Update Role
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Create Role Modal -->
+<div id="createRoleModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 backdrop-blur-sm">
+    <div class="relative top-20 mx-auto p-0 border-0 max-w-lg w-full mx-4 shadow-2xl rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="createRoleModalContainer">
+        <!-- Modal Header with Gradient -->
+        <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-t-2xl p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 mr-4">
+                        <i class="fas fa-plus text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Create Role</h3>
+                </div>
+                <button onclick="closeCreateModal()" class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form id="createRoleForm">
+                <div class="mb-6">
+                    <label for="createRoleName" class="block text-sm font-semibold text-gray-700 mb-2">Role Name</label>
+                    <input type="text" id="createRoleName" name="name" required class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="createRoleDisplayName" class="block text-sm font-semibold text-gray-700 mb-2">Display Name</label>
+                    <input type="text" id="createRoleDisplayName" name="display_name" required class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="createRoleDescription" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <textarea id="createRoleDescription" name="description" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"></textarea>
+                </div>
+                
+                <div class="mb-8">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="createRoleActive" name="is_active" checked class="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                        <span class="ml-2 text-sm font-semibold text-gray-700">Active Role</span>
+                    </label>
+                </div>
+                
+                <!-- Modal Actions -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeCreateModal()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 font-medium">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-300 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <i class="fas fa-plus mr-2"></i>
+                        Create Role
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

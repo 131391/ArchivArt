@@ -51,18 +51,14 @@ class AdminController {
   // Get users data for AJAX requests
   async getUsersData(req, res) {
     try {
-      console.log('getUsersData called with query params:', req.query);
-      
       const page = parseInt(req.query.page) || 1;
       const limit = 10;
       const offset = (page - 1) * limit;
       const search = req.query.search || '';
-      const status = req.query.status || req.query.statusFilter || '';
-      const role = req.query.role || req.query.roleFilter || '';
+      const status = req.query.status || '';
+      const role = req.query.role || '';
       const sort = req.query.sort || 'created_at';
       const order = req.query.order || 'desc';
-      
-      console.log('Processed params - page:', page, 'search:', search, 'status:', status, 'role:', role, 'sort:', sort, 'order:', order);
 
       // Build query with RBAC joins
       let query = `
@@ -138,12 +134,68 @@ class AdminController {
       const totalUsers = countResult[0].total;
       const totalPages = Math.ceil(totalUsers / limit);
 
-      console.log('Users data query result:', users);
-      console.log('Total users:', totalUsers, 'Total pages:', totalPages);
+      // Generate table rows HTML with RBAC data
+      const tableRows = users.map(user => `
+        <tr class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 h-10 w-10">
+                <div class="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
+                  <span class="text-sm font-medium text-white">${user.name.charAt(0).toUpperCase()}</span>
+                </div>
+              </div>
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                <div class="text-sm text-gray-500">ID: ${user.id}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900">${user.email}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+              <div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>
+              ${user.role_display_name || 'No Role'}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            ${user.is_blocked == 1 || user.is_blocked === true ? 
+              '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800"><div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>Blocked</span>' :
+              user.is_active == 1 || user.is_active === true ?
+              '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800"><div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>Active</span>' :
+              '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800"><div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>Inactive</span>'
+            }
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center space-x-2">
+              <i class="fas fa-calendar text-gray-400 text-xs"></i>
+              <span class="text-sm text-gray-900">${new Date(user.created_at).toLocaleDateString()}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center space-x-2">
+              <button onclick="viewUser(${user.id})" class="text-blue-600 hover:text-blue-900 inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2" title="View">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900 inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button onclick="toggleUserStatus(${user.id}, '${user.is_blocked == 1 || user.is_blocked === true ? 'unblock' : 'block'}')" class="text-${user.is_blocked == 1 || user.is_blocked === true ? 'green' : 'yellow'}-600 hover:text-${user.is_blocked == 1 || user.is_blocked === true ? 'green' : 'yellow'}-900 inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2" title="${user.is_blocked == 1 || user.is_blocked === true ? 'Unblock' : 'Block'}">
+                <i class="fas fa-${user.is_blocked == 1 || user.is_blocked === true ? 'unlock' : 'ban'}"></i>
+              </button>
+              <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900 inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
 
       res.json({
         success: true,
         data: users,
+        tableRows: tableRows,
         pagination: {
           currentPage: page,
           totalPages: totalPages,
@@ -164,16 +216,12 @@ class AdminController {
   // Get users page
   async getUsers(req, res) {
     try {
-      console.log('getUsers called with query params:', req.query);
-      
       const page = parseInt(req.query.page) || 1;
       const limit = 10;
       const offset = (page - 1) * limit;
       const search = req.query.search || '';
-      const status = req.query.status || req.query.statusFilter || '';
-      const role = req.query.role || req.query.roleFilter || '';
-      
-      console.log('Processed params - page:', page, 'limit:', limit, 'search:', search, 'status:', status, 'role:', role);
+      const status = req.query.status || '';
+      const role = req.query.role || '';
 
       // Build query with RBAC joins
       let query = `
@@ -235,15 +283,11 @@ class AdminController {
       const totalUsers = countResult[0].total;
       const totalPages = Math.ceil(totalUsers / limit);
 
-      console.log('Users query result:', users);
-      console.log('Total users:', totalUsers, 'Total pages:', totalPages);
-
       // Get all roles for filter dropdown
       const roles = await Role.findAll({ is_active: 1 });
-      console.log('Available roles:', roles);
 
       // Generate pagination HTML
-      const pagination = AdminController.generatePagination(page, totalPages, totalUsers, limit);
+      const pagination = this.generatePagination(page, totalPages, totalUsers, limit);
 
       res.render('admin/users', {
         title: 'User Management',
@@ -251,7 +295,7 @@ class AdminController {
         roles: roles,
         pagination: pagination,
         search: search,
-        filters: { roleFilter: role, statusFilter: status }
+        filters: { roleFilter: role }
       });
     } catch (error) {
       console.error('Error getting users:', error);
@@ -268,7 +312,7 @@ class AdminController {
   }
 
   // Generate pagination HTML
-  static generatePagination(currentPage, totalPages, totalItems, limit) {
+  generatePagination(currentPage, totalPages, totalItems, limit) {
     if (totalPages <= 1) return '';
 
     let pagination = '<div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">';
@@ -443,188 +487,6 @@ class AdminController {
       });
     }
   }
-
-  // Get user by ID
-  async getUser(req, res) {
-    try {
-      const { id } = req.params;
-      
-      const query = `
-        SELECT u.id, u.name, u.email, u.is_active, u.is_blocked, u.created_at, u.updated_at,
-               r.id as role_id, r.name as role, r.display_name as role_display_name
-        FROM users u
-        LEFT JOIN user_roles ur ON u.id = ur.user_id AND ur.is_active = 1
-        LEFT JOIN roles r ON ur.role_id = r.id
-        WHERE u.id = ?
-      `;
-      
-      const [users] = await db.execute(query, [id]);
-      
-      if (users.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-      
-      res.json({
-        success: true,
-        data: users[0]
-      });
-    } catch (error) {
-      console.error('Error getting user:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error loading user'
-      });
-    }
-  }
-
-  // Block user
-  async blockUser(req, res) {
-    try {
-      console.log('blockUser called with params:', req.params);
-      console.log('blockUser request body:', req.body);
-      
-      const { id } = req.params;
-      
-      const [result] = await db.execute(
-        'UPDATE users SET is_blocked = 1, updated_at = NOW() WHERE id = ?',
-        [id]
-      );
-      
-      console.log('Block user query result:', result);
-      
-      if (result.affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-      
-      res.json({
-        success: true,
-        message: 'User blocked successfully'
-      });
-    } catch (error) {
-      console.error('Error blocking user:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error blocking user'
-      });
-    }
-  }
-
-  // Unblock user
-  async unblockUser(req, res) {
-    try {
-      console.log('unblockUser called with params:', req.params);
-      console.log('unblockUser request body:', req.body);
-      
-      const { id } = req.params;
-      
-      const [result] = await db.execute(
-        'UPDATE users SET is_blocked = 0, updated_at = NOW() WHERE id = ?',
-        [id]
-      );
-      
-      console.log('Unblock user query result:', result);
-      
-      if (result.affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-      
-      res.json({
-        success: true,
-        message: 'User unblocked successfully'
-      });
-    } catch (error) {
-      console.error('Error unblocking user:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error unblocking user'
-      });
-    }
-  }
-
-  // Settings
-  async settings(req, res) {
-    try {
-      res.render('admin/settings', {
-        title: 'Settings'
-      });
-    } catch (error) {
-      console.error('Error loading settings:', error);
-      req.flash('error_msg', 'Error loading settings');
-      res.render('admin/settings', {
-        title: 'Settings'
-      });
-    }
-  }
-
-  // Update settings
-  async updateSettings(req, res) {
-    try {
-      // TODO: Implement settings update
-      req.flash('success_msg', 'Settings updated successfully');
-      res.redirect('/admin/settings');
-    } catch (error) {
-      console.error('Error updating settings:', error);
-      req.flash('error_msg', 'Error updating settings');
-      res.redirect('/admin/settings');
-    }
-  }
-
-  // Profile
-  async profile(req, res) {
-    try {
-      res.render('admin/profile', {
-        title: 'Profile'
-      });
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      req.flash('error_msg', 'Error loading profile');
-      res.render('admin/profile', {
-        title: 'Profile'
-      });
-    }
-  }
-
-  // Update profile
-  async updateProfile(req, res) {
-    try {
-      // TODO: Implement profile update
-      req.flash('success_msg', 'Profile updated successfully');
-      res.redirect('/admin/profile');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      req.flash('error_msg', 'Error updating profile');
-      res.redirect('/admin/profile');
-    }
-  }
-
-  // Run RBAC migration
-  async runRBACMigration(req, res) {
-    try {
-      const { runMigration } = require('../../database/run_rbac_migration');
-      await runMigration();
-      
-      res.json({
-        success: true,
-        message: 'RBAC migration completed successfully'
-      });
-    } catch (error) {
-      console.error('RBAC migration error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'RBAC migration failed',
-        error: error.message
-      });
-    }
-  }
 }
 
-module.exports = new AdminController();
+module.exports = AdminController;

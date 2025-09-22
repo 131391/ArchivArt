@@ -1,0 +1,232 @@
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Role Permissions</h1>
+                    <p class="mt-1 text-sm text-gray-500">Manage permissions for role: <span id="roleName" class="font-medium text-indigo-600">Loading...</span></p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="window.location.href='/admin/rbac/roles'" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Roles
+                    </button>
+                    <button onclick="savePermissions()" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-save mr-2"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Info -->
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 h-12 w-12">
+                    <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <i class="fas fa-user-tag text-indigo-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900" id="roleDisplayName">Loading...</h3>
+                    <p class="text-sm text-gray-500" id="roleDescription">Loading...</p>
+                </div>
+                <div class="ml-auto">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800" id="roleStatus">
+                        Active
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permissions by Module -->
+        <div id="permissionsContainer">
+            <!-- Permissions will be loaded here -->
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-8">
+            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+            <p class="mt-2 text-gray-500">Loading permissions...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentRoleId = null;
+let currentRole = null;
+let allPermissions = [];
+let rolePermissions = [];
+
+// Get role ID from URL
+function getRoleIdFromUrl() {
+    const path = window.location.pathname;
+    const match = path.match(/\/admin\/rbac\/roles\/(\d+)\/permissions/);
+    return match ? parseInt(match[1]) : null;
+}
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    currentRoleId = getRoleIdFromUrl();
+    if (!currentRoleId) {
+        showErrorToast('Invalid role ID');
+        window.location.href = '/admin/rbac/roles';
+        return;
+    }
+    
+    loadRoleData();
+    loadPermissions();
+});
+
+function loadRoleData() {
+    fetch(`/admin/api/rbac/roles/${currentRoleId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentRole = data.data;
+                document.getElementById('roleName').textContent = currentRole.display_name;
+                document.getElementById('roleDisplayName').textContent = currentRole.display_name;
+                document.getElementById('roleDescription').textContent = currentRole.description || 'No description';
+                document.getElementById('roleStatus').textContent = currentRole.is_active ? 'Active' : 'Inactive';
+                document.getElementById('roleStatus').className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${currentRole.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+            } else {
+                showErrorToast('Failed to load role data');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading role data:', error);
+            showErrorToast('Error loading role data');
+        });
+}
+
+function loadPermissions() {
+    document.getElementById('loadingState').classList.remove('hidden');
+    
+    Promise.all([
+        fetch('/admin/api/rbac/permissions').then(response => response.json()),
+        fetch(`/admin/api/rbac/roles/${currentRoleId}/permissions`).then(response => response.json())
+    ])
+    .then(([permissionsData, rolePermissionsData]) => {
+        document.getElementById('loadingState').classList.add('hidden');
+        
+        if (permissionsData.success) {
+            allPermissions = permissionsData.data || [];
+        } else {
+            showErrorToast('Failed to load permissions');
+            return;
+        }
+        
+        if (rolePermissionsData.success) {
+            rolePermissions = rolePermissionsData.data || [];
+        } else {
+            showErrorToast('Failed to load role permissions');
+            return;
+        }
+        
+        renderPermissions();
+    })
+    .catch(error => {
+        document.getElementById('loadingState').classList.add('hidden');
+        console.error('Error loading permissions:', error);
+        showErrorToast('Error loading permissions');
+    });
+}
+
+function renderPermissions() {
+    const container = document.getElementById('permissionsContainer');
+    
+    // Group permissions by module
+    const permissionsByModule = {};
+    allPermissions.forEach(permission => {
+        if (!permissionsByModule[permission.module]) {
+            permissionsByModule[permission.module] = [];
+        }
+        permissionsByModule[permission.module].push(permission);
+    });
+    
+    // Create HTML for each module
+    const modulesHtml = Object.keys(permissionsByModule).map(module => {
+        const modulePermissions = permissionsByModule[module];
+        const modulePermissionsHtml = modulePermissions.map(permission => {
+            const isAssigned = rolePermissions.some(rp => rp.permission_id === permission.id);
+            return `
+                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-8 w-8">
+                            <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fas fa-key text-green-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-sm font-medium text-gray-900">${permission.display_name}</div>
+                            <div class="text-sm text-gray-500">${permission.name}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" 
+                                   class="sr-only peer" 
+                                   ${isAssigned ? 'checked' : ''}
+                                   onchange="togglePermission(${permission.id}, this.checked)">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        return `
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4 capitalize">${module} Permissions</h3>
+                    <div class="space-y-2">
+                        ${modulePermissionsHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = modulesHtml;
+}
+
+function togglePermission(permissionId, isChecked) {
+    if (isChecked) {
+        // Add permission to role
+        if (!rolePermissions.some(rp => rp.permission_id === permissionId)) {
+            rolePermissions.push({ permission_id: permissionId });
+        }
+    } else {
+        // Remove permission from role
+        rolePermissions = rolePermissions.filter(rp => rp.permission_id !== permissionId);
+    }
+}
+
+function savePermissions() {
+    const permissionIds = rolePermissions.map(rp => rp.permission_id);
+    
+    fetch(`/admin/api/rbac/roles/${currentRoleId}/permissions`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ permission_ids: permissionIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccessToast('Role permissions updated successfully');
+        } else {
+            showErrorToast('Error: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showErrorToast('Error: ' + error.message);
+    });
+}
+</script>

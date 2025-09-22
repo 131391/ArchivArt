@@ -1,0 +1,362 @@
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">RBAC Management</h1>
+                    <p class="mt-1 text-sm text-gray-500">Manage roles, permissions, and user access control</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="refreshDashboard()" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Total Roles -->
+            <div class="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users-cog text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Roles</dt>
+                                <dd class="text-2xl font-bold text-gray-900" id="totalRoles">
+                                    <div class="inline-flex items-center">
+                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2" id="rolesLoader"></div>
+                                        Loading...
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Permissions -->
+            <div class="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-key text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Permissions</dt>
+                                <dd class="text-2xl font-bold text-gray-900" id="totalPermissions">
+                                    <div class="inline-flex items-center">
+                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2" id="permissionsLoader"></div>
+                                        Loading...
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Users -->
+            <div class="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user-check text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Users</dt>
+                                <dd class="text-2xl font-bold text-gray-900" id="activeUsers">
+                                    <div class="inline-flex items-center">
+                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2" id="usersLoader"></div>
+                                        Loading...
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-heartbeat text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">System Health</dt>
+                                <dd class="text-2xl font-bold text-green-600" id="systemHealth">
+                                    <span class="inline-flex items-center">
+                                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                                        Good
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Roles Management -->
+            <div class="bg-white shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+                <div class="px-6 py-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-users-cog text-white"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Roles Management</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Create and manage user roles and their permissions</p>
+                    <div class="space-y-3">
+                        <button onclick="window.location.href='/admin/rbac/roles'" class="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                            <span class="flex items-center">
+                                <i class="fas fa-cog mr-2"></i>
+                                Manage Roles
+                            </span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button onclick="createRole()" class="w-full flex items-center justify-between px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                            <span class="flex items-center">
+                                <i class="fas fa-plus mr-2"></i>
+                                Create New Role
+                            </span>
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permissions Management -->
+            <div class="bg-white shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+                <div class="px-6 py-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-key text-white"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Permissions Management</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Define and manage system permissions and access controls</p>
+                    <div class="space-y-3">
+                        <button onclick="window.location.href='/admin/rbac/permissions'" class="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
+                            <span class="flex items-center">
+                                <i class="fas fa-cog mr-2"></i>
+                                Manage Permissions
+                            </span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button onclick="createPermission()" class="w-full flex items-center justify-between px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
+                            <span class="flex items-center">
+                                <i class="fas fa-plus mr-2"></i>
+                                Create New Permission
+                            </span>
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white shadow-lg rounded-xl border border-gray-200">
+            <div class="px-6 py-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-history text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                </div>
+                <div class="flow-root">
+                    <ul class="-mb-8" id="recentActivity">
+                        <li class="relative pb-8">
+                            <div class="relative flex space-x-3">
+                                <div>
+                                    <span class="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center ring-8 ring-white shadow-lg">
+                                        <i class="fas fa-check text-white text-sm"></i>
+                                    </span>
+                                </div>
+                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">RBAC system initialized successfully</p>
+                                        <p class="text-xs text-gray-500">All roles and permissions have been loaded</p>
+                                    </div>
+                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                        <time datetime="2024-01-01" class="font-medium">Just now</time>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="relative pb-8">
+                            <div class="relative flex space-x-3">
+                                <div>
+                                    <span class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center ring-8 ring-white shadow-lg">
+                                        <i class="fas fa-database text-white text-sm"></i>
+                                    </span>
+                                </div>
+                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Database connection established</p>
+                                        <p class="text-xs text-gray-500">All RBAC tables are accessible</p>
+                                    </div>
+                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                        <time datetime="2024-01-01" class="font-medium">Just now</time>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dashboard functions
+function refreshDashboard() {
+    loadDashboardStats();
+    showSuccessToast('Dashboard refreshed');
+}
+
+function createRole() {
+    window.location.href = '/admin/rbac/roles';
+}
+
+function createPermission() {
+    window.location.href = '/admin/rbac/permissions';
+}
+
+function loadDashboardStats() {
+    // Load RBAC dashboard stats
+    fetch('/admin/api/rbac/dashboard')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Hide loader and show data
+                document.getElementById('rolesLoader').style.display = 'none';
+                document.getElementById('permissionsLoader').style.display = 'none';
+                
+                document.getElementById('totalRoles').innerHTML = data.data.totalRoles || 0;
+                document.getElementById('totalPermissions').innerHTML = data.data.totalPermissions || 0;
+            } else {
+                console.error('RBAC dashboard API returned error:', data.message);
+                loadIndividualStats();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading RBAC stats:', error);
+            // Fallback to individual API calls
+            loadIndividualStats();
+        });
+
+    // Load active users count
+    fetch('/admin/users/data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Hide loader and show data
+                document.getElementById('usersLoader').style.display = 'none';
+                
+                const activeUsers = data.data?.filter(user => user.is_active && !user.is_blocked).length || 0;
+                document.getElementById('activeUsers').innerHTML = activeUsers;
+            } else {
+                console.error('Users API returned error:', data.message);
+                document.getElementById('usersLoader').style.display = 'none';
+                document.getElementById('activeUsers').innerHTML = '0';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading users:', error);
+            document.getElementById('usersLoader').style.display = 'none';
+            document.getElementById('activeUsers').innerHTML = '0';
+        });
+}
+
+// Fallback function to load individual stats
+function loadIndividualStats() {
+    // Load roles count
+    fetch('/admin/api/rbac/roles')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('rolesLoader').style.display = 'none';
+                document.getElementById('totalRoles').innerHTML = data.pagination?.totalItems || data.data?.length || 0;
+            } else {
+                document.getElementById('rolesLoader').style.display = 'none';
+                document.getElementById('totalRoles').innerHTML = '0';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading roles:', error);
+            document.getElementById('rolesLoader').style.display = 'none';
+            document.getElementById('totalRoles').innerHTML = '0';
+        });
+
+    // Load permissions count
+    fetch('/admin/api/rbac/permissions')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('permissionsLoader').style.display = 'none';
+                document.getElementById('totalPermissions').innerHTML = data.data?.length || 0;
+            } else {
+                document.getElementById('permissionsLoader').style.display = 'none';
+                document.getElementById('totalPermissions').innerHTML = '0';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading permissions:', error);
+            document.getElementById('permissionsLoader').style.display = 'none';
+            document.getElementById('totalPermissions').innerHTML = '0';
+        });
+}
+
+// Load dashboard stats on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+});
+
+// Toast notification functions
+function showSuccessToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+function showErrorToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+</script>

@@ -1,4 +1,4 @@
-<!-- Sidebar Component -->
+<!-- Sidebar Component - Cache Bust: <%= Date.now() %> -->
 <div class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 sidebar-transition" id="sidebar">
     <!-- Sidebar Header -->
     <div class="flex items-center justify-center h-16 bg-gray-800">
@@ -33,6 +33,16 @@
             <a href="/admin/security" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-shield-alt mr-3"></i>
                 Security
+            </a>
+            
+            <a href="/admin/rbac" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
+                <i class="fas fa-shield-alt mr-3"></i>
+                RBAC Management
+            </a>
+            
+            <a href="/admin/rbac/modules" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
+                <i class="fas fa-cubes mr-3"></i>
+                Module Management
             </a>
             
             <a href="/admin/settings" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">

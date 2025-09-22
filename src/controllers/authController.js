@@ -365,9 +365,14 @@ class AuthController {
 
       const { email, password } = req.body;
 
-      // Find user by email
+      // Find user by email with RBAC role information
       const [users] = await db.execute(
-        'SELECT id, name, email, password, role, profile_picture, is_active, is_blocked FROM users WHERE email = ?',
+        `SELECT u.id, u.name, u.email, u.password, u.profile_picture, u.is_active, u.is_blocked,
+                r.id as role_id, r.name as role, r.display_name as role_display_name
+         FROM users u
+         LEFT JOIN user_roles ur ON u.id = ur.user_id AND ur.is_active = 1
+         LEFT JOIN roles r ON ur.role_id = r.id
+         WHERE u.email = ?`,
         [email]
       );
 
@@ -406,8 +411,8 @@ class AuthController {
         });
       }
 
-      // Check if user has admin role
-      if (user.role !== 'admin') {
+      // Check if user has admin role (using RBAC)
+      if (!user.role || (user.role !== 'admin' && user.role !== 'super_admin')) {
         req.flash('error_msg', 'Access denied. Admin privileges required.');
         return res.render('admin/login', { 
           title: 'Login',
@@ -417,7 +422,7 @@ class AuthController {
         });
       }
 
-      // Set session
+      // Set session with RBAC information
       req.session.user = {
         id: user.id,
         name: user.name,
@@ -427,6 +432,9 @@ class AuthController {
         is_active: user.is_active,
         is_blocked: user.is_blocked
       };
+      
+      // Set userId for RBAC middleware
+      req.session.userId = user.id;
 
       // Set login success flash message
       req.flash('success_msg', 'Login successful! Welcome to ArchivArt Admin Panel');

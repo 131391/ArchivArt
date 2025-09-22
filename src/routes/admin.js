@@ -3,9 +3,11 @@ const router = express.Router();
 const { body, param } = require('express-validator');
 const { requireAuth, requireAdminWeb, redirectIfAuthenticated } = require('../middleware/auth');
 const { loadSettings } = require('../middleware/settings');
+const { addUserPermissions, hasModuleActionPermission, hasModuleActionPermissionWeb } = require('../middleware/rbac');
 const authController = require('../controllers/authController');
 const adminController = require('../controllers/adminController');
 const mediaController = require('../controllers/mediaController');
+const rbacController = require('../controllers/rbacController');
 const { 
   authRateLimit, 
   strictRateLimit,
@@ -44,17 +46,26 @@ router.post('/login', [
 router.get('/logout', authController.webLogout);
 
 // Dashboard
-router.get('/dashboard', requireAdminWeb, loadSettings, adminController.dashboard);
+router.get('/dashboard', [
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('dashboard', 'view'),
+  loadSettings
+], adminController.dashboard);
 
 // User management routes with enhanced security
 router.get('/users', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('users', 'view'),
   loadSettings, 
   preventSQLInjection
 ], adminController.getUsers);
 
 router.get('/users/data', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('users', 'view'),
   preventSQLInjection
 ], adminController.getUsersData);
 
@@ -73,7 +84,7 @@ router.get('/users/:id', [
 router.put('/users/:id', [
   requireAdminWeb, 
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
+  param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
   commonValidations.name,
   commonValidations.email,
   validateInput
@@ -83,7 +94,7 @@ router.post('/users/:id/block', [
   requireAdminWeb, 
   strictRateLimit,
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
+  param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
   validateInput
 ], adminController.blockUser);
 
@@ -91,7 +102,7 @@ router.post('/users/:id/unblock', [
   requireAdminWeb, 
   strictRateLimit,
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
+  param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
   validateInput
 ], adminController.unblockUser);
 
@@ -108,13 +119,17 @@ router.use('/media', require('./media'));
 
 // Settings
 router.get('/settings', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('settings', 'view'),
   loadSettings, 
   preventSQLInjection
 ], adminController.settings);
 
 router.post('/settings', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('settings', 'update'),
   strictRateLimit,
   preventSQLInjection,
   validateInput
@@ -263,6 +278,587 @@ router.get('/api/security/export-report', [
   } catch (error) {
     console.error('Error exporting security report:', error);
     res.status(500).json({ error: 'Failed to export security report' });
+  }
+});
+
+// RBAC Management Routes
+router.get('/rbac', [
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('rbac', 'view'),
+  loadSettings
+], (req, res) => {
+  res.render('admin/rbac/dashboard', {
+    title: 'RBAC Management',
+    userPermissions: req.userPermissions,
+    userPrimaryRole: req.userPrimaryRole
+  });
+});
+
+
+// RBAC Roles data endpoint for AJAX requests
+router.get('/rbac/roles/data', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const status = req.query.status || req.query.statusFilter || '';
+    
+    console.log('RBAC roles data endpoint called with params:', { page, limit, search, status });
+    
+    const Role = require('../models/Role');
+    
+    // Use the Role model with search functionality
+    const roles = await Role.findAll({
+      search: search,
+      is_active: status === 'active' ? 1 : status === 'inactive' ? 0 : null,
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+    
+    // Get total count with search and status filters
+    let countQuery = 'SELECT COUNT(*) as total FROM roles r';
+    const countParams = [];
+    const whereConditions = [];
+    
+    // Search condition
+    if (search && search.trim()) {
+      whereConditions.push('(r.name LIKE ? OR r.display_name LIKE ? OR r.description LIKE ?)');
+      const searchTerm = `%${search.trim()}%`;
+      countParams.push(searchTerm, searchTerm, searchTerm);
+    }
+    
+    // Status filter
+    if (status === 'active') {
+      whereConditions.push('r.is_active = 1');
+    } else if (status === 'inactive') {
+      whereConditions.push('r.is_active = 0');
+    }
+    
+    // Build WHERE clause for count
+    if (whereConditions.length > 0) {
+      countQuery += ' WHERE ' + whereConditions.join(' AND ');
+    }
+    
+    const db = require('../config/database');
+    const [countResult] = await db.execute(countQuery, countParams);
+    const totalRoles = countResult[0].total;
+    const totalPages = Math.ceil(totalRoles / limit);
+    
+    console.log('Roles found:', roles.length, 'Total:', totalRoles);
+    
+    res.json({
+      success: true,
+      data: roles,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalRoles,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error getting roles data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error loading roles data'
+    });
+  }
+});
+
+router.get('/rbac/roles', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const status = req.query.status || 'all';
+    
+    const Role = require('../models/Role');
+    const db = require('../config/database');
+    
+    // Build query with search and status filters
+    let query = 'SELECT * FROM roles';
+    let countQuery = 'SELECT COUNT(*) as total FROM roles';
+    let whereConditions = [];
+    let queryParams = [];
+    let countParams = [];
+    
+    // Search condition
+    if (search) {
+      whereConditions.push('(name LIKE ? OR display_name LIKE ? OR description LIKE ?)');
+      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    
+    // Status filter
+    if (status !== 'all') {
+      if (status === 'active') {
+        whereConditions.push('is_active = 1');
+      } else if (status === 'inactive') {
+        whereConditions.push('is_active = 0');
+      }
+    }
+    
+    // Build WHERE clause
+    if (whereConditions.length > 0) {
+      const whereClause = ' WHERE ' + whereConditions.join(' AND ');
+      query += whereClause;
+      countQuery += whereClause;
+    }
+    
+    // Add sorting and pagination
+    query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    
+    const [roles] = await db.execute(query, queryParams);
+    const [countResult] = await db.execute(countQuery, countParams);
+    const totalRoles = countResult[0].total;
+    const totalPages = Math.ceil(totalRoles / limit);
+    
+    // Calculate pagination info
+    const startItem = offset + 1;
+    const endItem = Math.min(offset + limit, totalRoles);
+    const startPage = Math.max(1, page - 2);
+    const endPage = Math.min(totalPages, page + 2);
+    
+    res.render('admin/rbac/roles', {
+      title: 'Roles Management',
+      data: roles,
+      userPermissions: req.userPermissions || [],
+      userPrimaryRole: req.userPrimaryRole || { name: 'admin', display_name: 'Administrator' },
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalRoles,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+        startItem: startItem,
+        endItem: endItem,
+        startPage: startPage,
+        endPage: endPage
+      },
+      search: search,
+      filters: {
+        statusFilter: status
+      }
+    });
+  } catch (error) {
+    console.error('Error loading roles page:', error);
+    res.render('admin/rbac/roles', {
+      title: 'Roles Management',
+      data: [],
+      userPermissions: [],
+      userPrimaryRole: { name: 'admin', display_name: 'Administrator' },
+      pagination: { currentPage: 1, totalPages: 1, totalItems: 0, hasNext: false, hasPrev: false },
+      search: '',
+      filters: {}
+    });
+  }
+});
+
+// RBAC Permissions data endpoint for AJAX requests
+router.get('/rbac/permissions/data', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const module = req.query.module || req.query.moduleFilter || '';
+    
+    console.log('RBAC permissions data endpoint called with params:', { page, limit, search, module });
+    
+    const Permission = require('../models/Permission');
+    
+    // Use the Permission model with search functionality
+    const permissions = await Permission.findAll({
+      search: search,
+      module: module !== 'all' ? module : null,
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+    
+    // Get total count with search and module filters
+    const totalPermissions = await Permission.getTotalCount({
+      search: search,
+      module: module !== 'all' ? module : null
+    });
+    
+    const totalPages = Math.ceil(totalPermissions / limit);
+    
+    console.log('Permissions found:', permissions.length, 'Total:', totalPermissions);
+    
+    res.json({
+      success: true,
+      data: permissions,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalPermissions,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error getting permissions data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error loading permissions data'
+    });
+  }
+});
+
+router.get('/rbac/permissions', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const module = req.query.module || 'all';
+    
+    const db = require('../config/database');
+    
+    // Build query with search and module filters
+    let query = `
+      SELECT p.*, m.display_name as module_display_name, ma.display_name as action_display_name
+      FROM permissions p
+      LEFT JOIN modules m ON p.module_id = m.id
+      LEFT JOIN module_actions ma ON p.action_id = ma.id
+    `;
+    let countQuery = 'SELECT COUNT(*) as total FROM permissions p';
+    let whereConditions = [];
+    let queryParams = [];
+    let countParams = [];
+    
+    // Search condition
+    if (search) {
+      whereConditions.push('(p.name LIKE ? OR p.display_name LIKE ? OR p.description LIKE ?)');
+      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    
+    // Module filter
+    if (module !== 'all') {
+      whereConditions.push('p.module_id = ?');
+      queryParams.push(module);
+      countParams.push(module);
+    }
+    
+    // Build WHERE clause
+    if (whereConditions.length > 0) {
+      const whereClause = ' WHERE ' + whereConditions.join(' AND ');
+      query += whereClause;
+      countQuery += whereClause;
+    }
+    
+    // Add sorting and pagination
+    query += ` ORDER BY p.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    
+    const [permissions] = await db.execute(query, queryParams);
+    const [countResult] = await db.execute(countQuery, countParams);
+    const totalPermissions = countResult[0].total;
+    const totalPages = Math.ceil(totalPermissions / limit);
+    
+    // Calculate pagination info
+    const startItem = offset + 1;
+    const endItem = Math.min(offset + limit, totalPermissions);
+    const startPage = Math.max(1, page - 2);
+    const endPage = Math.min(totalPages, page + 2);
+    
+    // Get modules for filter dropdown
+    const Module = require('../models/Module');
+    const modules = await Module.findAll();
+    
+    res.render('admin/rbac/permissions', {
+      title: 'Permissions Management',
+      data: permissions,
+      modules: modules,
+      userPermissions: req.userPermissions || [],
+      userPrimaryRole: req.userPrimaryRole || { name: 'admin', display_name: 'Administrator' },
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalPermissions,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+        startItem: startItem,
+        endItem: endItem,
+        startPage: startPage,
+        endPage: endPage
+      },
+      search: search,
+      filters: {
+        moduleFilter: module
+      }
+    });
+  } catch (error) {
+    console.error('Error loading permissions page:', error);
+    res.render('admin/rbac/permissions', {
+      title: 'Permissions Management',
+      data: [],
+      userPermissions: [],
+      userPrimaryRole: { name: 'admin', display_name: 'Administrator' },
+      pagination: { currentPage: 1, totalPages: 1, totalItems: 0, hasNext: false, hasPrev: false },
+      search: '',
+      filters: {}
+    });
+  }
+});
+
+router.get('/rbac/roles/:id/permissions', addUserPermissions, hasModuleActionPermission('rbac', 'view'), (req, res) => {
+  res.render('admin/rbac/role-permissions', {
+    title: 'Role Permissions',
+    userPermissions: req.userPermissions,
+    userPrimaryRole: req.userPrimaryRole
+  });
+});
+
+// RBAC API Routes
+router.use('/api/rbac', addUserPermissions, require('./rbac'));
+
+// RBAC Migration (temporary endpoint)
+router.post('/api/rbac/migrate', [
+  requireAdminWeb,
+  addUserPermissions
+], adminController.runRBACMigration);
+
+// ==================== MODULE MANAGEMENT ====================
+
+// RBAC Modules data endpoint for AJAX requests
+router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWeb('modules', 'view'), async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    
+    console.log('RBAC modules data endpoint called with params:', { page, limit, search });
+    
+    const Module = require('../models/Module');
+    
+    // Use the Module model with search functionality
+    const modules = await Module.findAll({
+      search: search,
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+    
+    // Get total count with search filters
+    const db = require('../config/database');
+    let countQuery = 'SELECT COUNT(*) as total FROM modules m WHERE m.is_active = 1';
+    const countParams = [];
+    
+    // Search condition
+    if (search && search.trim()) {
+      countQuery += ' AND (m.name LIKE ? OR m.display_name LIKE ? OR m.description LIKE ?)';
+      const searchTerm = `%${search.trim()}%`;
+      countParams.push(searchTerm, searchTerm, searchTerm);
+    }
+    
+    const [countResult] = await db.execute(countQuery, countParams);
+    const totalModules = countResult[0].total;
+    const totalPages = Math.ceil(totalModules / limit);
+    
+    console.log('Modules found:', modules.length, 'Total:', totalModules);
+    
+    res.json({
+      success: true,
+      data: modules,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalModules,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error getting modules data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error loading modules data'
+    });
+  }
+});
+
+// Module management page
+router.get('/rbac/modules', addUserPermissions, hasModuleActionPermissionWeb('modules', 'view'), async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    
+    const db = require('../config/database');
+    
+    // Build base query with counts
+    let baseQuery = `
+        SELECT m.*, 
+               COUNT(DISTINCT ma.id) as action_count,
+               COUNT(DISTINCT p.id) as permission_count
+        FROM modules m
+        LEFT JOIN module_actions ma ON m.id = ma.module_id AND ma.is_active = 1
+        LEFT JOIN permissions p ON m.id = p.module_id AND p.is_active = 1
+        WHERE m.is_active = 1
+    `;
+    
+    let countQuery = 'SELECT COUNT(*) as total FROM modules m WHERE m.is_active = 1';
+    let whereConditions = [];
+    let queryParams = [];
+    let countParams = [];
+    
+    // Search condition
+    if (search) {
+      whereConditions.push('(m.name LIKE ? OR m.display_name LIKE ? OR m.description LIKE ?)');
+      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    
+    // Build WHERE clause
+    if (whereConditions.length > 0) {
+      const whereClause = ' AND ' + whereConditions.join(' AND ');
+      baseQuery += whereClause;
+      countQuery += whereClause;
+    }
+    
+    // Add GROUP BY and ORDER BY for main query
+    baseQuery += ` GROUP BY m.id ORDER BY m.order_index ASC, m.display_name ASC LIMIT ${limit} OFFSET ${offset}`;
+    
+    const [rows] = await db.execute(baseQuery, queryParams);
+    const [countResult] = await db.execute(countQuery, countParams);
+    const totalModules = countResult[0].total;
+    const totalPages = Math.ceil(totalModules / limit);
+    
+    const modules = rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        display_name: row.display_name,
+        description: row.description,
+        icon: row.icon,
+        route: row.route,
+        order_index: row.order_index,
+        is_active: row.is_active,
+        action_count: row.action_count,
+        permission_count: row.permission_count,
+        created_at: row.created_at,
+        updated_at: row.updated_at
+    }));
+    
+    // Calculate pagination info
+    const startItem = offset + 1;
+    const endItem = Math.min(offset + limit, totalModules);
+    const startPage = Math.max(1, page - 2);
+    const endPage = Math.min(totalPages, page + 2);
+    
+    res.render('admin/rbac/modules', {
+      title: 'Module Management',
+      data: modules,
+      userPermissions: req.userPermissions || [],
+      userPrimaryRole: req.userPrimaryRole || { name: 'admin', display_name: 'Administrator' },
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalModules,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+        startItem: startItem,
+        endItem: endItem,
+        startPage: startPage,
+        endPage: endPage
+      },
+      search: search,
+      filters: {}
+    });
+  } catch (error) {
+    console.error('Error loading modules page:', error);
+    res.render('admin/rbac/modules', {
+      title: 'Module Management',
+      data: [],
+      userPermissions: [],
+      userPrimaryRole: { name: 'admin', display_name: 'Administrator' },
+      pagination: { currentPage: 1, totalPages: 1, totalItems: 0, hasNext: false, hasPrev: false },
+      search: '',
+      filters: {}
+    });
+  }
+});
+
+// Module actions management page
+router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermissionWeb('modules', 'view'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    
+    const Module = require('../models/Module');
+    const db = require('../config/database');
+    
+    // Get module details
+    const module = await Module.findById(id);
+    if (!module) {
+      return res.status(404).render('error', {
+        title: 'Module Not Found',
+        message: 'The requested module was not found.'
+      });
+    }
+    
+    // Build query for module actions with search
+    let query = 'SELECT * FROM module_actions WHERE module_id = ? AND is_active = 1';
+    let countQuery = 'SELECT COUNT(*) as total FROM module_actions WHERE module_id = ? AND is_active = 1';
+    let queryParams = [id];
+    let countParams = [id];
+    
+    // Search condition
+    if (search) {
+      query += ' AND (name LIKE ? OR display_name LIKE ? OR description LIKE ?)';
+      countQuery += ' AND (name LIKE ? OR display_name LIKE ? OR description LIKE ?)';
+      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    
+    // Add sorting and pagination
+    query += ` ORDER BY name ASC LIMIT ${limit} OFFSET ${offset}`;
+    
+    const [actions] = await db.execute(query, queryParams);
+    const [countResult] = await db.execute(countQuery, countParams);
+    const totalActions = countResult[0].total;
+    const totalPages = Math.ceil(totalActions / limit);
+    
+    // Calculate pagination info
+    const startItem = offset + 1;
+    const endItem = Math.min(offset + limit, totalActions);
+    const startPage = Math.max(1, page - 2);
+    const endPage = Math.min(totalPages, page + 2);
+    
+    res.render('admin/rbac/module-actions', {
+      title: `Module Actions - ${module.display_name}`,
+      module: module,
+      data: actions,
+      userPermissions: req.userPermissions || [],
+      userPrimaryRole: req.userPrimaryRole || { name: 'admin', display_name: 'Administrator' },
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalActions,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+        startItem: startItem,
+        endItem: endItem,
+        startPage: startPage,
+        endPage: endPage
+      },
+      search: search,
+      filters: {}
+    });
+  } catch (error) {
+    console.error('Error loading module actions page:', error);
+    res.status(500).render('error', {
+      title: 'Error',
+      message: 'An error occurred while loading the module actions page.'
+    });
   }
 });
 

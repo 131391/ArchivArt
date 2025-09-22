@@ -1,0 +1,133 @@
+<!-- Include Common Table Component -->
+<%- include('../../components/table', {
+    title: title,
+    data: data,
+    columns: [
+        { key: 'id', label: 'ID', sortable: true },
+        { key: 'name', label: 'Action Name', sortable: true },
+        { key: 'display_name', label: 'Display Name', sortable: true },
+        { key: 'description', label: 'Description', sortable: false },
+        { key: 'is_active', label: 'Status', sortable: true, formatter: 'formatStatus' }
+    ],
+    actions: [
+        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewModuleAction(${item.id})` },
+        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', onclick: (item) => `editModuleAction(${item.id})` },
+        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', onclick: (item) => `deleteModuleAction(${item.id})` }
+    ],
+    headerButtons: [
+        { 
+            name: 'create', 
+            label: '+ Create Action', 
+            class: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:shadow-lg', 
+            onclick: 'createModuleAction()' 
+        },
+        { 
+            name: 'back', 
+            label: '← Back to Modules', 
+            class: 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:shadow-lg', 
+            href: '/admin/rbac/modules' 
+        }
+    ],
+    customFormatters: {
+        'is_active': function(value) {
+            return value ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>' : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Inactive</span>';
+        }
+    }
+}) %>
+
+<!-- View Module Action Modal -->
+<div id="viewModuleActionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div id="viewModuleActionModalContainer" class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white transform transition-all duration-300 scale-95 opacity-0">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Module Action Details</h3>
+                <button onclick="closeViewModuleActionModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="moduleActionDetails" class="space-y-4">
+                <!-- Module action details will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Module Action Modal -->
+<div id="editModuleActionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div id="editModuleActionModalContainer" class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white transform transition-all duration-300 scale-95 opacity-0">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Edit Module Action</h3>
+                <button onclick="closeEditModuleActionModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="editModuleActionForm" class="space-y-4">
+                <input type="hidden" id="editModuleActionId" name="id">
+                <div>
+                    <label for="editModuleActionName" class="block text-sm font-medium text-gray-700">Action Name</label>
+                    <input type="text" id="editModuleActionName" name="name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label for="editModuleActionDisplayName" class="block text-sm font-medium text-gray-700">Display Name</label>
+                    <input type="text" id="editModuleActionDisplayName" name="display_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label for="editModuleActionDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="editModuleActionDescription" name="description" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                </div>
+                <div>
+                    <label for="editModuleActionStatus" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="editModuleActionStatus" name="is_active" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeEditModuleActionModal()" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Update Action
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Create Module Action Modal -->
+<div id="createModuleActionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div id="createModuleActionModalContainer" class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white transform transition-all duration-300 scale-95 opacity-0">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Create Module Action</h3>
+                <button onclick="closeCreateModuleActionModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="createModuleActionForm" class="space-y-4">
+                <div>
+                    <label for="createModuleActionName" class="block text-sm font-medium text-gray-700">Action Name</label>
+                    <input type="text" id="createModuleActionName" name="name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label for="createModuleActionDisplayName" class="block text-sm font-medium text-gray-700">Display Name</label>
+                    <input type="text" id="createModuleActionDisplayName" name="display_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <div>
+                    <label for="createModuleActionDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="createModuleActionDescription" name="description" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeCreateModuleActionModal()" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Create Action
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
