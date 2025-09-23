@@ -60,7 +60,15 @@
             return typeConfig[item.media_type] || 'bg-gray-100 text-gray-800';
         }},
         { key: 'is_active', label: 'Status', sortable: true, wrap: false, type: 'badge', formatter: (item) => item.is_active ? 'Active' : 'Inactive', badgeClass: (item) => item.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' },
-        { key: 'created_at', label: 'Created', sortable: true, wrap: false },
+        { key: 'created_at', label: 'Created', sortable: true, wrap: false, type: 'custom', formatter: (item) => {
+            if (!item.created_at) return 'N/A';
+            const date = new Date(item.created_at);
+            if (isNaN(date.getTime())) return 'Invalid Date';
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }},
         { key: 'uploaded_by_name', label: 'Uploaded By', sortable: true, wrap: false }
     ],
     actions: [
