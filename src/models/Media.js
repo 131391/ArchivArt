@@ -151,7 +151,7 @@ class Media {
     static async findAllWithDescriptors() {
         try {
             const query = `
-                SELECT id, title, scanning_image, descriptors, media_type, file_path
+                SELECT id, title, description, scanning_image, descriptors, media_type, file_path
                 FROM media 
                 WHERE descriptors IS NOT NULL AND descriptors != 'null' AND descriptors != ''
                 ORDER BY created_at DESC
