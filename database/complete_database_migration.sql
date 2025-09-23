@@ -8,8 +8,8 @@
 -- =====================================================
 
 -- Create database (if not exists)
-CREATE DATABASE IF NOT EXISTS archivart;
-USE archivart;
+CREATE DATABASE IF NOT EXISTS archivartv1;
+USE archivartv1;
 
 -- =====================================================
 -- CORE TABLES
