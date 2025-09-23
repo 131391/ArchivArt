@@ -271,19 +271,23 @@ class MediaController {
                             ${media.is_active ? 'Active' : 'Inactive'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 table-cell-nowrap text-sm text-gray-500">
-                        ${(() => {
-                            if (!media.created_at) return 'N/A';
-                            const date = new Date(media.created_at);
-                            if (isNaN(date.getTime())) return 'Invalid Date';
-                            const day = date.getDate().toString().padStart(2, '0');
-                            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                            const year = date.getFullYear();
-                            return `${day}/${month}/${year}`;
-                        })()}
+                    <td class="px-6 py-4 table-cell-nowrap">
+                        <div class="text-sm text-gray-900">
+                            ${(() => {
+                                if (!media.created_at) return 'N/A';
+                                const date = new Date(media.created_at);
+                                if (isNaN(date.getTime())) return 'Invalid Date';
+                                const day = date.getDate().toString().padStart(2, '0');
+                                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                                const year = date.getFullYear();
+                                return `${day}/${month}/${year}`;
+                            })()}
+                        </div>
                     </td>
-                    <td class="px-6 py-4 table-cell-nowrap text-sm text-gray-500">
-                        ${media.uploaded_by_name || 'Unknown'}
+                    <td class="px-6 py-4 table-cell-nowrap">
+                        <div class="text-sm text-gray-900">
+                            ${media.uploaded_by_name || 'Unknown'}
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex space-x-2">
