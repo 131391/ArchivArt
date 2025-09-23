@@ -239,7 +239,32 @@ class MediaController {
                         <div class="text-sm text-gray-900">${media.description || 'No description'}</div>
                     </td>
                     <td class="px-6 py-4 table-cell-nowrap">
-                        <div class="text-sm text-gray-900">${media.scanning_image}</div>
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-12 w-12">
+                                <img class="h-12 w-12 rounded-lg object-cover border border-gray-200" 
+                                     src="${media.scanning_image ? (media.scanning_image.startsWith('http') ? media.scanning_image : '/uploads/media/' + media.scanning_image) : '/images/placeholder-image.png'}" 
+                                     alt="Scanning Image" 
+                                     onerror="this.src='/images/placeholder-image.png'; this.alt='Image not found'">
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-xs text-gray-500 truncate max-w-32">
+                                    ${media.scanning_image ? media.scanning_image.split('/').pop() : 'No image'}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 table-cell-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            media.media_type === 'image' ? 'bg-blue-100 text-blue-800' :
+                            media.media_type === 'video' ? 'bg-purple-100 text-purple-800' :
+                            media.media_type === 'audio' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                        }">
+                            ${media.media_type === 'image' ? 'Image' :
+                              media.media_type === 'video' ? 'Video' :
+                              media.media_type === 'audio' ? 'Audio' :
+                              media.media_type || 'Unknown'}
+                        </span>
                     </td>
                     <td class="px-6 py-4 table-cell-nowrap">
                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${media.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
