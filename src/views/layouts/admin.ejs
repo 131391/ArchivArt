@@ -734,6 +734,14 @@
             const formData = new FormData(this);
             const userId = formData.get('id');
             
+            // Show loading state
+            if (typeof GlobalLoader !== 'undefined') {
+                GlobalLoader.showForForm({
+                    title: 'Updating User...',
+                    message: 'Please wait while we update the user information'
+                });
+            }
+            
             fetch(`/admin/users/${userId}`, {
                 method: 'PUT',
                 credentials: 'same-origin',
@@ -757,6 +765,12 @@
                 })
                 .then(data => {
                     console.log('Edit response data:', data);
+                    
+                    // Hide loading state
+                    if (typeof GlobalLoader !== 'undefined') {
+                        GlobalLoader.hide();
+                    }
+                    
                     if (data.success) {
                         showSuccessToast('User updated successfully');
                         closeEditModal();
@@ -767,6 +781,12 @@
                 })
                 .catch(error => {
                     console.error('Edit error:', error);
+                    
+                    // Hide loading state on error
+                    if (typeof GlobalLoader !== 'undefined') {
+                        GlobalLoader.hide();
+                    }
+                    
                     showErrorToast(`Error updating user: ${error.message}`);
                 });
         });
