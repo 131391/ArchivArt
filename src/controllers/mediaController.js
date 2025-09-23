@@ -1,64 +1,17 @@
 const Media = require('../models/Media');
 const smartImageService = require('../services/smartImageService');
+const S3Service = require('../services/s3Service');
+const ImageHash = require('../utils/imageHash');
+const PerceptualHash = require('../utils/perceptualHash');
+const db = require('../config/database');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 const { v4: uuidv4 } = require('uuid');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: async (req, file, cb) => {
-        const uploadDir = path.join(__dirname, '../public/uploads/media');
-        try {
-            await fs.mkdir(uploadDir, { recursive: true });
-            cb(null, uploadDir);
-        } catch (error) {
-            cb(error);
-        }
-    },
-    filename: (req, file, cb) => {
-        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-        cb(null, uniqueName);
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    const allowedTypes = {
-        'image/jpeg': 'image',
-        'image/jpg': 'image',
-        'image/png': 'image',
-        'image/gif': 'image',
-        'image/webp': 'image',
-        'video/mp4': 'video',
-        'video/avi': 'video',
-        'video/mov': 'video',
-        'video/wmv': 'video',
-        'video/webm': 'video',
-        'video/quicktime': 'video',
-        'audio/mp3': 'audio',
-        'audio/mpeg': 'audio',
-        'audio/wav': 'audio',
-        'audio/m4a': 'audio',
-        'audio/ogg': 'audio',
-        'audio/aac': 'audio',
-        'audio/flac': 'audio',
-        'audio/wma': 'audio'
-    };
-
-    if (allowedTypes[file.mimetype]) {
-        cb(null, true);
-    } else {
-        cb(new Error('Invalid file type. Only images, videos, and audio files are allowed.'), false);
-    }
-};
-
-const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: {
-        fileSize: 100 * 1024 * 1024 // 100MB limit
-    }
-});
+// Use the new S3-based multer configuration
+const { mediaUpload } = require('../config/multer');
+const upload = mediaUpload;
 
 class MediaController {
     // Public API: match scanning image using OpenCV feature matching
@@ -83,9 +36,14 @@ class MediaController {
                 });
             }
 
-            // Use the uploaded file directly since multer.diskStorage saves it to disk
-            // Convert to absolute path for Python service
-            const tempPath = path.resolve(req.file.path);
+            // For S3 uploads, we need to save the file temporarily for the Python service
+            // Since multer.memoryStorage stores the file in memory as buffer
+            const tempDir = path.join(__dirname, '../temp');
+            await fs.mkdir(tempDir, { recursive: true });
+            const tempPath = path.join(tempDir, `${uuidv4()}${path.extname(req.file.originalname)}`);
+            
+            // Write the buffer to a temporary file
+            await fs.writeFile(tempPath, req.file.buffer);
             console.log(`📱 Mobile app uploaded image: ${req.file.originalname} at ${tempPath}`);
             
             try {
@@ -126,14 +84,21 @@ class MediaController {
                         file_path: matchedMedia.file_path,
                         is_active: matchedMedia.is_active,
                         created_at: matchedMedia.created_at,
+                        // Add full URLs for mobile apps - handle both S3 URLs and local paths
+                        scanning_image_url: /^https?:\/\//i.test(matchedMedia.scanning_image) ? 
+                            matchedMedia.scanning_image : 
+                            `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${matchedMedia.scanning_image}`,
+                        file_url: /^https?:\/\//i.test(matchedMedia.file_path) ? 
+                            matchedMedia.file_path : 
+                            `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${matchedMedia.file_path}`,
                         similarity: {
                             score: matchResult.matchScore,
                             matchCount: matchResult.matchCount,
                             threshold: threshold,
                             service: matchResult.service,
                             description: matchResult.matchScore >= 0.8 ? 'Very High' : 
-                                        matchResult.matchScore >= 0.6 ? 'High' : 
-                                        matchResult.matchScore >= 0.4 ? 'Medium' : 'Low'
+                                       matchResult.matchScore >= 0.6 ? 'High' : 
+                                       matchResult.matchScore >= 0.4 ? 'Medium' : 'Low'
                         }
                     };
 
@@ -274,18 +239,55 @@ class MediaController {
                         <div class="text-sm text-gray-900">${media.description || 'No description'}</div>
                     </td>
                     <td class="px-6 py-4 table-cell-nowrap">
-                        <div class="text-sm text-gray-900">${media.scanning_image}</div>
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-12 w-12">
+                                <img class="h-12 w-12 rounded-lg object-cover border border-gray-200" 
+                                     src="${media.scanning_image ? (media.scanning_image.startsWith('http') ? media.scanning_image : '/uploads/media/' + media.scanning_image) : '/images/placeholder-image.png'}" 
+                                     alt="Scanning Image" 
+                                     onerror="this.src='/images/placeholder-image.png'; this.alt='Image not found'">
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-xs text-gray-500 truncate max-w-32">
+                                    ${media.scanning_image ? media.scanning_image.split('/').pop() : 'No image'}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 table-cell-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            media.media_type === 'image' ? 'bg-blue-100 text-blue-800' :
+                            media.media_type === 'video' ? 'bg-purple-100 text-purple-800' :
+                            media.media_type === 'audio' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                        }">
+                            ${media.media_type === 'image' ? 'Image' :
+                              media.media_type === 'video' ? 'Video' :
+                              media.media_type === 'audio' ? 'Audio' :
+                              media.media_type || 'Unknown'}
+                        </span>
                     </td>
                     <td class="px-6 py-4 table-cell-nowrap">
                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${media.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
                             ${media.is_active ? 'Active' : 'Inactive'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 table-cell-nowrap text-sm text-gray-500">
-                        ${new Date(media.created_at).toLocaleDateString()}
+                    <td class="px-6 py-4 table-cell-nowrap">
+                        <div class="text-sm text-gray-900">
+                            ${(() => {
+                                if (!media.created_at) return 'N/A';
+                                const date = new Date(media.created_at);
+                                if (isNaN(date.getTime())) return 'Invalid Date';
+                                const day = date.getDate().toString().padStart(2, '0');
+                                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                                const year = date.getFullYear();
+                                return `${day}/${month}/${year}`;
+                            })()}
+                        </div>
                     </td>
-                    <td class="px-6 py-4 table-cell-nowrap text-sm text-gray-500">
-                        ${media.uploaded_by_name || 'Unknown'}
+                    <td class="px-6 py-4 table-cell-nowrap">
+                        <div class="text-sm text-gray-900">
+                            ${media.uploaded_by_name || 'Unknown'}
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex space-x-2">
@@ -367,9 +369,6 @@ class MediaController {
                     const isServiceHealthy = await smartImageService.isHealthy();
                     if (!isServiceHealthy) {
                         console.error('Image processing service is not available');
-                        // Delete uploaded files
-                        await fs.unlink(mediaFile.path);
-                        await fs.unlink(scanningImageFile.path);
                         
                         return res.status(500).json({
                             success: false,
@@ -377,70 +376,199 @@ class MediaController {
                         });
                     }
 
-                    // Extract features from the scanning image
-                    let descriptors = null;
+                    // Check for duplicate scanning image by filename (for S3 URLs)
                     try {
-                        const featureResult = await smartImageService.extractFeatures(scanningImageFile.path);
+                        const filename = scanningImageFile.originalname;
+                        const [existingMediaByFilename] = await db.execute(
+                            'SELECT id, title, scanning_image FROM media WHERE scanning_image LIKE ?',
+                            [`%${filename}`]
+                        );
+                        
+                        if (existingMediaByFilename.length > 0) {
+                            return res.status(400).json({
+                                success: false,
+                                message: 'A media item with the same scanning image filename already exists. Please use a different image file.',
+                                duplicateMedia: {
+                                    id: existingMediaByFilename[0].id,
+                                    title: existingMediaByFilename[0].title
+                                }
+                            });
+                        }
+                    } catch (filenameError) {
+                        console.error('Error checking filename duplicate:', filenameError);
+                        // Continue with upload even if filename check fails
+                    }
+
+                    // Extract features from the scanning image and check for duplicates
+                    let descriptors = null;
+                    let tempScanningPath = null;
+                    let imageHash = null;
+                    let perceptualHash = null;
+                    
+                    try {
+                        // Create temporary file for scanning image processing
+                        const tempDir = path.join(__dirname, '../temp');
+                        await fs.mkdir(tempDir, { recursive: true });
+                        tempScanningPath = path.join(tempDir, `${uuidv4()}${path.extname(scanningImageFile.originalname)}`);
+                        await fs.writeFile(tempScanningPath, scanningImageFile.buffer);
+                        
+                        // Extract features from the scanning image
+                        const featureResult = await smartImageService.extractFeatures(tempScanningPath);
                         if (featureResult.success) {
                             descriptors = featureResult.descriptors;
                             console.log(`Extracted ${featureResult.featureCount} features from scanning image using ${featureResult.service} service`);
                         } else {
                             throw new Error(featureResult.error);
                         }
+
+                        // Generate image hashes for duplicate detection
+                        try {
+                            imageHash = ImageHash.generateHashFromBuffer(scanningImageFile.buffer);
+                            perceptualHash = await PerceptualHash.generateHash(tempScanningPath, 8, true);
+                            console.log(`Generated hashes - Image: ${imageHash ? imageHash.substring(0, 16) + '...' : 'null'}, Perceptual: ${perceptualHash ? perceptualHash.substring(0, 16) + '...' : 'null'}`);
+                        } catch (hashError) {
+                            console.error('Error generating hashes:', hashError);
+                            // Continue without hashes - they're optional for duplicate detection
+                        }
+                        
+                        // Check for identical images using perceptual hash
+                        if (perceptualHash) {
+                            const identicalMedia = await Media.findIdenticalByImageHash(perceptualHash);
+                            if (identicalMedia) {
+                                console.log(`Identical image detected by perceptual hash: ${identicalMedia.title}`);
+                                
+                                // Clean up temporary file before returning error
+                                await fs.unlink(tempScanningPath).catch(() => {});
+                                
+                                return res.status(400).json({
+                                    success: false,
+                                    message: `This scanning image is identical to existing media: "${identicalMedia.title}". Please use a different image.`,
+                                    duplicateMedia: {
+                                        id: identicalMedia.id,
+                                        title: identicalMedia.title,
+                                        matchType: 'identical_perceptual_hash',
+                                        matchScore: 100 // 100% match for identical images
+                                    }
+                                });
+                            }
+                            
+                            // Also check for very similar images (threshold 1-2)
+                            const similarMedia = await Media.findSimilarByImageHash(perceptualHash, 2);
+                            if (similarMedia.length > 0) {
+                                const bestMatch = similarMedia[0];
+                                console.log(`Very similar image detected by perceptual hash: ${bestMatch.title} (distance: 2)`);
+                                
+                                // Clean up temporary file before returning error
+                                await fs.unlink(tempScanningPath).catch(() => {});
+                                
+                                return res.status(400).json({
+                                    success: false,
+                                    message: `This scanning image is very similar to existing media: "${bestMatch.title}". Please use a different image.`,
+                                    duplicateMedia: {
+                                        id: bestMatch.id,
+                                        title: bestMatch.title,
+                                        matchType: 'similar_perceptual_hash',
+                                        matchScore: 95 // High similarity
+                                    }
+                                });
+                            }
+                        }
+
+                        // Check for duplicate images using feature matching with lower threshold for more sensitive detection
+                        const existingMedia = await Media.findAllWithDescriptors();
+                        const duplicateCheck = await smartImageService.checkForDuplicates(
+                            tempScanningPath, 
+                            existingMedia,
+                            30 // Lower threshold for more sensitive duplicate detection
+                        );
+
+                        if (duplicateCheck.success && duplicateCheck.isDuplicate) {
+                            console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia?.title || 'Unknown'} using ${duplicateCheck.service} service`);
+                            
+                            // Clean up temporary file before returning error
+                            await fs.unlink(tempScanningPath).catch(() => {});
+                            
+                            return res.status(400).json({
+                                success: false,
+                                message: `This scanning image is too similar to existing media: "${duplicateCheck.duplicateMedia?.title || 'Unknown Media'}". Please use a different image.`,
+                                duplicateMedia: {
+                                    id: duplicateCheck.duplicateMedia?.id || null,
+                                    title: duplicateCheck.duplicateMedia?.title || 'Unknown Media',
+                                    matchScore: duplicateCheck.matchScore,
+                                    matchCount: duplicateCheck.matchCount,
+                                    matchType: 'opencv_descriptor_match'
+                                },
+                                service: duplicateCheck.service,
+                                threshold: 30
+                            });
+                        }
+                        
+                        console.log('✅ No duplicate images found, proceeding with upload');
+                        
                     } catch (featureError) {
-                        console.error('Error extracting features:', featureError);
-                        // Delete uploaded files
-                        await fs.unlink(mediaFile.path);
-                        await fs.unlink(scanningImageFile.path);
+                        console.error('Error processing scanning image:', featureError);
+                        
+                        // Clean up temporary file on error
+                        if (tempScanningPath) {
+                            await fs.unlink(tempScanningPath).catch(() => {});
+                        }
                         
                         return res.status(400).json({
                             success: false,
                             message: 'Error processing scanning image. Please try again.'
                         });
+                    } finally {
+                        // Clean up temporary file after successful processing
+                        if (tempScanningPath) {
+                            await fs.unlink(tempScanningPath).catch(() => {});
+                        }
                     }
 
-                    // Check for duplicate images using feature matching
-                    try {
-                        const existingMedia = await Media.findAllWithDescriptors();
-                        const duplicateCheck = await smartImageService.checkForDuplicates(
-                            scanningImageFile.path, 
-                            existingMedia
-                        );
+                    // Upload files to S3
+                    const mediaUploadResult = await S3Service.uploadFile(mediaFile, 'media');
+                    const scanningImageUploadResult = await S3Service.uploadFile(scanningImageFile, 'media');
 
-                        if (duplicateCheck.success && duplicateCheck.isDuplicate) {
-                            console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia.title} using ${duplicateCheck.service} service`);
-                            // Delete uploaded files
-                            await fs.unlink(mediaFile.path);
-                            await fs.unlink(scanningImageFile.path);
-                            
-                            return res.status(400).json({
-                                success: false,
-                                message: `This scanning image is too similar to existing media: "${duplicateCheck.duplicateMedia.title}". Please use a different image.`,
-                                duplicateMedia: {
-                                    id: duplicateCheck.duplicateMedia.id,
-                                    title: duplicateCheck.duplicateMedia.title,
-                                    matchScore: duplicateCheck.matchScore
-                                },
-                                service: duplicateCheck.service
-                            });
+                    if (!mediaUploadResult.success || !scanningImageUploadResult.success) {
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Failed to upload files to cloud storage. Please try again.'
+                        });
+                    }
+
+                    // Generate hashes if they weren't generated during duplicate checking
+                    if (!imageHash) {
+                        try {
+                            imageHash = ImageHash.generateHashFromBuffer(scanningImageFile.buffer);
+                            console.log(`Generated fallback image hash: ${imageHash ? imageHash.substring(0, 16) + '...' : 'null'}`);
+                        } catch (hashError) {
+                            console.error('Error generating fallback image hash:', hashError);
+                            imageHash = null;
                         }
-                    } catch (duplicateError) {
-                        console.error('Error checking for duplicates:', duplicateError);
-                        // Continue with upload even if duplicate check fails
-                        console.log('Continuing with upload despite duplicate check error');
+                    }
+                    
+                    if (!perceptualHash && tempScanningPath) {
+                        try {
+                            perceptualHash = await PerceptualHash.generateHash(tempScanningPath, 8, true);
+                            console.log(`Generated fallback perceptual hash: ${perceptualHash ? perceptualHash.substring(0, 16) + '...' : 'null'}`);
+                        } catch (hashError) {
+                            console.error('Error generating fallback perceptual hash:', hashError);
+                            perceptualHash = null;
+                        }
                     }
 
                     // Create media record
                     const mediaData = {
                         title,
                         description,
-                        scanning_image: scanningImageFile.filename,
+                        scanning_image: scanningImageUploadResult.url,
                         descriptors: descriptors,
                         media_type,
-                        file_path: mediaFile.filename,
+                        file_path: mediaUploadResult.url,
                         file_size: mediaFile.size,
                         mime_type: mediaFile.mimetype,
-                        uploaded_by: req.session.user.id
+                        uploaded_by: req.session.user.id,
+                        image_hash: imageHash,
+                        perceptual_hash: perceptualHash
                     };
 
                     const newMedia = await Media.create(mediaData);
@@ -452,14 +580,6 @@ class MediaController {
             });
         } catch (error) {
             console.error('Upload error:', error);
-            
-            // Clean up uploaded files on error
-            if (req.files && req.files.media_file) {
-                await fs.unlink(req.files.media_file[0].path).catch(() => {});
-            }
-            if (req.files && req.files.scanning_image) {
-                await fs.unlink(req.files.scanning_image[0].path).catch(() => {});
-            }
             
             res.status(500).json({
                 success: false,
@@ -566,9 +686,13 @@ class MediaController {
                 file_size: media.file_size,
                 mime_type: media.mime_type,
                 created_at: media.created_at,
-                // Add full URLs for mobile apps
-                scanning_image_url: `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.scanning_image}`,
-                file_url: `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.file_path}`
+                // Add full URLs for mobile apps - handle both S3 URLs and local paths
+                scanning_image_url: /^https?:\/\//i.test(media.scanning_image) ? 
+                    media.scanning_image : 
+                    `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.scanning_image}`,
+                file_url: /^https?:\/\//i.test(media.file_path) ? 
+                    media.file_path : 
+                    `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.file_path}`
             }));
 
             res.json({
@@ -591,7 +715,7 @@ class MediaController {
     }
   }
 
-    // Update media
+    // Update media (rejects file uploads - use updateMediaText for text-only updates)
     static async updateMedia(req, res) {
     try {
       const { id } = req.params;
@@ -599,6 +723,15 @@ class MediaController {
             
             console.log('Update media request:', { id, title, description, media_type, is_active });
             console.log('File uploaded:', req.file ? req.file.filename : 'No file');
+
+            // Check if any files were uploaded
+            if (req.file || (req.files && (req.files.media_file || req.files.scanning_image))) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Media files cannot be updated. If you want to change the media files, please delete this media and add a new one instead. Use the text-only update endpoint to update title and description.',
+                    suggestion: 'Use PUT /api/media/:id/text to update only title and description'
+                });
+            }
 
             const media = await Media.findById(id);
             if (!media) {
@@ -609,109 +742,13 @@ class MediaController {
                 });
             }
 
-            // Prepare update data
+            // Prepare update data - only text fields (no file processing)
             const updateData = {
                 title,
                 description,
                 media_type,
                 is_active: is_active === 'true'
             };
-
-            // Handle scanning image upload if provided
-            if (req.file) {
-                const fs = require('fs').promises;
-                const path = require('path');
-
-                try {
-                    const imagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', req.file.filename);
-                    
-                    // Check if image processing service is available
-                    const isServiceHealthy = await smartImageService.isHealthy();
-                    if (!isServiceHealthy) {
-                        console.error('Image processing service is not available');
-                        await fs.unlink(imagePath);
-                        return res.status(500).json({
-                            success: false,
-                            message: 'Image processing service is temporarily unavailable. Please try again later.'
-                        });
-                    }
-
-                    // Extract features from the new scanning image
-                    let descriptors = null;
-                    try {
-                        const featureResult = await smartImageService.extractFeatures(imagePath);
-                        if (featureResult.success) {
-                            descriptors = featureResult.descriptors;
-                            console.log(`Extracted ${featureResult.featureCount} features from new scanning image using ${featureResult.service} service`);
-                        } else {
-                            throw new Error(featureResult.error);
-                        }
-                    } catch (featureError) {
-                        console.error('Error extracting features:', featureError);
-                        await fs.unlink(imagePath);
-                        return res.status(400).json({
-                            success: false,
-                            message: 'Error processing scanning image. Please try again.'
-                        });
-                    }
-
-                    // Check for duplicate images using feature matching (excluding current media)
-                    try {
-                        const existingMedia = await Media.findAllWithDescriptors();
-                        const otherMedia = existingMedia.filter(m => m.id !== parseInt(id));
-                        
-                        if (otherMedia.length > 0) {
-                            const duplicateCheck = await smartImageService.checkForDuplicates(
-                                imagePath, 
-                                otherMedia
-                            );
-
-                            if (duplicateCheck.success && duplicateCheck.isDuplicate) {
-                                console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia.title} using ${duplicateCheck.service} service`);
-                                await fs.unlink(imagePath);
-                                
-                                return res.status(400).json({
-                                    success: false,
-                                    message: `This scanning image is too similar to existing media: "${duplicateCheck.duplicateMedia.title}". Please use a different image.`,
-                                    duplicateMedia: {
-                                        id: duplicateCheck.duplicateMedia.id,
-                                        title: duplicateCheck.duplicateMedia.title,
-                                        matchScore: duplicateCheck.matchScore
-                                    },
-                                    service: duplicateCheck.service
-                                });
-                            }
-                        }
-                    } catch (duplicateError) {
-                        console.error('Error checking for duplicates:', duplicateError);
-                        // Continue with update even if duplicate check fails
-                        console.log('Continuing with update despite duplicate check error');
-                    }
-
-                    // Delete old scanning image file if it exists
-                    if (media.scanning_image) {
-                        const oldImagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', media.scanning_image);
-                        try {
-                            await fs.unlink(oldImagePath);
-                        } catch (error) {
-                            console.log('Old scanning image file not found or already deleted:', oldImagePath);
-                        }
-                    }
-
-                    // Update with new scanning image
-                    updateData.scanning_image = req.file.filename;
-                    updateData.descriptors = descriptors;
-                } catch (error) {
-                    console.error('Error processing scanning image:', error);
-                    // Delete the uploaded file
-                    const imagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', req.file.filename);
-                    await fs.unlink(imagePath);
-                    return res.status(500).json({
-                        success: false,
-                        message: 'Error processing scanning image'
-                    });
-                }
-            }
 
             const updatedMedia = await media.update(updateData);
             
@@ -724,6 +761,49 @@ class MediaController {
       });
     } catch (error) {
             console.error('Error updating media:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
+    // Update media text fields only (title and description)
+    static async updateMediaText(req, res) {
+        try {
+            const { id } = req.params;
+            const { title, description, media_type, is_active } = req.body;
+            
+            console.log('Update media text request:', { id, title, description, is_active });
+
+            const media = await Media.findById(id);
+            if (!media) {
+                console.log('Media not found for ID:', id);
+                return res.status(404).json({
+                    success: false,
+                    message: 'Media not found'
+                });
+            }
+
+            // Prepare update data - only text fields
+            const updateData = {
+                title,
+                description,
+                media_type,
+                is_active: is_active === 'true'
+            };
+
+            const updatedMedia = await media.update(updateData);
+            
+            console.log('Media text updated successfully:', updatedMedia);
+
+            res.json({
+                success: true,
+                message: 'Media updated successfully',
+                media: updatedMedia
+            });
+        } catch (error) {
+            console.error('Error updating media text:', error);
             res.status(500).json({
                 success: false,
                 message: error.message
@@ -778,37 +858,30 @@ class MediaController {
             
             console.log(`✅ Found media: ${media.title} (${media.file_path})`);
 
-            // Delete files from filesystem (handle both old and new file path formats)
+            // Delete files from S3
             try {
-                // Try to delete the main media file
+                // Delete the main media file from S3
                 if (media.file_path) {
-                    // Handle both old format (uploads/media/filename) and new format (just filename)
-                    const fileName = media.file_path.includes('/') ? 
-                        path.basename(media.file_path) : media.file_path;
-                    const mediaPath = path.join(__dirname, '../public/uploads/media', fileName);
-                    
-                    if (fs.existsSync(mediaPath)) {
-                        await fs.unlink(mediaPath);
-                        console.log(`Deleted media file: ${mediaPath}`);
+                    const deleteResult = await S3Service.deleteFile(media.file_path);
+                    if (deleteResult.success) {
+                        console.log(`Deleted media file from S3: ${media.file_path}`);
                     } else {
-                        console.log(`Media file not found: ${mediaPath}`);
+                        console.log(`Failed to delete media file from S3: ${deleteResult.error}`);
                     }
                 }
 
-                // Try to delete the scanning image file
+                // Delete the scanning image file from S3
                 if (media.scanning_image) {
-                    const scanningImagePath = path.join(__dirname, '../public/uploads/scanning-images', media.scanning_image);
-                    
-                    if (fs.existsSync(scanningImagePath)) {
-                        await fs.unlink(scanningImagePath);
-                        console.log(`Deleted scanning image: ${scanningImagePath}`);
+                    const deleteResult = await S3Service.deleteFile(media.scanning_image);
+                    if (deleteResult.success) {
+                        console.log(`Deleted scanning image from S3: ${media.scanning_image}`);
                     } else {
-                        console.log(`Scanning image not found: ${scanningImagePath}`);
+                        console.log(`Failed to delete scanning image from S3: ${deleteResult.error}`);
                     }
                 }
             } catch (fileError) {
-                console.warn('Error deleting files (continuing with database deletion):', fileError.message);
-                // Continue with database deletion even if file deletion fails
+                console.warn('Error deleting files from S3 (continuing with database deletion):', fileError.message);
+                // Continue with database deletion even if S3 deletion fails
             }
 
       // Delete from database

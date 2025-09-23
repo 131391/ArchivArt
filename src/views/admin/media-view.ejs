@@ -323,15 +323,17 @@
                 </div>
                 <div class="flex space-x-4">
                     <button 
+                        id="toggleStatusBtn"
                         onclick="toggleMediaStatus(<%= media.id %>)" 
                         class="group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white transition-all duration-200 transform hover:scale-105 <%= media.is_active ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl' : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl' %>"
+                        data-current-status="<%= media.is_active %>"
                     >
-                        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3 group-hover:bg-opacity-30 transition-all duration-200">
+                        <div id="toggleStatusIcon" class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3 group-hover:bg-opacity-30 transition-all duration-200">
                             <i class="fas fa-<%= media.is_active ? 'pause' : 'play' %> text-sm"></i>
                         </div>
                         <div class="text-left">
-                            <div class="font-semibold"><%= media.is_active ? 'Deactivate' : 'Activate' %></div>
-                            <div class="text-xs opacity-90"><%= media.is_active ? 'Make inactive' : 'Make active' %></div>
+                            <div id="toggleStatusText" class="font-semibold"><%= media.is_active ? 'Deactivate' : 'Activate' %></div>
+                            <div id="toggleStatusSubtext" class="text-xs opacity-90"><%= media.is_active ? 'Make inactive' : 'Make active' %></div>
                         </div>
                     </button>
                     
@@ -370,30 +372,96 @@
     // Media management functions (reuse from existing code)
     // editMedia function is defined in admin layout
 
+    // Override the default toggleMediaStatus to update button without page reload
     function toggleMediaStatus(mediaId) {
-        if (confirm('Are you sure you want to change the status of this media?')) {
-            fetch(`/admin/media/${mediaId}/toggle`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccessToast(data.message);
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                } else {
-                    showErrorToast('Error updating media status: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorToast('Error updating media status');
-            });
+        console.log('toggleMediaStatus called with mediaId:', mediaId);
+        
+        if (typeof showConfirmModal === 'function') {
+            showConfirmModal(
+                'Toggle Media Status',
+                'Are you sure you want to change the status of this media?',
+                () => performToggleMediaStatusWithButtonUpdate(mediaId)
+            );
+        } else {
+            if (confirm('Are you sure you want to change the status of this media?')) {
+                performToggleMediaStatusWithButtonUpdate(mediaId);
+            }
+        }
+    }
+
+    function performToggleMediaStatusWithButtonUpdate(mediaId) {
+        // Disable button during request
+        const toggleBtn = document.getElementById('toggleStatusBtn');
+        toggleBtn.disabled = true;
+        toggleBtn.style.opacity = '0.6';
+        
+        fetch(`/admin/media/${mediaId}/toggle`, {
+            method: 'PATCH',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccessToast(data.message);
+                
+                // Update button appearance without page reload
+                updateToggleButton();
+            } else {
+                showErrorToast('Error updating media status: ' + (data.message || data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorToast('Error updating media status: ' + error.message);
+        })
+        .finally(() => {
+            // Re-enable button
+            toggleBtn.disabled = false;
+            toggleBtn.style.opacity = '1';
+        });
+    }
+
+    function updateToggleButton() {
+        const toggleBtn = document.getElementById('toggleStatusBtn');
+        
+        if (!toggleBtn) {
+            console.error('Toggle button not found!');
+            return;
+        }
+        
+        const iconElement = document.getElementById('toggleStatusIcon');
+        if (!iconElement) {
+            console.error('Icon element not found!');
+            return;
+        }
+        
+        const icon = iconElement.querySelector('i');
+        const textElement = document.getElementById('toggleStatusText');
+        const subtextElement = document.getElementById('toggleStatusSubtext');
+        
+        // Get current status from data attribute
+        const currentStatus = toggleBtn.getAttribute('data-current-status') === 'true';
+        const newStatus = !currentStatus;
+        
+        // Update data attribute
+        toggleBtn.setAttribute('data-current-status', newStatus.toString());
+        
+        if (newStatus) {
+            // Media is now active - show deactivate button
+            toggleBtn.className = 'group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white transition-all duration-200 transform hover:scale-105 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl';
+            icon.className = 'fas fa-pause text-sm';
+            textElement.textContent = 'Deactivate';
+            subtextElement.textContent = 'Make inactive';
+        } else {
+            // Media is now inactive - show activate button
+            toggleBtn.className = 'group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white transition-all duration-200 transform hover:scale-105 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl';
+            icon.className = 'fas fa-play text-sm';
+            textElement.textContent = 'Activate';
+            subtextElement.textContent = 'Make active';
         }
     }
 

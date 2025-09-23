@@ -7,8 +7,8 @@
                 <div class="flex items-center space-x-6">
                     <div class="relative">
                         <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full blur-lg opacity-75"></div>
-                        <img class="relative h-24 w-24 rounded-full border-4 border-white shadow-xl" 
-                             src="https://ui-avatars.com/api/?name=<%= user.name %>&background=8b5cf6&color=ffffff&size=128&bold=true" 
+                        <img id="profileImage" class="relative h-24 w-24 rounded-full border-4 border-white shadow-xl" 
+                             src="<%= user.profile_picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=8b5cf6&color=ffffff&size=128&bold=true' %>" 
                              alt="<%= user.name %>">
                         <div class="absolute -bottom-1 -right-1 h-6 w-6 bg-green-400 border-2 border-white rounded-full"></div>
                     </div>
@@ -100,6 +100,56 @@
                         Update Profile
                     </button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Profile Picture Upload Card -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300">
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-camera mr-3"></i>
+                    Profile Picture
+                </h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="flex items-center space-x-6 mb-6">
+                    <div class="relative">
+                        <img id="currentProfileImage" class="h-20 w-20 rounded-full border-4 border-gray-200 shadow-lg" 
+                             src="<%= user.profile_picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=6366f1&color=ffffff&size=80&bold=true' %>" 
+                             alt="Current Profile Picture">
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Update Profile Picture</h3>
+                        <p class="text-sm text-gray-600 mb-4">Choose a new profile picture. Supported formats: JPEG, PNG, WebP (max 5MB)</p>
+                        
+                        <div class="flex items-center space-x-4">
+                            <label for="profilePictureInput" class="cursor-pointer inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+                                <i class="fas fa-upload mr-2"></i>
+                                Choose File
+                            </label>
+                            <input type="file" id="profilePictureInput" accept="image/jpeg,image/jpg,image/png,image/webp" class="hidden">
+                            <button id="uploadProfilePicture" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="fas fa-save mr-2"></i>
+                                Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upload Progress -->
+                <div id="uploadProgress" class="hidden mb-4">
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <p id="progressText" class="text-sm text-gray-600 mt-2">Uploading...</p>
+                </div>
+                
+                <!-- Preview -->
+                <div id="imagePreview" class="hidden">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Preview:</h4>
+                    <img id="previewImage" class="h-16 w-16 rounded-lg border-2 border-gray-300 object-cover" alt="Preview">
+                </div>
             </div>
         </div>
 
@@ -306,4 +356,154 @@ function togglePassword(fieldId) {
         icon.classList.add('fa-eye');
     }
 }
+
+// Profile Picture Upload Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('profilePictureInput');
+    const uploadButton = document.getElementById('uploadProfilePicture');
+    const previewContainer = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    const progressContainer = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const currentProfileImage = document.getElementById('currentProfileImage');
+    const headerProfileImage = document.getElementById('profileImage');
+    
+    let selectedFile = null;
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                showModal('Error', 'Please select a valid image file (JPEG, PNG, or WebP).', 'error');
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showModal('Error', 'File size must be less than 5MB.', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            uploadButton.disabled = false;
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    uploadButton.addEventListener('click', async function() {
+        if (!selectedFile) return;
+
+        uploadButton.disabled = true;
+        progressContainer.classList.remove('hidden');
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Converting image...';
+
+        try {
+            // Convert file to base64
+            const base64 = await fileToBase64(selectedFile);
+            
+            progressBar.style.width = '50%';
+            progressText.textContent = 'Uploading to cloud storage...';
+
+            // Upload to server
+            const response = await fetch('/admin/profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    profile_picture: base64
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Upload complete!';
+                
+                // Update profile images
+                currentProfileImage.src = result.user.profile_picture;
+                headerProfileImage.src = result.user.profile_picture;
+                
+                showModal('Success', 'Profile picture updated successfully!', 'success');
+                
+                // Reset form
+                fileInput.value = '';
+                selectedFile = null;
+                uploadButton.disabled = true;
+                previewContainer.classList.add('hidden');
+                
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                }, 2000);
+            } else {
+                throw new Error(result.error || 'Failed to upload profile picture');
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            showModal('Error', error.message || 'Failed to upload profile picture. Please try again.', 'error');
+            uploadButton.disabled = false;
+            progressContainer.classList.add('hidden');
+        }
+    });
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    function showModal(title, message, type) {
+        // Create modal HTML
+        const modalHtml = `
+            <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 ${type === 'success' ? 'bg-green-100' : 'bg-red-100'}">
+                            <i class="fas ${type === 'success' ? 'fa-check text-green-600' : 'fa-exclamation-triangle text-red-600'}"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">${title}</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">${message}</p>
+                    <div class="flex justify-end">
+                        <button onclick="closeModal()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('customModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to page
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    window.closeModal = function() {
+        const modal = document.getElementById('customModal');
+        if (modal) {
+            modal.remove();
+        }
+    };
+});
 </script>

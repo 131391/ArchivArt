@@ -85,8 +85,8 @@ class SmartImageService {
             await this.initializeService();
         }
         
-        // Use different thresholds based on service
-        const actualThreshold = threshold || (this.currentService === this.primaryService ? 50 : 100);
+        // Use lower thresholds for more sensitive duplicate detection
+        const actualThreshold = threshold || (this.currentService === this.primaryService ? 30 : 50);
         
         const result = await this.currentService.checkForDuplicates(newImagePath, existingMedia, actualThreshold);
         

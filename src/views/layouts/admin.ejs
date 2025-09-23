@@ -1,19 +1,16 @@
-n <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Cache-Control"
-      content="no-cache, no-store, must-revalidate"
-    />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <title>
-      <%= title %> - <%= settings && settings.site_name ? settings.site_name :
-      'ArchivArt' %> Admin
-    </title>
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title><%= title %> - <%= settings && settings.site_name ? settings.site_name : 'ArchivArt' %> Admin</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="shortcut icon" type="image/png" href="/favicon.png">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -749,8 +746,215 @@ n <!DOCTYPE html>
             setTimeout(waitForFormatters, 100);
           }
         }
+<<<<<<< HEAD
         waitForFormatters();
       });
+=======
+
+        function closeViewModal() {
+            const modal = document.getElementById('viewUserModal');
+            const modalContainer = document.getElementById('viewUserModalContainer');
+            
+            if (modalContainer) {
+                // Trigger closing animation
+                modalContainer.classList.remove('scale-100', 'opacity-100');
+                modalContainer.classList.add('scale-95', 'opacity-0');
+                
+                // Hide modal after animation
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Generic modal close function
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const modalContainer = document.getElementById(modalId + 'Container');
+            
+            if (modal) {
+                if (modalContainer) {
+                    // Trigger closing animation
+                    modalContainer.classList.remove('scale-100', 'opacity-100');
+                    modalContainer.classList.add('scale-95', 'opacity-0');
+                    
+                    // Hide modal after animation
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                    }, 300);
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+        }
+
+        // Add click-outside-to-close functionality for all modals
+        document.addEventListener('click', function(event) {
+            // Check if clicked element is a modal backdrop
+            if (event.target.classList.contains('fixed') && 
+                event.target.classList.contains('inset-0') && 
+                event.target.classList.contains('bg-gray-600')) {
+                // Close the modal
+                event.target.classList.add('hidden');
+            }
+        });
+
+        function getStatusText(user) {
+            if (user.is_blocked == 1 || user.is_blocked === true) return 'Blocked';
+            if (user.is_active == 1 || user.is_active === true) return 'Active';
+            return 'Inactive';
+        }
+
+        // Handle edit form submission
+        document.getElementById('editUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const userId = formData.get('id');
+            
+            // Show loading state
+            if (typeof GlobalLoader !== 'undefined') {
+                GlobalLoader.showForForm({
+                    title: 'Updating User...',
+                    message: 'Please wait while we update the user information'
+                });
+            }
+            
+            fetch(`/admin/users/${userId}`, {
+                method: 'PUT',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    role: formData.get('role'),
+                    status: formData.get('status')
+                })
+            })
+                .then(response => {
+                    console.log('Edit response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Edit response data:', data);
+                    
+                    // Hide loading state
+                    if (typeof GlobalLoader !== 'undefined') {
+                        GlobalLoader.hide();
+                    }
+                    
+                    if (data.success) {
+                        showSuccessToast('User updated successfully');
+                        closeEditModal();
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showErrorToast(`Error updating user: ${data.message || 'Unknown error'}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Edit error:', error);
+                    
+                    // Hide loading state on error
+                    if (typeof GlobalLoader !== 'undefined') {
+                        GlobalLoader.hide();
+                    }
+                    
+                    showErrorToast(`Error updating user: ${error.message}`);
+                });
+        });
+
+        function toggleUserStatus(userId, action) {
+            console.log('toggleUserStatus called with userId:', userId, 'action:', action);
+            const actionText = action === 'block' ? 'block' : 'unblock';
+            showConfirmModal(
+                `Are you sure you want to ${actionText} this user?`,
+                'Confirm Action',
+                function() {
+                    performToggleUserStatus(userId, action, actionText);
+                }
+            );
+        }
+
+        function performToggleUserStatus(userId, action, actionText) {
+                fetch(`/admin/users/${userId}/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        showSuccessToast(`User ${actionText}ed successfully`);
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showErrorToast(`Error ${actionText}ing user: ${data.message || 'Unknown error'}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorToast(`Error ${actionText}ing user: ${error.message}`);
+                });
+        }
+
+        function deleteUser(userId) {
+            console.log('deleteUser called with userId:', userId);
+            showConfirmModal(
+                'Are you sure you want to delete this user? This action cannot be undone.',
+                'Confirm Delete',
+                function() {
+                    performDeleteUser(userId);
+                }
+            );
+        }
+
+        function performDeleteUser(userId) {
+                fetch(`/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                })
+                .then(response => {
+                    console.log('Delete response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Delete response data:', data);
+                    if (data.success) {
+                        showSuccessToast('User deleted successfully');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showErrorToast(`Error deleting user: ${data.message || 'Unknown error'}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Delete error:', error);
+                    showErrorToast(`Error deleting user: ${error.message}`);
+                });
+        }
+>>>>>>> main
     </script>
     <% } %>
   </body>
