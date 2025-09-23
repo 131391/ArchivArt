@@ -1,64 +1,14 @@
 const Media = require('../models/Media');
 const smartImageService = require('../services/smartImageService');
+const S3Service = require('../services/s3Service');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 const { v4: uuidv4 } = require('uuid');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: async (req, file, cb) => {
-        const uploadDir = path.join(__dirname, '../public/uploads/media');
-        try {
-            await fs.mkdir(uploadDir, { recursive: true });
-            cb(null, uploadDir);
-        } catch (error) {
-            cb(error);
-        }
-    },
-    filename: (req, file, cb) => {
-        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-        cb(null, uniqueName);
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    const allowedTypes = {
-        'image/jpeg': 'image',
-        'image/jpg': 'image',
-        'image/png': 'image',
-        'image/gif': 'image',
-        'image/webp': 'image',
-        'video/mp4': 'video',
-        'video/avi': 'video',
-        'video/mov': 'video',
-        'video/wmv': 'video',
-        'video/webm': 'video',
-        'video/quicktime': 'video',
-        'audio/mp3': 'audio',
-        'audio/mpeg': 'audio',
-        'audio/wav': 'audio',
-        'audio/m4a': 'audio',
-        'audio/ogg': 'audio',
-        'audio/aac': 'audio',
-        'audio/flac': 'audio',
-        'audio/wma': 'audio'
-    };
-
-    if (allowedTypes[file.mimetype]) {
-        cb(null, true);
-    } else {
-        cb(new Error('Invalid file type. Only images, videos, and audio files are allowed.'), false);
-    }
-};
-
-const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: {
-        fileSize: 100 * 1024 * 1024 // 100MB limit
-    }
-});
+// Use the new S3-based multer configuration
+const { mediaUpload } = require('../config/multer');
+const upload = mediaUpload;
 
 class MediaController {
     // Public API: match scanning image using OpenCV feature matching
@@ -83,9 +33,14 @@ class MediaController {
                 });
             }
 
-            // Use the uploaded file directly since multer.diskStorage saves it to disk
-            // Convert to absolute path for Python service
-            const tempPath = path.resolve(req.file.path);
+            // For S3 uploads, we need to save the file temporarily for the Python service
+            // Since multer.memoryStorage stores the file in memory as buffer
+            const tempDir = path.join(__dirname, '../temp');
+            await fs.mkdir(tempDir, { recursive: true });
+            const tempPath = path.join(tempDir, `${uuidv4()}${path.extname(req.file.originalname)}`);
+            
+            // Write the buffer to a temporary file
+            await fs.writeFile(tempPath, req.file.buffer);
             console.log(`📱 Mobile app uploaded image: ${req.file.originalname} at ${tempPath}`);
             
             try {
@@ -126,14 +81,21 @@ class MediaController {
                         file_path: matchedMedia.file_path,
                         is_active: matchedMedia.is_active,
                         created_at: matchedMedia.created_at,
+                        // Add full URLs for mobile apps - handle both S3 URLs and local paths
+                        scanning_image_url: /^https?:\/\//i.test(matchedMedia.scanning_image) ? 
+                            matchedMedia.scanning_image : 
+                            `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${matchedMedia.scanning_image}`,
+                        file_url: /^https?:\/\//i.test(matchedMedia.file_path) ? 
+                            matchedMedia.file_path : 
+                            `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${matchedMedia.file_path}`,
                         similarity: {
                             score: matchResult.matchScore,
                             matchCount: matchResult.matchCount,
                             threshold: threshold,
                             service: matchResult.service,
                             description: matchResult.matchScore >= 0.8 ? 'Very High' : 
-                                        matchResult.matchScore >= 0.6 ? 'High' : 
-                                        matchResult.matchScore >= 0.4 ? 'Medium' : 'Low'
+                                       matchResult.matchScore >= 0.6 ? 'High' : 
+                                       matchResult.matchScore >= 0.4 ? 'Medium' : 'Low'
                         }
                     };
 
@@ -367,9 +329,6 @@ class MediaController {
                     const isServiceHealthy = await smartImageService.isHealthy();
                     if (!isServiceHealthy) {
                         console.error('Image processing service is not available');
-                        // Delete uploaded files
-                        await fs.unlink(mediaFile.path);
-                        await fs.unlink(scanningImageFile.path);
                         
                         return res.status(500).json({
                             success: false,
@@ -379,8 +338,15 @@ class MediaController {
 
                     // Extract features from the scanning image
                     let descriptors = null;
+                    let tempScanningPath = null;
                     try {
-                        const featureResult = await smartImageService.extractFeatures(scanningImageFile.path);
+                        // Create temporary file for scanning image processing
+                        const tempDir = path.join(__dirname, '../temp');
+                        await fs.mkdir(tempDir, { recursive: true });
+                        tempScanningPath = path.join(tempDir, `${uuidv4()}${path.extname(scanningImageFile.originalname)}`);
+                        await fs.writeFile(tempScanningPath, scanningImageFile.buffer);
+                        
+                        const featureResult = await smartImageService.extractFeatures(tempScanningPath);
                         if (featureResult.success) {
                             descriptors = featureResult.descriptors;
                             console.log(`Extracted ${featureResult.featureCount} features from scanning image using ${featureResult.service} service`);
@@ -389,29 +355,28 @@ class MediaController {
                         }
                     } catch (featureError) {
                         console.error('Error extracting features:', featureError);
-                        // Delete uploaded files
-                        await fs.unlink(mediaFile.path);
-                        await fs.unlink(scanningImageFile.path);
                         
                         return res.status(400).json({
                             success: false,
                             message: 'Error processing scanning image. Please try again.'
                         });
+                    } finally {
+                        // Clean up temporary file
+                        if (tempScanningPath) {
+                            await fs.unlink(tempScanningPath).catch(() => {});
+                        }
                     }
 
                     // Check for duplicate images using feature matching
                     try {
                         const existingMedia = await Media.findAllWithDescriptors();
                         const duplicateCheck = await smartImageService.checkForDuplicates(
-                            scanningImageFile.path, 
+                            tempScanningPath, 
                             existingMedia
                         );
 
                         if (duplicateCheck.success && duplicateCheck.isDuplicate) {
                             console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia.title} using ${duplicateCheck.service} service`);
-                            // Delete uploaded files
-                            await fs.unlink(mediaFile.path);
-                            await fs.unlink(scanningImageFile.path);
                             
                             return res.status(400).json({
                                 success: false,
@@ -430,14 +395,25 @@ class MediaController {
                         console.log('Continuing with upload despite duplicate check error');
                     }
 
+                    // Upload files to S3
+                    const mediaUploadResult = await S3Service.uploadFile(mediaFile, 'media');
+                    const scanningImageUploadResult = await S3Service.uploadFile(scanningImageFile, 'media');
+
+                    if (!mediaUploadResult.success || !scanningImageUploadResult.success) {
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Failed to upload files to cloud storage. Please try again.'
+                        });
+                    }
+
                     // Create media record
                     const mediaData = {
                         title,
                         description,
-                        scanning_image: scanningImageFile.filename,
+                        scanning_image: scanningImageUploadResult.url,
                         descriptors: descriptors,
                         media_type,
-                        file_path: mediaFile.filename,
+                        file_path: mediaUploadResult.url,
                         file_size: mediaFile.size,
                         mime_type: mediaFile.mimetype,
                         uploaded_by: req.session.user.id
@@ -452,14 +428,6 @@ class MediaController {
             });
         } catch (error) {
             console.error('Upload error:', error);
-            
-            // Clean up uploaded files on error
-            if (req.files && req.files.media_file) {
-                await fs.unlink(req.files.media_file[0].path).catch(() => {});
-            }
-            if (req.files && req.files.scanning_image) {
-                await fs.unlink(req.files.scanning_image[0].path).catch(() => {});
-            }
             
             res.status(500).json({
                 success: false,
@@ -566,9 +534,13 @@ class MediaController {
                 file_size: media.file_size,
                 mime_type: media.mime_type,
                 created_at: media.created_at,
-                // Add full URLs for mobile apps
-                scanning_image_url: `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.scanning_image}`,
-                file_url: `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.file_path}`
+                // Add full URLs for mobile apps - handle both S3 URLs and local paths
+                scanning_image_url: /^https?:\/\//i.test(media.scanning_image) ? 
+                    media.scanning_image : 
+                    `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.scanning_image}`,
+                file_url: /^https?:\/\//i.test(media.file_path) ? 
+                    media.file_path : 
+                    `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.file_path}`
             }));
 
             res.json({
@@ -778,37 +750,30 @@ class MediaController {
             
             console.log(`✅ Found media: ${media.title} (${media.file_path})`);
 
-            // Delete files from filesystem (handle both old and new file path formats)
+            // Delete files from S3
             try {
-                // Try to delete the main media file
+                // Delete the main media file from S3
                 if (media.file_path) {
-                    // Handle both old format (uploads/media/filename) and new format (just filename)
-                    const fileName = media.file_path.includes('/') ? 
-                        path.basename(media.file_path) : media.file_path;
-                    const mediaPath = path.join(__dirname, '../public/uploads/media', fileName);
-                    
-                    if (fs.existsSync(mediaPath)) {
-                        await fs.unlink(mediaPath);
-                        console.log(`Deleted media file: ${mediaPath}`);
+                    const deleteResult = await S3Service.deleteFile(media.file_path);
+                    if (deleteResult.success) {
+                        console.log(`Deleted media file from S3: ${media.file_path}`);
                     } else {
-                        console.log(`Media file not found: ${mediaPath}`);
+                        console.log(`Failed to delete media file from S3: ${deleteResult.error}`);
                     }
                 }
 
-                // Try to delete the scanning image file
+                // Delete the scanning image file from S3
                 if (media.scanning_image) {
-                    const scanningImagePath = path.join(__dirname, '../public/uploads/scanning-images', media.scanning_image);
-                    
-                    if (fs.existsSync(scanningImagePath)) {
-                        await fs.unlink(scanningImagePath);
-                        console.log(`Deleted scanning image: ${scanningImagePath}`);
+                    const deleteResult = await S3Service.deleteFile(media.scanning_image);
+                    if (deleteResult.success) {
+                        console.log(`Deleted scanning image from S3: ${media.scanning_image}`);
                     } else {
-                        console.log(`Scanning image not found: ${scanningImagePath}`);
+                        console.log(`Failed to delete scanning image from S3: ${deleteResult.error}`);
                     }
                 }
             } catch (fileError) {
-                console.warn('Error deleting files (continuing with database deletion):', fileError.message);
-                // Continue with database deletion even if file deletion fails
+                console.warn('Error deleting files from S3 (continuing with database deletion):', fileError.message);
+                // Continue with database deletion even if S3 deletion fails
             }
 
       // Delete from database

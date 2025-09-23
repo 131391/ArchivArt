@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { upload, profilePictureUpload } = require('../config/multer');
+const { mediaUpload, profileUpload } = require('../config/multer');
 const authController = require('../controllers/authController');
 const mediaController = require('../controllers/mediaController');
 const { body } = require('express-validator');
@@ -87,7 +87,7 @@ router.put('/auth/profile', [
 // Match scanning image using OpenCV feature matching (accepts multipart image upload)
 router.post('/media/match', [
   uploadRateLimit,
-  upload.single('image'),
+  mediaUpload.single('image'),
   validateSingleFileUpload,
   preventSQLInjection
 ], mediaController.matchScanningImage);

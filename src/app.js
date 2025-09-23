@@ -76,21 +76,27 @@ app.use((req, res, next) => {
   // Helper to build image URLs using a dynamic base (can be CDN/S3 later)
   res.locals.imageUrl = function imageUrl(relativePath) {
     if (!relativePath) return '';
-    // If already absolute (e.g., starts with http), return as-is
+    // If already absolute (e.g., starts with http), return as-is (for S3 URLs)
     if (/^https?:\/\//i.test(relativePath)) return relativePath;
     // Ensure single leading slash
     const normalized = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
     return `${IMAGE_BASE_URL}${normalized}`;
   };
-  // Convenience: mediaUrl to prefix uploads/media
-  res.locals.mediaUrl = function mediaUrl(filename) {
-    if (!filename) return '';
-    return res.locals.imageUrl(`/uploads/media/${filename}`);
+  // Convenience: mediaUrl - handles both S3 URLs and local paths
+  res.locals.mediaUrl = function mediaUrl(filePath) {
+    if (!filePath) return '';
+    // If it's already a full S3 URL, return as-is
+    if (/^https?:\/\//i.test(filePath)) return filePath;
+    // Otherwise, treat as relative path and add prefix
+    return res.locals.imageUrl(`/uploads/media/${filePath}`);
   };
-  // Convenience: scanningImageUrl to prefix uploads/media
-  res.locals.scanningImageUrl = function scanningImageUrl(filename) {
-    if (!filename) return '';
-    return res.locals.imageUrl(`/uploads/media/${filename}`);
+  // Convenience: scanningImageUrl - handles both S3 URLs and local paths
+  res.locals.scanningImageUrl = function scanningImageUrl(filePath) {
+    if (!filePath) return '';
+    // If it's already a full S3 URL, return as-is
+    if (/^https?:\/\//i.test(filePath)) return filePath;
+    // Otherwise, treat as relative path and add prefix
+    return res.locals.imageUrl(`/uploads/media/${filePath}`);
   };
   next();
 });

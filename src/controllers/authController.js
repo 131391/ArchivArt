@@ -4,6 +4,7 @@ const { validationResult } = require('express-validator');
 const db = require('../config/database');
 const crypto = require('crypto');
 const SecurityService = require('../services/securityService');
+const S3Service = require('../services/s3Service');
 const { securityUtils } = require('../config/security');
 
 // Standalone function for generating username suggestions
@@ -787,31 +788,23 @@ class AuthController {
             return res.status(400).json({ error: 'Profile picture too large. Maximum size is 5MB.' });
           }
 
-          // Generate unique filename
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-          const extension = imageType === 'jpeg' ? 'jpg' : imageType;
-          const filename = `profile-${uniqueSuffix}.${extension}`;
+          // Create a mock file object for S3Service
+          const mockFile = {
+            buffer: imageBuffer,
+            originalname: `profile.${imageType === 'jpeg' ? 'jpg' : imageType}`,
+            mimetype: `image/${imageType === 'jpeg' ? 'jpg' : imageType}`,
+            size: imageBuffer.length
+          };
 
-          // Ensure media directory exists
-          const fs = require('fs').promises;
-          const path = require('path');
-          const mediaDir = 'src/public/uploads/media';
+          // Upload to S3
+          const uploadResult = await S3Service.uploadFile(mockFile, 'profile-pictures');
           
-          try {
-            await fs.access(mediaDir);
-          } catch (error) {
-            await fs.mkdir(mediaDir, { recursive: true });
-            console.log(`Created directory: ${mediaDir}`);
+          if (!uploadResult.success) {
+            return res.status(500).json({ error: 'Failed to upload profile picture to cloud storage.' });
           }
 
-          // Save file to media folder
-          const filePath = path.join(mediaDir, filename);
-          await fs.writeFile(filePath, imageBuffer);
-
-          // Set profile picture path
-          profilePicturePath = `/uploads/media/${filename}`;
-          console.log('Profile picture saved:', filename);
-          console.log('Profile picture path set to:', profilePicturePath);
+          profilePicturePath = uploadResult.url;
+          console.log('Profile picture uploaded to S3:', uploadResult.url);
 
         } catch (base64Error) {
           console.error('Base64 processing error:', base64Error);
@@ -843,6 +836,31 @@ class AuthController {
 
       if (updateFields.length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
+      }
+
+      // If updating profile picture, delete the old one from S3
+      if (profilePicturePath) {
+        try {
+          // Get current user data to find old profile picture
+          const [currentUsers] = await db.execute(
+            'SELECT profile_picture FROM users WHERE id = ?',
+            [userId]
+          );
+          
+          const currentUser = currentUsers[0];
+          if (currentUser && currentUser.profile_picture) {
+            // Delete old profile picture from S3
+            const deleteResult = await S3Service.deleteFile(currentUser.profile_picture);
+            if (deleteResult.success) {
+              console.log('Old profile picture deleted from S3:', currentUser.profile_picture);
+            } else {
+              console.log('Failed to delete old profile picture from S3:', deleteResult.error);
+            }
+          }
+        } catch (deleteError) {
+          console.error('Error deleting old profile picture:', deleteError);
+          // Continue with update even if deletion fails
+        }
       }
 
       // Add user ID to the end

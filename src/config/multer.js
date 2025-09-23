@@ -1,44 +1,56 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs').promises;
 
-// Ensure uploads directories exist
-const ensureUploadDirs = async () => {
-  const dirs = [
-    'src/public/uploads/logos',
-    'src/public/uploads/media',
-    'src/public/uploads/profile-pictures'
-  ];
-  
-  for (const dir of dirs) {
-    try {
-      await fs.access(dir);
-    } catch (error) {
-      await fs.mkdir(dir, { recursive: true });
-      console.log(`Created directory: ${dir}`);
-    }
+// For S3 uploads, we'll use memory storage instead of disk storage
+// This allows us to upload files directly to S3 without saving them locally first
+const memoryStorage = multer.memoryStorage();
+
+// File filter for allowed file types
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = {
+    'image/jpeg': 'image',
+    'image/jpg': 'image',
+    'image/png': 'image',
+    'image/gif': 'image',
+    'image/webp': 'image',
+    'video/mp4': 'video',
+    'video/avi': 'video',
+    'video/mov': 'video',
+    'video/wmv': 'video',
+    'video/webm': 'video',
+    'video/quicktime': 'video',
+    'audio/mp3': 'audio',
+    'audio/mpeg': 'audio',
+    'audio/wav': 'audio',
+    'audio/m4a': 'audio',
+    'audio/ogg': 'audio',
+    'audio/aac': 'audio',
+    'audio/flac': 'audio',
+    'audio/wma': 'audio'
+  };
+
+  if (allowedTypes[file.mimetype]) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only images, videos, and audio files are allowed.'), false);
   }
 };
 
-// Initialize directories
-ensureUploadDirs();
-
-// Logo upload configuration
-const logoStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'src/public/uploads/logos/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'logo-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const logoUpload = multer({
-  storage: logoStorage,
+// Common multer configuration for S3 uploads
+const commonUploadConfig = {
+  storage: memoryStorage,
+  fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
+    fileSize: 100 * 1024 * 1024 // 100MB limit
+  }
+};
+
+// Media upload configuration (for S3)
+const mediaUpload = multer(commonUploadConfig);
+
+// Logo upload configuration (for S3)
+const logoUpload = multer({
+  storage: memoryStorage,
   fileFilter: function (req, file, cb) {
     console.log('Logo upload - File filter - originalname:', file.originalname);
     console.log('Logo upload - File filter - mimetype:', file.mimetype);
@@ -57,83 +69,15 @@ const logoUpload = multer({
       console.log('Logo upload - File filter - rejected');
       cb(new Error('Only image files (JPEG, PNG, SVG) are allowed'));
     }
-  }
-});
-
-// Media upload configuration (for API routes)
-const mediaStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'src/public/uploads/media/');
   },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage: mediaStorage,
   limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB limit for media files
-  },
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png|gif|mp4|avi|mov|wmv|flv|webm|mp3|wav|ogg|m4a/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only image, video, and audio files are allowed'));
-    }
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
 
-// Scanning image upload configuration
-const scanningImageStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'src/public/uploads/media/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'scanning-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const scanningImageUpload = multer({
-  storage: scanningImageStorage,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit for scanning images
-  },
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only image files (JPEG, PNG, GIF, WebP) are allowed for scanning images'));
-    }
-  }
-});
-
-// Profile picture upload configuration
-const profilePictureStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'src/public/uploads/profile-pictures/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const profilePictureUpload = multer({
-  storage: profilePictureStorage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit for profile pictures
-  },
+// Profile picture upload configuration (for S3)
+const profileUpload = multer({
+  storage: memoryStorage,
   fileFilter: function (req, file, cb) {
     console.log('Profile picture upload - File filter - originalname:', file.originalname);
     console.log('Profile picture upload - File filter - mimetype:', file.mimetype);
@@ -152,12 +96,34 @@ const profilePictureUpload = multer({
       console.log('Profile picture upload - File filter - rejected');
       cb(new Error('Only image files (JPEG, PNG, WebP) are allowed for profile pictures'));
     }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
 
-// Combined upload for media and scanning image
+// Scanning image upload configuration (for S3)
+const scanningImageUpload = multer({
+  storage: memoryStorage,
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files (JPEG, PNG, GIF, WebP) are allowed for scanning images'));
+    }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for scanning images
+  }
+});
+
+// Combined upload for media and scanning image (for S3)
 const combinedUpload = multer({
-  storage: mediaStorage,
+  storage: memoryStorage,
   limits: {
     fileSize: 100 * 1024 * 1024 // 100MB limit for media files
   },
@@ -218,13 +184,13 @@ const combinedUpload = multer({
 });
 
 module.exports = {
+  mediaUpload,
   logoUpload: logoUpload.single('logo'),
-  upload,
+  profileUpload: profileUpload.single('profile_picture'),
   scanningImageUpload: scanningImageUpload.single('scanning_image'),
-  profilePictureUpload: profilePictureUpload.single('profile_picture'),
   combinedUpload: combinedUpload.fields([
     { name: 'media_file', maxCount: 1 },
     { name: 'scanning_image', maxCount: 1 }
   ]),
-  ensureUploadDirs
+  commonUploadConfig
 };
