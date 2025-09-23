@@ -73,7 +73,7 @@ router.get('/users/:id', [
 router.put('/users/:id', [
   requireAdminWeb, 
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
+  param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
   commonValidations.name,
   commonValidations.email,
   validateInput
