@@ -48,19 +48,9 @@ const commonUploadConfig = {
 // Media upload configuration (for S3)
 const mediaUpload = multer(commonUploadConfig);
 
-// Logo upload configuration (disk storage for local logos)
-const logoStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'src/public/uploads/logos/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'logo-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Logo upload configuration (S3 storage for logos)
 const logoUpload = multer({
-  storage: logoStorage,
+  storage: memoryStorage,
   fileFilter: function (req, file, cb) {
     console.log('Logo upload - File filter - originalname:', file.originalname);
     console.log('Logo upload - File filter - mimetype:', file.mimetype);

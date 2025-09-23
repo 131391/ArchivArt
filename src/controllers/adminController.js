@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const TableUtils = require('../utils/tableUtils');
+const S3Service = require('../services/s3Service');
 
 class AdminController {
   // Dashboard
@@ -624,8 +625,6 @@ class AdminController {
   async updateSettings(req, res) {
     try {
       const settingsType = req.headers['x-settings-type'] || 'general';
-      const path = require('path');
-      const fs = require('fs').promises;
       const { logoUpload } = require('../config/multer');
       
       console.log('Settings update request - Type:', settingsType);
@@ -653,21 +652,33 @@ class AdminController {
             console.log('Brand settings update - req.file:', req.file);
             console.log('Brand settings update - req.body:', req.body);
             
-            // Handle logo upload
+            // Handle logo upload to S3
             if (req.file) {
-              logoPath = `/uploads/logos/${req.file.filename}`;
-              console.log('Logo uploaded successfully:', logoPath);
+              console.log('Logo file received:', req.file.originalname, req.file.size);
               
-              // Delete old logo if exists
-              const [oldSettings] = await db.execute('SELECT logo_path FROM settings LIMIT 1');
-              if (oldSettings.length > 0 && oldSettings[0].logo_path) {
-                const oldLogoPath = path.join('src/public', oldSettings[0].logo_path);
-                try {
-                  await fs.unlink(oldLogoPath);
-                  console.log('Old logo deleted:', oldLogoPath);
-                } catch (unlinkError) {
-                  console.log('Old logo file not found or already deleted:', unlinkError.message);
+              // Upload logo to S3
+              const uploadResult = await S3Service.uploadFile(req.file, 'logos');
+              
+              if (uploadResult.success) {
+                logoPath = uploadResult.url;
+                console.log('Logo uploaded to S3 successfully:', logoPath);
+                
+                // Delete old logo from S3 if exists
+                const [oldSettings] = await db.execute('SELECT logo_path FROM settings LIMIT 1');
+                if (oldSettings.length > 0 && oldSettings[0].logo_path) {
+                  const deleteResult = await S3Service.deleteFile(oldSettings[0].logo_path);
+                  if (deleteResult.success) {
+                    console.log('Old logo deleted from S3:', oldSettings[0].logo_path);
+                  } else {
+                    console.log('Failed to delete old logo from S3:', deleteResult.error);
+                  }
                 }
+              } else {
+                console.error('Failed to upload logo to S3:', uploadResult.error);
+                return res.status(500).json({
+                  success: false,
+                  message: 'Failed to upload logo to cloud storage'
+                });
               }
             } else {
               console.log('No logo file uploaded');
