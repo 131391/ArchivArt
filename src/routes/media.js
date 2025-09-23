@@ -94,12 +94,10 @@ router.get('/:id', [
   }
 ], MediaController.getMedia);
 
-// Update media
+// Update media (rejects file uploads - use /:id/text for text-only updates)
 router.put('/:id', [
   requireAdminWeb, 
   strictRateLimit,
-  combinedUpload,
-  validateFileUpload,
   preventSQLInjection,
   (req, res, next) => {
     // Validate ID parameter
@@ -116,6 +114,27 @@ router.put('/:id', [
   commonValidations.description,
   validateInput
 ], MediaController.updateMedia);
+
+// Update media text fields only (title and description) - no file uploads
+router.put('/:id/text', [
+  requireAdminWeb, 
+  strictRateLimit,
+  preventSQLInjection,
+  (req, res, next) => {
+    // Validate ID parameter
+    const id = parseInt(req.params.id);
+    if (!id || id < 1 || !Number.isInteger(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid media ID is required'
+      });
+    }
+    next();
+  },
+  commonValidations.title,
+  commonValidations.description,
+  validateInput
+], MediaController.updateMediaText);
 
 // Toggle media status
 router.patch('/:id/toggle', [

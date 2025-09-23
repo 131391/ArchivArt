@@ -563,7 +563,7 @@ class MediaController {
     }
   }
 
-    // Update media
+    // Update media (rejects file uploads - use updateMediaText for text-only updates)
     static async updateMedia(req, res) {
     try {
       const { id } = req.params;
@@ -571,6 +571,15 @@ class MediaController {
             
             console.log('Update media request:', { id, title, description, media_type, is_active });
             console.log('File uploaded:', req.file ? req.file.filename : 'No file');
+
+            // Check if any files were uploaded
+            if (req.file || (req.files && (req.files.media_file || req.files.scanning_image))) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Media files cannot be updated. If you want to change the media files, please delete this media and add a new one instead. Use the text-only update endpoint to update title and description.',
+                    suggestion: 'Use PUT /api/media/:id/text to update only title and description'
+                });
+            }
 
             const media = await Media.findById(id);
             if (!media) {
@@ -581,109 +590,13 @@ class MediaController {
                 });
             }
 
-            // Prepare update data
+            // Prepare update data - only text fields (no file processing)
             const updateData = {
                 title,
                 description,
                 media_type,
                 is_active: is_active === 'true'
             };
-
-            // Handle scanning image upload if provided
-            if (req.file) {
-                const fs = require('fs').promises;
-                const path = require('path');
-
-                try {
-                    const imagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', req.file.filename);
-                    
-                    // Check if image processing service is available
-                    const isServiceHealthy = await smartImageService.isHealthy();
-                    if (!isServiceHealthy) {
-                        console.error('Image processing service is not available');
-                        await fs.unlink(imagePath);
-                        return res.status(500).json({
-                            success: false,
-                            message: 'Image processing service is temporarily unavailable. Please try again later.'
-                        });
-                    }
-
-                    // Extract features from the new scanning image
-                    let descriptors = null;
-                    try {
-                        const featureResult = await smartImageService.extractFeatures(imagePath);
-                        if (featureResult.success) {
-                            descriptors = featureResult.descriptors;
-                            console.log(`Extracted ${featureResult.featureCount} features from new scanning image using ${featureResult.service} service`);
-                        } else {
-                            throw new Error(featureResult.error);
-                        }
-                    } catch (featureError) {
-                        console.error('Error extracting features:', featureError);
-                        await fs.unlink(imagePath);
-                        return res.status(400).json({
-                            success: false,
-                            message: 'Error processing scanning image. Please try again.'
-                        });
-                    }
-
-                    // Check for duplicate images using feature matching (excluding current media)
-                    try {
-                        const existingMedia = await Media.findAllWithDescriptors();
-                        const otherMedia = existingMedia.filter(m => m.id !== parseInt(id));
-                        
-                        if (otherMedia.length > 0) {
-                            const duplicateCheck = await smartImageService.checkForDuplicates(
-                                imagePath, 
-                                otherMedia
-                            );
-
-                            if (duplicateCheck.success && duplicateCheck.isDuplicate) {
-                                console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia.title} using ${duplicateCheck.service} service`);
-                                await fs.unlink(imagePath);
-                                
-                                return res.status(400).json({
-                                    success: false,
-                                    message: `This scanning image is too similar to existing media: "${duplicateCheck.duplicateMedia.title}". Please use a different image.`,
-                                    duplicateMedia: {
-                                        id: duplicateCheck.duplicateMedia.id,
-                                        title: duplicateCheck.duplicateMedia.title,
-                                        matchScore: duplicateCheck.matchScore
-                                    },
-                                    service: duplicateCheck.service
-                                });
-                            }
-                        }
-                    } catch (duplicateError) {
-                        console.error('Error checking for duplicates:', duplicateError);
-                        // Continue with update even if duplicate check fails
-                        console.log('Continuing with update despite duplicate check error');
-                    }
-
-                    // Delete old scanning image file if it exists
-                    if (media.scanning_image) {
-                        const oldImagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', media.scanning_image);
-                        try {
-                            await fs.unlink(oldImagePath);
-                        } catch (error) {
-                            console.log('Old scanning image file not found or already deleted:', oldImagePath);
-                        }
-                    }
-
-                    // Update with new scanning image
-                    updateData.scanning_image = req.file.filename;
-                    updateData.descriptors = descriptors;
-                } catch (error) {
-                    console.error('Error processing scanning image:', error);
-                    // Delete the uploaded file
-                    const imagePath = path.join(__dirname, '..', 'public', 'uploads', 'scanning-images', req.file.filename);
-                    await fs.unlink(imagePath);
-                    return res.status(500).json({
-                        success: false,
-                        message: 'Error processing scanning image'
-                    });
-                }
-            }
 
             const updatedMedia = await media.update(updateData);
             
@@ -696,6 +609,48 @@ class MediaController {
       });
     } catch (error) {
             console.error('Error updating media:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
+    // Update media text fields only (title and description)
+    static async updateMediaText(req, res) {
+        try {
+            const { id } = req.params;
+            const { title, description, is_active } = req.body;
+            
+            console.log('Update media text request:', { id, title, description, is_active });
+
+            const media = await Media.findById(id);
+            if (!media) {
+                console.log('Media not found for ID:', id);
+                return res.status(404).json({
+                    success: false,
+                    message: 'Media not found'
+                });
+            }
+
+            // Prepare update data - only text fields
+            const updateData = {
+                title,
+                description,
+                is_active: is_active === 'true'
+            };
+
+            const updatedMedia = await media.update(updateData);
+            
+            console.log('Media text updated successfully:', updatedMedia);
+
+            res.json({
+                success: true,
+                message: 'Media updated successfully',
+                media: updatedMedia
+            });
+        } catch (error) {
+            console.error('Error updating media text:', error);
             res.status(500).json({
                 success: false,
                 message: error.message
