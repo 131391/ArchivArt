@@ -183,6 +183,15 @@ const combinedUpload = multer({
   }
 });
 
+// Text-only form parser (no file uploads expected)
+const textOnlyParser = multer({
+  storage: memoryStorage,
+  fileFilter: (req, file, cb) => {
+    // Reject any files for text-only updates
+    cb(new Error('File uploads are not allowed for text-only updates. Use the regular update endpoint if you need to upload files.'), false);
+  }
+});
+
 module.exports = {
   mediaUpload,
   logoUpload: logoUpload.single('logo'),
@@ -192,5 +201,6 @@ module.exports = {
     { name: 'media_file', maxCount: 1 },
     { name: 'scanning_image', maxCount: 1 }
   ]),
+  textOnlyParser: textOnlyParser.none(), // Parse form data but expect no files
   commonUploadConfig
 };

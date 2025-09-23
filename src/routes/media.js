@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MediaController = require('../controllers/mediaController');
 const { requireAdminWeb, requireAdmin } = require('../middleware/auth');
-const { combinedUpload } = require('../config/multer');
+const { combinedUpload, textOnlyParser } = require('../config/multer');
 const { 
   uploadRateLimit, 
   strictRateLimit,
@@ -94,6 +94,28 @@ router.get('/:id', [
   }
 ], MediaController.getMedia);
 
+// Update media text fields only (title and description) - no file uploads
+router.put('/:id/text', [
+  requireAdminWeb, 
+  strictRateLimit,
+  textOnlyParser, // Parse form data but reject any files
+  preventSQLInjection,
+  (req, res, next) => {
+    // Validate ID parameter
+    const id = parseInt(req.params.id);
+    if (!id || id < 1 || !Number.isInteger(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid media ID is required'
+      });
+    }
+    next();
+  },
+  commonValidations.title,
+  commonValidations.description,
+  validateInput
+], MediaController.updateMediaText);
+
 // Update media (rejects file uploads - use /:id/text for text-only updates)
 router.put('/:id', [
   requireAdminWeb, 
@@ -114,27 +136,6 @@ router.put('/:id', [
   commonValidations.description,
   validateInput
 ], MediaController.updateMedia);
-
-// Update media text fields only (title and description) - no file uploads
-router.put('/:id/text', [
-  requireAdminWeb, 
-  strictRateLimit,
-  preventSQLInjection,
-  (req, res, next) => {
-    // Validate ID parameter
-    const id = parseInt(req.params.id);
-    if (!id || id < 1 || !Number.isInteger(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid media ID is required'
-      });
-    }
-    next();
-  },
-  commonValidations.title,
-  commonValidations.description,
-  validateInput
-], MediaController.updateMediaText);
 
 // Toggle media status
 router.patch('/:id/toggle', [

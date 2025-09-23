@@ -620,7 +620,7 @@ class MediaController {
     static async updateMediaText(req, res) {
         try {
             const { id } = req.params;
-            const { title, description, is_active } = req.body;
+            const { title, description, media_type, is_active } = req.body;
             
             console.log('Update media text request:', { id, title, description, is_active });
 
@@ -637,6 +637,7 @@ class MediaController {
             const updateData = {
                 title,
                 description,
+                media_type,
                 is_active: is_active === 'true'
             };
 
