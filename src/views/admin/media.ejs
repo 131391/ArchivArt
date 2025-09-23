@@ -28,7 +28,37 @@
             </div>
         ` },
         { key: 'description', label: 'Description', sortable: false, wrap: true, maxWidth: 'md' },
-        { key: 'scanning_image', label: 'Scanning Image', sortable: true, wrap: false },
+        { key: 'scanning_image', label: 'Scanning Image', sortable: true, wrap: false, type: 'custom', formatter: (item) => `
+            <div class="flex items-center">
+                <div class="flex-shrink-0 h-12 w-12">
+                    <img class="h-12 w-12 rounded-lg object-cover border border-gray-200" 
+                         src="${typeof scanningImageUrl === 'function' ? scanningImageUrl(item.scanning_image) : '/uploads/media/' + item.scanning_image}" 
+                         alt="Scanning Image" 
+                         onerror="this.src='/images/placeholder-image.png'; this.alt='Image not found'">
+                </div>
+                <div class="ml-3">
+                    <div class="text-xs text-gray-500 truncate max-w-32">
+                        ${item.scanning_image ? item.scanning_image.split('/').pop() : 'No image'}
+                    </div>
+                </div>
+            </div>
+        ` },
+        { key: 'media_type', label: 'Media Type', sortable: true, wrap: false, type: 'badge', formatter: (item) => {
+            const typeConfig = {
+                'image': { label: 'Image', class: 'bg-blue-100 text-blue-800' },
+                'video': { label: 'Video', class: 'bg-purple-100 text-purple-800' },
+                'audio': { label: 'Audio', class: 'bg-green-100 text-green-800' }
+            };
+            const config = typeConfig[item.media_type] || { label: item.media_type || 'Unknown', class: 'bg-gray-100 text-gray-800' };
+            return config.label;
+        }, badgeClass: (item) => {
+            const typeConfig = {
+                'image': 'bg-blue-100 text-blue-800',
+                'video': 'bg-purple-100 text-purple-800',
+                'audio': 'bg-green-100 text-green-800'
+            };
+            return typeConfig[item.media_type] || 'bg-gray-100 text-gray-800';
+        }},
         { key: 'is_active', label: 'Status', sortable: true, wrap: false, type: 'badge', formatter: (item) => item.is_active ? 'Active' : 'Inactive', badgeClass: (item) => item.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' },
         { key: 'created_at', label: 'Created', sortable: true, wrap: false },
         { key: 'uploaded_by_name', label: 'Uploaded By', sortable: true, wrap: false }
