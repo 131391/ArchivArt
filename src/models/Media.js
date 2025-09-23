@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const PerceptualHash = require('../utils/perceptualHash');
 
 class Media {
     constructor(data) {
@@ -34,23 +35,20 @@ class Media {
                 file_size,
                 mime_type,
                 uploaded_by,
-                descriptors
+                descriptors,
+                image_hash,
+                perceptual_hash
             } = mediaData;
 
-            // Check if scanning image already exists by filename
-            const existingMediaByFilename = await Media.findByScanningImage(scanning_image);
-            if (existingMediaByFilename) {
-                throw new Error('Scanning image filename already exists. Please use a different image.');
-            }
-
-            // Note: Duplicate checking with OpenCV descriptors is now handled in the controller
-            // before calling this method to avoid blocking the database operation
+            // Note: Duplicate checking is now handled in the controller before calling this method
+            // to avoid blocking the database operation
 
             const query = `
                 INSERT INTO media (
                     title, description, scanning_image, descriptors, media_type, 
-                    file_path, file_size, mime_type, uploaded_by, is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                    file_path, file_size, mime_type, uploaded_by, is_active,
+                    image_hash, perceptual_hash
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
             `;
 
             const [result] = await db.execute(query, [
@@ -62,7 +60,9 @@ class Media {
                 file_path,
                 file_size,
                 mime_type,
-                uploaded_by
+                uploaded_by,
+                image_hash,
+                perceptual_hash
             ]);
 
             return await Media.findById(result.insertId);
@@ -141,7 +141,8 @@ class Media {
     // Find identical media using perceptual hash (distance = 0)
     static async findIdenticalByImageHash(image_hash) {
         try {
-            return await this.findSimilarByImageHash(image_hash, 0);
+            const similarMedia = await this.findSimilarByImageHash(image_hash, 0);
+            return similarMedia.length > 0 ? similarMedia[0] : null;
         } catch (error) {
             throw error;
         }

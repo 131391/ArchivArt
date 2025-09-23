@@ -1,6 +1,9 @@
 const Media = require('../models/Media');
 const smartImageService = require('../services/smartImageService');
 const S3Service = require('../services/s3Service');
+const ImageHash = require('../utils/imageHash');
+const PerceptualHash = require('../utils/perceptualHash');
+const db = require('../config/database');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
@@ -336,9 +339,35 @@ class MediaController {
                         });
                     }
 
-                    // Extract features from the scanning image
+                    // Check for duplicate scanning image by filename (for S3 URLs)
+                    try {
+                        const filename = scanningImageFile.originalname;
+                        const [existingMediaByFilename] = await db.execute(
+                            'SELECT id, title, scanning_image FROM media WHERE scanning_image LIKE ?',
+                            [`%${filename}`]
+                        );
+                        
+                        if (existingMediaByFilename.length > 0) {
+                            return res.status(400).json({
+                                success: false,
+                                message: 'A media item with the same scanning image filename already exists. Please use a different image file.',
+                                duplicateMedia: {
+                                    id: existingMediaByFilename[0].id,
+                                    title: existingMediaByFilename[0].title
+                                }
+                            });
+                        }
+                    } catch (filenameError) {
+                        console.error('Error checking filename duplicate:', filenameError);
+                        // Continue with upload even if filename check fails
+                    }
+
+                    // Extract features from the scanning image and check for duplicates
                     let descriptors = null;
                     let tempScanningPath = null;
+                    let imageHash = null;
+                    let perceptualHash = null;
+                    
                     try {
                         // Create temporary file for scanning image processing
                         const tempDir = path.join(__dirname, '../temp');
@@ -346,6 +375,7 @@ class MediaController {
                         tempScanningPath = path.join(tempDir, `${uuidv4()}${path.extname(scanningImageFile.originalname)}`);
                         await fs.writeFile(tempScanningPath, scanningImageFile.buffer);
                         
+                        // Extract features from the scanning image
                         const featureResult = await smartImageService.extractFeatures(tempScanningPath);
                         if (featureResult.success) {
                             descriptors = featureResult.descriptors;
@@ -353,46 +383,108 @@ class MediaController {
                         } else {
                             throw new Error(featureResult.error);
                         }
+
+                        // Generate image hashes for duplicate detection
+                        try {
+                            imageHash = ImageHash.generateHashFromBuffer(scanningImageFile.buffer);
+                            perceptualHash = await PerceptualHash.generateHash(tempScanningPath, 8, true);
+                            console.log(`Generated hashes - Image: ${imageHash ? imageHash.substring(0, 16) + '...' : 'null'}, Perceptual: ${perceptualHash ? perceptualHash.substring(0, 16) + '...' : 'null'}`);
+                        } catch (hashError) {
+                            console.error('Error generating hashes:', hashError);
+                            // Continue without hashes - they're optional for duplicate detection
+                        }
+                        
+                        // Check for identical images using perceptual hash
+                        if (perceptualHash) {
+                            const identicalMedia = await Media.findIdenticalByImageHash(perceptualHash);
+                            if (identicalMedia) {
+                                console.log(`Identical image detected by perceptual hash: ${identicalMedia.title}`);
+                                
+                                // Clean up temporary file before returning error
+                                await fs.unlink(tempScanningPath).catch(() => {});
+                                
+                                return res.status(400).json({
+                                    success: false,
+                                    message: `This scanning image is identical to existing media: "${identicalMedia.title}". Please use a different image.`,
+                                    duplicateMedia: {
+                                        id: identicalMedia.id,
+                                        title: identicalMedia.title,
+                                        matchType: 'identical_perceptual_hash',
+                                        matchScore: 100 // 100% match for identical images
+                                    }
+                                });
+                            }
+                            
+                            // Also check for very similar images (threshold 1-2)
+                            const similarMedia = await Media.findSimilarByImageHash(perceptualHash, 2);
+                            if (similarMedia.length > 0) {
+                                const bestMatch = similarMedia[0];
+                                console.log(`Very similar image detected by perceptual hash: ${bestMatch.title} (distance: 2)`);
+                                
+                                // Clean up temporary file before returning error
+                                await fs.unlink(tempScanningPath).catch(() => {});
+                                
+                                return res.status(400).json({
+                                    success: false,
+                                    message: `This scanning image is very similar to existing media: "${bestMatch.title}". Please use a different image.`,
+                                    duplicateMedia: {
+                                        id: bestMatch.id,
+                                        title: bestMatch.title,
+                                        matchType: 'similar_perceptual_hash',
+                                        matchScore: 95 // High similarity
+                                    }
+                                });
+                            }
+                        }
+
+                        // Check for duplicate images using feature matching with lower threshold for more sensitive detection
+                        const existingMedia = await Media.findAllWithDescriptors();
+                        const duplicateCheck = await smartImageService.checkForDuplicates(
+                            tempScanningPath, 
+                            existingMedia,
+                            30 // Lower threshold for more sensitive duplicate detection
+                        );
+
+                        if (duplicateCheck.success && duplicateCheck.isDuplicate) {
+                            console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia?.title || 'Unknown'} using ${duplicateCheck.service} service`);
+                            
+                            // Clean up temporary file before returning error
+                            await fs.unlink(tempScanningPath).catch(() => {});
+                            
+                            return res.status(400).json({
+                                success: false,
+                                message: `This scanning image is too similar to existing media: "${duplicateCheck.duplicateMedia?.title || 'Unknown Media'}". Please use a different image.`,
+                                duplicateMedia: {
+                                    id: duplicateCheck.duplicateMedia?.id || null,
+                                    title: duplicateCheck.duplicateMedia?.title || 'Unknown Media',
+                                    matchScore: duplicateCheck.matchScore,
+                                    matchCount: duplicateCheck.matchCount,
+                                    matchType: 'opencv_descriptor_match'
+                                },
+                                service: duplicateCheck.service,
+                                threshold: 30
+                            });
+                        }
+                        
+                        console.log('✅ No duplicate images found, proceeding with upload');
+                        
                     } catch (featureError) {
-                        console.error('Error extracting features:', featureError);
+                        console.error('Error processing scanning image:', featureError);
+                        
+                        // Clean up temporary file on error
+                        if (tempScanningPath) {
+                            await fs.unlink(tempScanningPath).catch(() => {});
+                        }
                         
                         return res.status(400).json({
                             success: false,
                             message: 'Error processing scanning image. Please try again.'
                         });
                     } finally {
-                        // Clean up temporary file
+                        // Clean up temporary file after successful processing
                         if (tempScanningPath) {
                             await fs.unlink(tempScanningPath).catch(() => {});
                         }
-                    }
-
-                    // Check for duplicate images using feature matching
-                    try {
-                        const existingMedia = await Media.findAllWithDescriptors();
-                        const duplicateCheck = await smartImageService.checkForDuplicates(
-                            tempScanningPath, 
-                            existingMedia
-                        );
-
-                        if (duplicateCheck.success && duplicateCheck.isDuplicate) {
-                            console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia.title} using ${duplicateCheck.service} service`);
-                            
-                            return res.status(400).json({
-                                success: false,
-                                message: `This scanning image is too similar to existing media: "${duplicateCheck.duplicateMedia.title}". Please use a different image.`,
-                                duplicateMedia: {
-                                    id: duplicateCheck.duplicateMedia.id,
-                                    title: duplicateCheck.duplicateMedia.title,
-                                    matchScore: duplicateCheck.matchScore
-                                },
-                                service: duplicateCheck.service
-                            });
-                        }
-                    } catch (duplicateError) {
-                        console.error('Error checking for duplicates:', duplicateError);
-                        // Continue with upload even if duplicate check fails
-                        console.log('Continuing with upload despite duplicate check error');
                     }
 
                     // Upload files to S3
@@ -406,6 +498,27 @@ class MediaController {
                         });
                     }
 
+                    // Generate hashes if they weren't generated during duplicate checking
+                    if (!imageHash) {
+                        try {
+                            imageHash = ImageHash.generateHashFromBuffer(scanningImageFile.buffer);
+                            console.log(`Generated fallback image hash: ${imageHash ? imageHash.substring(0, 16) + '...' : 'null'}`);
+                        } catch (hashError) {
+                            console.error('Error generating fallback image hash:', hashError);
+                            imageHash = null;
+                        }
+                    }
+                    
+                    if (!perceptualHash && tempScanningPath) {
+                        try {
+                            perceptualHash = await PerceptualHash.generateHash(tempScanningPath, 8, true);
+                            console.log(`Generated fallback perceptual hash: ${perceptualHash ? perceptualHash.substring(0, 16) + '...' : 'null'}`);
+                        } catch (hashError) {
+                            console.error('Error generating fallback perceptual hash:', hashError);
+                            perceptualHash = null;
+                        }
+                    }
+
                     // Create media record
                     const mediaData = {
                         title,
@@ -416,7 +529,9 @@ class MediaController {
                         file_path: mediaUploadResult.url,
                         file_size: mediaFile.size,
                         mime_type: mediaFile.mimetype,
-                        uploaded_by: req.session.user.id
+                        uploaded_by: req.session.user.id,
+                        image_hash: imageHash,
+                        perceptual_hash: perceptualHash
                     };
 
                     const newMedia = await Media.create(mediaData);
