@@ -99,31 +99,31 @@ const createRateLimit = (windowMs, max, message) => {
 // Different rate limits for different endpoints
 const authRateLimit = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  process.env.NODE_ENV === 'production' ? 5 : 20, // 5 attempts in production, 20 in development
+  process.env.NODE_ENV === 'production' ? 15 : 20, // 5 attempts in production, 20 in development
   'Too many authentication attempts, please try again later'
 );
 
 const apiRateLimit = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  100, // 100 requests per window
+  100000, // 100 requests per window
   'Too many API requests, please try again later'
 );
 
 const uploadRateLimit = createRateLimit(
   60 * 60 * 1000, // 1 hour
-  process.env.NODE_ENV === 'production' ? 50 : 200, // 50 uploads/hour in production, 200 in development
+  process.env.NODE_ENV === 'production' ? 5000 : 200, // 50 uploads/hour in production, 200 in development
   'Too many file uploads, please try again later'
 );
 
 const strictRateLimit = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  3, // 3 attempts per window
+  30, // 3 attempts per window
   'Too many requests, please try again later'
 );
 
 // Speed limiting (slow down after certain number of requests)
 const speedLimiter = slowDown({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 60 * 60 * 1000, // 60 minutes
   delayAfter: 50, // Allow 50 requests per window without delay
   delayMs: (used, req) => {
     const delayAfter = req.slowDown.limit;
