@@ -782,7 +782,6 @@
         function performToggleUserStatus(userId, action, actionText) {
                 fetch(`/admin/users/${userId}/${action}`, {
                     method: 'POST',
-,
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
@@ -825,7 +824,6 @@
         function performDeleteUser(userId) {
                 fetch(`/admin/users/${userId}`, {
                     method: 'DELETE',
-,
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
