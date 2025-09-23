@@ -36,6 +36,13 @@ CREATE TABLE IF NOT EXISTS users (
     login_count INT DEFAULT 0,
     failed_login_count INT DEFAULT 0,
     last_failed_login_at TIMESTAMP NULL,
+    last_activity_at TIMESTAMP NULL COMMENT 'Last user activity timestamp',
+    timezone VARCHAR(50) DEFAULT 'UTC' COMMENT 'User timezone',
+    language VARCHAR(10) DEFAULT 'en' COMMENT 'User preferred language',
+    notifications_enabled BOOLEAN DEFAULT true COMMENT 'Email notifications preference',
+    two_factor_enabled BOOLEAN DEFAULT false COMMENT 'Two-factor authentication status',
+    two_factor_secret VARCHAR(255) NULL COMMENT '2FA secret key',
+    password_changed_at TIMESTAMP NULL COMMENT 'Last password change timestamp',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -47,7 +54,10 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_users_is_blocked (is_blocked),
     INDEX idx_users_is_verified (is_verified),
     INDEX idx_users_auth_provider (auth_provider),
-    INDEX idx_users_last_login (last_login_at)
+    INDEX idx_users_last_login (last_login_at),
+    INDEX idx_users_last_activity (last_activity_at),
+    INDEX idx_users_two_factor (two_factor_enabled),
+    INDEX idx_users_notifications (notifications_enabled)
 );
 
 -- Media table
@@ -232,36 +242,11 @@ CREATE TABLE IF NOT EXISTS settings (
 -- SAMPLE DATA
 -- =====================================================
 
--- Insert admin user (password: password)
-INSERT INTO users (name, email, password, role, auth_provider, is_active, is_verified) VALUES 
-('Admin User', 'admin@archivart.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'local', true, true)
+-- Insert admin user (password: admin123)
+INSERT INTO users (name, email, password, username, role, auth_provider, is_active, is_blocked, is_verified, timezone, language, notifications_enabled, two_factor_enabled) VALUES 
+('Admin User', 'admin@archivart.com', '$2a$10$kPH.XxHXewiDrYB827en.OrvNTv6ZgOZ6Z1.8ci7eAIdqJV2VUoPe', 'admin', 'admin', 'local', true, false, true, 'UTC', 'en', true, false)
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
--- Insert dummy users (password for all: password)
-INSERT INTO users (name, email, password, role, auth_provider, is_active, is_blocked, is_verified) VALUES 
-('John Smith', 'john.smith@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Sarah Johnson', 'sarah.johnson@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Michael Brown', 'michael.brown@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Emily Davis', 'emily.davis@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('David Wilson', 'david.wilson@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Lisa Anderson', 'lisa.anderson@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Robert Taylor', 'robert.taylor@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Jennifer Martinez', 'jennifer.martinez@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Christopher Garcia', 'christopher.garcia@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Amanda Rodriguez', 'amanda.rodriguez@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('James Lee', 'james.lee@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Michelle White', 'michelle.white@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, false, true),
-('Daniel Harris', 'daniel.harris@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', false, false, true),
-('Jessica Thompson', 'jessica.thompson@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'local', true, true, true)
-ON DUPLICATE KEY UPDATE name = VALUES(name);
-
--- Insert sample media entries (with actual file paths that exist)
-INSERT INTO media (title, description, scanning_image, image_hash, media_type, file_path, file_size, mime_type, uploaded_by, is_active) VALUES 
-('Welcome Video', 'Welcome message for new users', '02aeb942-4741-466b-b000-5921dc5003e1_scan.jpg', 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6', 'audio', '02aeb942-4741-466b-b000-5921dc5003e1.mp3', 733645, 'audio/mpeg', 1, true),
-('Product Demo', 'Interactive product demonstration', '69c345f8-193d-489f-98f8-13c9a20c173e_scan.jpg', 'b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1', 'image', '69c345f8-193d-489f-98f8-13c9a20c173e.jpeg', 8366, 'image/jpeg', 1, true),
-('Background Music', 'Ambient background music', '7fd8e240-be90-448c-a089-bb0c59717566_scan.jpg', 'c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1b2', 'image', '7fd8e240-be90-448c-a089-bb0c59717566.png', 287303, 'image/png', 1, true),
-('Tutorial Guide', 'Step-by-step tutorial video', 'e9a6674f-a1fc-40e5-8715-39844bfd4866_scan.jpg', 'd4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a1b2c3', 'video', 'e9a6674f-a1fc-40e5-8715-39844bfd4866.mp4', 825185, 'video/mp4', 2, true)
-ON DUPLICATE KEY UPDATE title = VALUES(title);
 
 -- Insert default settings
 INSERT INTO settings (site_name, site_tagline, primary_color, max_file_size, max_uploads_per_day, jwt_expiry, session_timeout) 
@@ -309,7 +294,7 @@ SELECT media_type, COUNT(*) as count FROM media GROUP BY media_type;
 SELECT '=====================================================' as info;
 SELECT 'ADMIN LOGIN CREDENTIALS:' as info;
 SELECT 'Email: admin@archivart.com' as credential;
-SELECT 'Password: password' as credential;
+SELECT 'Password: admin123' as credential;
 SELECT '=====================================================' as info;
 
 -- =====================================================

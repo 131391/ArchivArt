@@ -267,7 +267,7 @@ class AuthController {
 
       // Find user by email
       const [users] = await db.execute(
-        'SELECT id, name, email, password, role, profile_picture, is_active, is_blocked FROM users WHERE email = ?',
+        'SELECT id, name, email, password, username, mobile, role, profile_picture, is_active, is_blocked, is_verified FROM users WHERE email = ?',
         [email]
       );
 
@@ -317,7 +317,7 @@ class AuthController {
 
       // Update user login tracking
       await db.execute(
-        'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1, last_activity_at = CURRENT_TIMESTAMP WHERE id = ?',
+        'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?',
         [user.id]
       );
 
