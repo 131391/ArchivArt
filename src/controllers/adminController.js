@@ -687,6 +687,12 @@ class AdminController {
             // Update or insert settings
             const [existingSettings] = await db.execute('SELECT id FROM settings LIMIT 1');
             
+            console.log('Database update - existingSettings:', existingSettings.length);
+            console.log('Database update - logoPath:', logoPath);
+            console.log('Database update - site_name:', site_name);
+            console.log('Database update - site_tagline:', site_tagline);
+            console.log('Database update - primary_color:', primary_color);
+            
             if (existingSettings.length > 0) {
               // Update existing settings
               const updateFields = ['site_name = ?', 'site_tagline = ?', 'primary_color = ?'];
@@ -695,20 +701,29 @@ class AdminController {
               if (logoPath) {
                 updateFields.push('logo_path = ?');
                 updateValues.push(logoPath);
+                console.log('Adding logo_path to update:', logoPath);
               }
               
               updateValues.push(existingSettings[0].id);
+              
+              console.log('Update query:', `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
+              console.log('Update values:', updateValues);
               
               await db.execute(
                 `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
                 updateValues
               );
+              
+              console.log('Settings updated successfully');
             } else {
               // Insert new settings
+              console.log('Inserting new settings with logoPath:', logoPath);
               await db.execute(
                 'INSERT INTO settings (site_name, site_tagline, primary_color, logo_path, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
                 [site_name, site_tagline, primary_color, logoPath]
               );
+              
+              console.log('Settings inserted successfully');
             }
             
             res.json({
