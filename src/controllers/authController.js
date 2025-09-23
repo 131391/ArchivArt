@@ -317,7 +317,7 @@ class AuthController {
 
       // Update user login tracking
       await db.execute(
-        'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?',
+        'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = login_count + 1, last_activity_at = CURRENT_TIMESTAMP WHERE id = ?',
         [user.id]
       );
 
