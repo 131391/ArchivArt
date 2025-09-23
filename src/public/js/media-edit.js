@@ -138,10 +138,10 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('scanning_image', newScanningImageFile);
         }
 
-        console.log('Submitting form data via AJAX to:', `/admin/media/${mediaId}`);
+        console.log('Submitting form data via AJAX to:', `/admin/media/${mediaId}/text`);
 
         try {
-            const response = await fetch(`/admin/media/${mediaId}`, {
+            const response = await fetch(`/admin/media/${mediaId}/text`, {
                 method: 'PUT',
                 body: formData,
                 credentials: 'same-origin',
