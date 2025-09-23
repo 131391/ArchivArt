@@ -55,9 +55,11 @@ const logoUpload = multer({
     console.log('Logo upload - File filter - originalname:', file.originalname);
     console.log('Logo upload - File filter - mimetype:', file.mimetype);
     
-    const allowedTypes = /jpeg|jpg|png|svg/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedExtensions = /\.(jpeg|jpg|png|svg)$/i;
+    const allowedMimeTypes = /^image\/(jpeg|jpg|png|svg\+xml)$/;
+    
+    const extname = allowedExtensions.test(file.originalname);
+    const mimetype = allowedMimeTypes.test(file.mimetype);
     
     console.log('Logo upload - File filter - extname check:', extname);
     console.log('Logo upload - File filter - mimetype check:', mimetype);

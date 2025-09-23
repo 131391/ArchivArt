@@ -654,9 +654,16 @@ class AdminController {
             
             // Handle logo upload to S3
             if (req.file) {
-              console.log('Logo file received:', req.file.originalname, req.file.size);
+              console.log('Logo file received:', {
+                originalname: req.file.originalname,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
+                buffer: req.file.buffer ? 'Buffer exists' : 'No buffer',
+                fieldname: req.file.fieldname
+              });
               
               // Upload logo to S3
+              console.log('Calling S3Service.uploadFile...');
               const uploadResult = await S3Service.uploadFile(req.file, 'logos');
               
               if (uploadResult.success) {
