@@ -570,11 +570,6 @@ class AdminController {
   // Update settings
   async updateSettings(req, res) {
     try {
-<<<<<<< HEAD
-      // TODO: Implement settings update
-      req.flash('success_msg', 'Settings updated successfully');
-      res.redirect('/admin/settings');
-=======
       const settingsType = req.headers['x-settings-type'] || 'general';
       const { logoUpload } = require('../config/multer');
       
@@ -736,7 +731,6 @@ class AdminController {
           message: `${settingsType.charAt(0).toUpperCase() + settingsType.slice(1)} settings saved successfully`
         });
       }
->>>>>>> main
     } catch (error) {
       console.error('Error updating settings:', error);
       req.flash('error_msg', 'Error updating settings');
