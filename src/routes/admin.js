@@ -83,7 +83,7 @@ router.post('/users/:id/block', [
   requireAdminWeb, 
   strictRateLimit,
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
+  param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
   validateInput
 ], adminController.blockUser);
 
@@ -91,7 +91,7 @@ router.post('/users/:id/unblock', [
   requireAdminWeb, 
   strictRateLimit,
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
+  param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
   validateInput
 ], adminController.unblockUser);
 
@@ -99,7 +99,7 @@ router.delete('/users/:id', [
   requireAdminWeb, 
   strictRateLimit,
   preventSQLInjection,
-  body('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
+  param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
   validateInput
 ], adminController.deleteUser);
 
