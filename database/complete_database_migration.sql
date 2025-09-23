@@ -3,8 +3,12 @@
 -- =====================================================
 -- This script creates the entire database schema from scratch
 -- Includes: Core tables, Security tables, Settings, Sample data
--- Version: 1.0.0
--- Date: 2025-09-18
+-- Version: 1.1.0
+-- Date: 2025-09-23
+-- Latest Changes:
+-- - Added perceptual_hash column to media table (VARCHAR(128))
+-- - Updated scanning_image and file_path to TEXT for S3 URLs
+-- - Added perceptual_hash index for duplicate detection
 -- =====================================================
 
 -- Create database (if not exists)
@@ -65,11 +69,12 @@ CREATE TABLE IF NOT EXISTS media (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    scanning_image VARCHAR(255) UNIQUE NOT NULL,
+    scanning_image TEXT NOT NULL COMMENT 'Scanning image file path or S3 URL',
     image_hash VARCHAR(64) NULL COMMENT 'SHA-256 hash of the scanning image content for duplicate detection',
+    perceptual_hash VARCHAR(128) NULL COMMENT 'Perceptual hash for similarity detection',
     descriptors JSON NULL COMMENT 'OpenCV feature descriptors for image matching',
     media_type ENUM('image', 'video', 'audio') NOT NULL,
-    file_path VARCHAR(255) NOT NULL,
+    file_path TEXT NOT NULL COMMENT 'Media file path or S3 URL',
     file_size BIGINT,
     mime_type VARCHAR(100),
     uploaded_by INT,
@@ -83,8 +88,9 @@ CREATE TABLE IF NOT EXISTS media (
     FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
-    INDEX idx_media_scanning_image (scanning_image),
+    INDEX idx_media_scanning_image (scanning_image(255)),
     INDEX idx_media_image_hash (image_hash),
+    INDEX idx_media_perceptual_hash (perceptual_hash),
     INDEX idx_media_type (media_type),
     INDEX idx_media_uploaded_by (uploaded_by),
     INDEX idx_media_is_active (is_active),
