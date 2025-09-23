@@ -405,12 +405,16 @@
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Toggle response data:', data);
             if (data.success) {
+                console.log('Toggle successful, showing success toast and updating button');
                 showSuccessToast(data.message);
                 
                 // Update button appearance without page reload
+                console.log('Calling updateToggleButton...');
                 updateToggleButton();
             } else {
+                console.log('Toggle failed:', data.message || data.error || 'Unknown error');
                 showErrorToast('Error updating media status: ' + (data.message || data.error || 'Unknown error'));
             }
         })
@@ -426,31 +430,59 @@
     }
 
     function updateToggleButton() {
+        console.log('updateToggleButton called');
+        
         const toggleBtn = document.getElementById('toggleStatusBtn');
-        const iconElement = document.getElementById('toggleStatusIcon').querySelector('i');
+        console.log('toggleBtn found:', toggleBtn);
+        
+        if (!toggleBtn) {
+            console.error('Toggle button not found!');
+            return;
+        }
+        
+        const iconElement = document.getElementById('toggleStatusIcon');
+        console.log('iconElement found:', iconElement);
+        
+        if (!iconElement) {
+            console.error('Icon element not found!');
+            return;
+        }
+        
+        const icon = iconElement.querySelector('i');
+        console.log('icon found:', icon);
+        
         const textElement = document.getElementById('toggleStatusText');
         const subtextElement = document.getElementById('toggleStatusSubtext');
+        
+        console.log('textElement found:', textElement);
+        console.log('subtextElement found:', subtextElement);
         
         // Get current status from data attribute
         const currentStatus = toggleBtn.getAttribute('data-current-status') === 'true';
         const newStatus = !currentStatus;
+        
+        console.log('Current status:', currentStatus, 'New status:', newStatus);
         
         // Update data attribute
         toggleBtn.setAttribute('data-current-status', newStatus.toString());
         
         if (newStatus) {
             // Media is now active - show deactivate button
+            console.log('Setting button to DEACTIVATE state');
             toggleBtn.className = 'group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white transition-all duration-200 transform hover:scale-105 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl';
-            iconElement.className = 'fas fa-pause text-sm';
+            icon.className = 'fas fa-pause text-sm';
             textElement.textContent = 'Deactivate';
             subtextElement.textContent = 'Make inactive';
         } else {
             // Media is now inactive - show activate button
+            console.log('Setting button to ACTIVATE state');
             toggleBtn.className = 'group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white transition-all duration-200 transform hover:scale-105 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl';
-            iconElement.className = 'fas fa-play text-sm';
+            icon.className = 'fas fa-play text-sm';
             textElement.textContent = 'Activate';
             subtextElement.textContent = 'Make active';
         }
+        
+        console.log('Button update completed');
     }
 
     function deleteMedia(mediaId) {
