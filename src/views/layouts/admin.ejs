@@ -296,32 +296,7 @@
         </nav>
         
         <!-- Sidebar Footer -->
-        <div class="absolute bottom-0 w-full p-4">
-        <div
-          class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-4 border border-slate-600"
-        >
-                <div class="flex items-center">
-                    <div class="relative">
-              <img
-                class="h-12 w-12 rounded-xl ring-2 ring-slate-600"
-                src="https://ui-avatars.com/api/?name=<%= user ? user.name : 'Admin' %>&background=random&size=48"
-                alt="Admin"
-              />
-              <div
-                class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-slate-800 rounded-full"
-              ></div>
-                    </div>
-                    <div class="ml-3 sidebar-text">
-              <p class="text-sm font-semibold text-white">
-                <%= user ? user.name : 'Admin' %>
-              </p>
-              <p class="text-xs text-slate-400 capitalize">
-                <%= user ? (user.role_display_name || user.role) : 'admin' %>
-              </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
     </div>
 
     <!-- Fixed Top Navigation -->

@@ -16,7 +16,6 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
 // Prepare columns
 const columns = [
     { key: 'id', label: 'ID', sortable: true },
-    { key: 'avatar', label: 'Avatar', sortable: false, type: 'custom', formatter: 'formatAvatar' },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'email', label: 'Email', sortable: true },
     { key: 'role_display_name', label: 'Role', sortable: true, type: 'custom', formatter: 'formatRole' },
