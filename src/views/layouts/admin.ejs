@@ -732,10 +732,10 @@
     <script src="/js/profile.js"></script>
     <% } %>
     
-    <!-- Profile picture update script for header and sidebar -->
+    <!-- Profile picture update script for header -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Function to update profile pictures in header and sidebar
+        // Function to update profile picture in header
         function updateProfilePictures() {
             <% if (typeof user !== 'undefined' && user && user.profile_picture) { %>
                 // Update header profile picture
@@ -745,14 +745,7 @@
                     headerProfileImg.classList.add('object-cover');
                 }
                 
-                // Update sidebar profile picture
-                const sidebarProfileImg = document.querySelector('.sidebar-footer img');
-                if (sidebarProfileImg) {
-                    sidebarProfileImg.src = '<%= user.profile_picture %>';
-                    sidebarProfileImg.classList.add('object-cover');
-                }
-                
-                console.log('Profile pictures updated:', '<%= user.profile_picture %>');
+                console.log('Header profile picture updated:', '<%= user.profile_picture %>');
             <% } else { %>
                 console.log('No profile picture available for user');
             <% } %>

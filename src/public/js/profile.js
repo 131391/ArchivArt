@@ -173,7 +173,7 @@ console.log('Profile.js script loaded - initializing immediately');
         }
     });
 
-    // Function to update profile pictures globally (header and sidebar)
+    // Function to update header profile picture globally
     function updateGlobalProfilePictures(profilePictureUrl) {
         // Update header profile picture
         const headerProfileImg = document.querySelector('#user-menu-button img');
@@ -183,15 +183,7 @@ console.log('Profile.js script loaded - initializing immediately');
             console.log('Header profile picture updated');
         }
         
-        // Update sidebar profile picture
-        const sidebarProfileImg = document.querySelector('.sidebar-footer img');
-        if (sidebarProfileImg) {
-            sidebarProfileImg.src = profilePictureUrl;
-            sidebarProfileImg.classList.add('object-cover');
-            console.log('Sidebar profile picture updated');
-        }
-        
-        console.log('Global profile pictures updated with:', profilePictureUrl);
+        console.log('Header profile picture updated with:', profilePictureUrl);
     }
 
     // Function to reset the form

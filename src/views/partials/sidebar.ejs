@@ -55,30 +55,6 @@
     <!-- Sidebar Footer -->
     <div class="absolute bottom-0 w-full p-4">
         <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <% 
-                // Debug logging for sidebar
-                console.log('Sidebar - User data:', {
-                    hasUser: !!user,
-                    userName: user?.name,
-                    hasProfilePicture: !!(user && user.profile_picture),
-                    profilePicture: user?.profile_picture
-                });
-                %>
-                <% if (user && user.profile_picture) { %>
-                    <img class="h-8 w-8 rounded-full object-cover" src="<%= user.profile_picture %>" alt="<%= user.name %>">
-                <% } else { %>
-                    <% 
-                    // Generate initials from first and last name
-                    const userName = user ? user.name : 'Admin';
-                    const nameParts = userName.trim().split(' ');
-                    const firstName = nameParts[0] || '';
-                    const lastName = nameParts[nameParts.length - 1] || '';
-                    const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-                    %>
-                    <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=<%= initials %>&background=8b5cf6&color=ffffff&size=32&bold=true" alt="<%= userName %>">
-                <% } %>
-            </div>
             <div class="ml-3">
                 <p class="text-sm font-medium text-white"><%= user ? user.name : 'Admin' %></p>
                 <p class="text-xs text-gray-400"><%= user ? (user.role_display_name || user.role) : 'admin' %></p>
