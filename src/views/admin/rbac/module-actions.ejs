@@ -2,6 +2,8 @@
 <%- include('../../components/table', {
     title: title,
     data: data,
+    showSearch: true,
+    showFilters: false,
     columns: [
         { key: 'id', label: 'ID', sortable: true },
         { key: 'name', label: 'Action Name', sortable: true },
