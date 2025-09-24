@@ -184,7 +184,7 @@
             <% } %>
 
             <!-- Login Form -->
-            <form class="space-y-5" action="/admin/login" method="POST">
+            <form id="loginForm" class="space-y-5" action="/admin/login" method="POST">
                 <div class="space-y-4">
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
@@ -409,6 +409,31 @@
                     this.parentElement.classList.remove('ring-2', 'ring-indigo-500');
                 });
             });
+
+            // Handle login form submission
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    // Show loader when form is submitted
+                    if (typeof window.GlobalLoader !== 'undefined') {
+                        window.GlobalLoader.show({
+                            title: 'Signing In...',
+                            message: 'Please wait while we authenticate your credentials',
+                            showProgress: false
+                        });
+                    }
+                    
+                    // Disable the submit button to prevent double submission
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Signing In...';
+                    }
+                    
+                    // Allow the form to submit normally
+                    // The loader will be hidden when the page redirects
+                });
+            }
         });
     </script>
 </body>
