@@ -1,31 +1,36 @@
+<%
+// Prepare actions
+const actions = [];
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.view')) {
+    actions.push({ name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewUser(${item.id})` });
+}
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.update')) {
+    actions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', onclick: (item) => `editUser(${item.id})` });
+    actions.push({ name: 'block', label: 'Block', icon: 'fas fa-ban', class: 'text-yellow-600 hover:text-yellow-900', onclick: (item) => `toggleUserStatus(${item.id}, 'block')` });
+    actions.push({ name: 'unblock', label: 'Unblock', icon: 'fas fa-check', class: 'text-green-600 hover:text-green-900', onclick: (item) => `toggleUserStatus(${item.id}, 'unblock')` });
+}
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.delete')) {
+    actions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', onclick: (item) => `deleteUser(${item.id})` });
+}
+
+// Prepare columns
+const columns = [
+    { key: 'id', label: 'ID', sortable: true },
+    { key: 'avatar', label: 'Avatar', sortable: false, type: 'custom', formatter: 'formatAvatar' },
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
+    { key: 'role_display_name', label: 'Role', sortable: true, type: 'custom', formatter: 'formatRole' },
+    { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatStatus' },
+    { key: 'created_at', label: 'Created', sortable: true, type: 'custom', formatter: 'formatDate' }
+];
+%>
+
 <!-- Include Common Table Component -->
 <%- include('../components/table', {
     title: title,
     data: data,
-    columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'avatar', label: 'Avatar', sortable: false, type: 'custom', formatter: 'formatAvatar' },
-        { key: 'name', label: 'Name', sortable: true },
-        { key: 'email', label: 'Email', sortable: true },
-        { key: 'role_display_name', label: 'Role', sortable: true, type: 'custom', formatter: 'formatRole' },
-        { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatStatus' },
-        { key: 'created_at', label: 'Created', sortable: true, type: 'custom', formatter: 'formatDate' }
-    ],
-    actions: [
-        <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.view')) { %>
-        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewUser(${item.id})` },
-        <% } %>
-        <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.update')) { %>
-        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', onclick: (item) => `editUser(${item.id})` },
-        <% } %>
-        <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.update')) { %>
-        { name: 'block', label: 'Block', icon: 'fas fa-ban', class: 'text-yellow-600 hover:text-yellow-900', onclick: (item) => `toggleUserStatus(${item.id}, 'block')` },
-        { name: 'unblock', label: 'Unblock', icon: 'fas fa-check', class: 'text-green-600 hover:text-green-900', onclick: (item) => `toggleUserStatus(${item.id}, 'unblock')` },
-        <% } %>
-        <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.delete')) { %>
-        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', onclick: (item) => `deleteUser(${item.id})` }
-        <% } %>
-    ],
+    columns: columns,
+    actions: actions,
     pagination: pagination,
     search: search,
     filters: filters,
