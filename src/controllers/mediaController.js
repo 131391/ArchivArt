@@ -181,7 +181,9 @@ class MediaController {
                     is_active
                 },
                 stats,
-                user: req.session.user
+                user: req.session.user,
+                userPermissions: req.userPermissions || [],
+                userPrimaryRole: req.userPrimaryRole || null
             });
     } catch (error) {
             console.error('Error getting media list:', error);

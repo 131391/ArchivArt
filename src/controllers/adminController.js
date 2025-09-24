@@ -257,7 +257,9 @@ class AdminController {
         roles: roles,
         pagination: pagination,
         search: search,
-        filters: { roleFilter: role, statusFilter: status }
+        filters: { roleFilter: role, statusFilter: status },
+        userPermissions: req.userPermissions || [],
+        userPrimaryRole: req.userPrimaryRole || null
       });
     } catch (error) {
       console.error('Error getting users:', error);
@@ -268,7 +270,9 @@ class AdminController {
         roles: [],
         pagination: '',
         search: '',
-        filters: { roleFilter: '' }
+        filters: { roleFilter: '' },
+        userPermissions: req.userPermissions || [],
+        userPrimaryRole: req.userPrimaryRole || null
       });
     }
   }
@@ -560,13 +564,17 @@ class AdminController {
   async settings(req, res) {
     try {
       res.render('admin/settings', {
-        title: 'Settings'
+        title: 'Settings',
+        userPermissions: req.userPermissions || [],
+        userPrimaryRole: req.userPrimaryRole || null
       });
     } catch (error) {
       console.error('Error loading settings:', error);
       req.flash('error_msg', 'Error loading settings');
       res.render('admin/settings', {
-        title: 'Settings'
+        title: 'Settings',
+        userPermissions: req.userPermissions || [],
+        userPrimaryRole: req.userPrimaryRole || null
       });
     }
   }
