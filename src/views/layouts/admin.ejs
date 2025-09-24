@@ -143,6 +143,34 @@
             border-bottom: 2px solid #374151;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
+        
+        /* RBAC Sub-menu Styles */
+        .rbac-submenu {
+            transition: all 0.3s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
+        }
+        
+        .rbac-submenu.show {
+            max-height: 500px;
+        }
+        
+        .rbac-chevron.rotated {
+            transform: rotate(180deg);
+        }
+        
+        /* Collapsed sidebar adjustments for sub-menu */
+        .sidebar-collapsed .rbac-submenu {
+            display: none !important;
+        }
+        
+        .sidebar-collapsed .rbac-menu button {
+            justify-content: center !important;
+        }
+        
+        .sidebar-collapsed .rbac-chevron {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -248,34 +276,85 @@
                 </a>
           <% } %>
                 
-          <!-- RBAC - Only for users with rbac.view permission -->
+          <!-- RBAC Parent Menu - Only for users with rbac.view permission -->
           <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('rbac.'))) { %>
-          <a
-            href="/admin/rbac"
-            class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
-          >
-            <div
-              class="w-8 h-8 bg-slate-700 group-hover:bg-white group-hover:bg-opacity-20 rounded-lg flex items-center justify-center mr-3 transition-all duration-300"
+          <div class="rbac-menu">
+            <button
+              id="rbac-menu-toggle"
+              class="nav-link group flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
             >
-              <i class="fas fa-shield-alt text-sm"></i>
+              <div class="flex items-center">
+                <div
+                  class="w-8 h-8 bg-slate-700 group-hover:bg-white group-hover:bg-opacity-20 rounded-lg flex items-center justify-center mr-3 transition-all duration-300"
+                >
+                  <i class="fas fa-shield-alt text-sm"></i>
+                </div>
+                <span>RBAC</span>
+              </div>
+              <i class="fas fa-chevron-down rbac-chevron transition-transform duration-200"></i>
+            </button>
+            
+            <!-- RBAC Sub-menu -->
+            <div id="rbac-submenu" class="rbac-submenu hidden ml-8 mt-2 space-y-1">
+              <!-- RBAC Dashboard -->
+              <a
+                href="/admin/rbac"
+                class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white hover:shadow-lg transition-all duration-300"
+              >
+                <div
+                  class="w-6 h-6 bg-slate-700 group-hover:bg-white group-hover:bg-opacity-20 rounded-md flex items-center justify-center mr-3 transition-all duration-300"
+                >
+                  <i class="fas fa-tachometer-alt text-xs"></i>
+                </div>
+                <span>RBAC Dashboard</span>
+              </a>
+              
+              <!-- Module Management - Only for users with modules.view permission -->
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('modules.'))) { %>
+              <a
+                href="/admin/rbac/modules"
+                class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-indigo-500 hover:to-indigo-600 hover:text-white hover:shadow-lg transition-all duration-300"
+              >
+                <div
+                  class="w-6 h-6 bg-slate-700 group-hover:bg-white group-hover:bg-opacity-20 rounded-md flex items-center justify-center mr-3 transition-all duration-300"
+                >
+                  <i class="fas fa-cubes text-xs"></i>
+                </div>
+                <span>Module Management</span>
+              </a>
+              <% } %>
+              
+              <!-- Role Management - Only for users with roles.view permission -->
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('roles.'))) { %>
+              <a
+                href="/admin/rbac/roles"
+                class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-600 hover:text-white hover:shadow-lg transition-all duration-300"
+              >
+                <div
+                  class="w-6 h-6 bg-slate-700 group-hover:bg-white group-hover:bg-opacity-20 rounded-md flex items-center justify-center mr-3 transition-all duration-300"
+                >
+                  <i class="fas fa-user-tag text-xs"></i>
+                </div>
+                <span>Role Management</span>
+              </a>
+              <% } %>
+              
+              <!-- Permission Management - Only for users with permissions.view permission -->
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('permissions.'))) { %>
+              <a
+                href="/admin/rbac/permissions"
+                class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-green-500 hover:to-green-600 hover:text-white hover:shadow-lg transition-all duration-300"
+              >
+                <div
+                  class="w-6 h-6 bg-slate-700 group-hover:bg-white group-hover:bg-opacity-20 rounded-md flex items-center justify-center mr-3 transition-all duration-300"
+                >
+                  <i class="fas fa-key text-xs"></i>
+                </div>
+                <span>Permission Management</span>
+              </a>
+              <% } %>
             </div>
-            <span>RBAC</span>
-          </a>
-          <% } %>
-
-          <!-- Module Management - Only for users with modules.view permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('modules.'))) { %>
-          <a
-            href="/admin/rbac/modules"
-            class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-indigo-500 hover:to-indigo-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
-          >
-            <div
-              class="w-8 h-8 bg-slate-700 group-hover:bg-white group-hover:bg-opacity-20 rounded-lg flex items-center justify-center mr-3 transition-all duration-300"
-            >
-              <i class="fas fa-cubes text-sm"></i>
-            </div>
-            <span>Module Management</span>
-          </a>
+          </div>
           <% } %>
 
           <!-- Settings - Only for users with settings.view permission -->
@@ -537,8 +616,28 @@
             });
         });
 
-        // Active navigation link
+        // RBAC Sub-menu Toggle
+        const rbacMenuToggle = document.getElementById('rbac-menu-toggle');
+        const rbacSubmenu = document.getElementById('rbac-submenu');
+        const rbacChevron = document.querySelector('.rbac-chevron');
+        
+        if (rbacMenuToggle && rbacSubmenu) {
+            rbacMenuToggle.addEventListener('click', function() {
+                rbacSubmenu.classList.toggle('show');
+                rbacSubmenu.classList.toggle('hidden');
+                rbacChevron.classList.toggle('rotated');
+            });
+        }
+        
+        // Auto-expand RBAC sub-menu if on RBAC-related pages
         const currentPath = window.location.pathname;
+        if (currentPath.includes('/rbac') && rbacSubmenu) {
+            rbacSubmenu.classList.add('show');
+            rbacSubmenu.classList.remove('hidden');
+            rbacChevron.classList.add('rotated');
+        }
+
+        // Active navigation link
       const navLinks = document.querySelectorAll(".nav-link");
         
       navLinks.forEach((link) => {
@@ -560,6 +659,7 @@
         ) {
           link.classList.remove(
             "text-slate-300",
+            "text-slate-400",
             "hover:bg-gradient-to-r",
             "hover:from-blue-500",
             "hover:to-blue-600",
