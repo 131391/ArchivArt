@@ -154,8 +154,19 @@ console.log('Profile.js script loaded - initializing immediately');
     // Remove button functionality
     removeButton.addEventListener('click', function() {
         console.log('Remove button clicked');
-        if (confirm('Are you sure you want to remove the selected image?')) {
-            resetForm();
+        if (typeof showConfirmModal === 'function') {
+            showConfirmModal(
+                'Are you sure you want to remove the selected image?',
+                'Confirm Remove',
+                function() {
+                    resetForm();
+                }
+            );
+        } else {
+            // Fallback to browser confirm if showConfirmModal is not available
+            if (confirm('Are you sure you want to remove the selected image?')) {
+                resetForm();
+            }
         }
     });
 
