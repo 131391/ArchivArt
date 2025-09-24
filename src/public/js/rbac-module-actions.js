@@ -34,39 +34,67 @@ function viewModuleAction(actionId) {
                 const actionDetailsEl = document.getElementById('moduleActionDetails');
                 if (actionDetailsEl) {
                     actionDetailsEl.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="flex items-center space-x-4">
-                                <div class="flex-shrink-0 h-16 w-16">
-                                    <div class="h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
-                                        <i class="fas fa-cog text-white text-2xl"></i>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="text-lg font-semibold text-gray-900">${action.display_name}</h4>
-                                    <p class="text-sm text-gray-500">${action.name}</p>
+                        <!-- Action Header -->
+                        <div class="flex items-center space-x-4 mb-6">
+                            <div class="flex-shrink-0">
+                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                                    <i class="fas fa-cog text-white text-2xl"></i>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Action Name</label>
-                                    <p class="mt-1 text-sm text-gray-900">${action.name}</p>
+                            <div class="flex-1">
+                                <h4 class="text-xl font-bold text-gray-900">${action.display_name}</h4>
+                                <p class="text-sm text-gray-500 font-mono">${action.name}</p>
+                            </div>
+                        </div>
+
+                        <!-- Action Details Grid -->
+                        <div class="grid grid-cols-1 gap-6">
+                            <!-- Action Name -->
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-tag text-blue-600 text-sm"></i>
+                                    </div>
+                                    <label class="text-sm font-semibold text-gray-700">Action Name</label>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Display Name</label>
-                                    <p class="mt-1 text-sm text-gray-900">${action.display_name}</p>
+                                <p class="text-sm text-gray-900 font-mono bg-white rounded-lg px-3 py-2 border">${action.name}</p>
+                            </div>
+
+                            <!-- Display Name -->
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-eye text-purple-600 text-sm"></i>
+                                    </div>
+                                    <label class="text-sm font-semibold text-gray-700">Display Name</label>
                                 </div>
-                                <div class="col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700">Description</label>
-                                    <p class="mt-1 text-sm text-gray-900">${action.description || 'No description provided'}</p>
+                                <p class="text-sm text-gray-900 bg-white rounded-lg px-3 py-2 border">${action.display_name}</p>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-align-left text-indigo-600 text-sm"></i>
+                                    </div>
+                                    <label class="text-sm font-semibold text-gray-700">Description</label>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Status</label>
-                                    <p class="mt-1 text-sm text-gray-900">
-                                        ${action.is_active ? 
-                                            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>' : 
-                                            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Inactive</span>'
-                                        }
-                                    </p>
+                                <p class="text-sm text-gray-900 bg-white rounded-lg px-3 py-2 border min-h-[2.5rem]">${action.description || 'No description provided'}</p>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-toggle-on text-orange-600 text-sm"></i>
+                                    </div>
+                                    <label class="text-sm font-semibold text-gray-700">Status</label>
+                                </div>
+                                <div class="bg-white rounded-lg px-3 py-2 border">
+                                    ${action.is_active ? 
+                                        '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800"><i class="fas fa-check-circle mr-1"></i>Active</span>' : 
+                                        '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800"><i class="fas fa-times-circle mr-1"></i>Inactive</span>'
+                                    }
                                 </div>
                             </div>
                         </div>
