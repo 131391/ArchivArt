@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-}
+});
 
 // Helper function for field validation
 function validateField(field, message) {
