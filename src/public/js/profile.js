@@ -8,8 +8,6 @@ console.log('Profile.js script loaded - initializing immediately');
     const fileInput = document.getElementById('profilePictureInput');
     const uploadButton = document.getElementById('uploadProfilePicture');
     const removeButton = document.getElementById('removeProfilePicture');
-    const previewContainer = document.getElementById('imagePreview');
-    const previewImage = document.getElementById('previewImage');
     const progressContainer = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
@@ -23,20 +21,16 @@ console.log('Profile.js script loaded - initializing immediately');
         fileInput: !!fileInput,
         uploadButton: !!uploadButton,
         removeButton: !!removeButton,
-        previewContainer: !!previewContainer,
-        previewImage: !!previewImage,
         currentProfileImage: !!currentProfileImage,
         headerProfileImage: !!headerProfileImage
     });
 
-    if (!fileInput || !uploadButton || !removeButton || !previewContainer || !previewImage || !currentProfileImage || !headerProfileImage) {
+    if (!fileInput || !uploadButton || !removeButton || !currentProfileImage || !headerProfileImage) {
         console.error('Some profile picture elements not found. Please check the HTML structure.');
         console.log('Available elements:', {
             fileInput: fileInput,
             uploadButton: uploadButton,
             removeButton: removeButton,
-            previewContainer: previewContainer,
-            previewImage: previewImage,
             currentProfileImage: currentProfileImage,
             headerProfileImage: headerProfileImage
         });
@@ -74,14 +68,11 @@ console.log('Profile.js script loaded - initializing immediately');
             uploadButton.disabled = false;
             removeButton.classList.remove('hidden');
 
-            // Show preview
+            // Show preview by updating current profile image temporarily
             const reader = new FileReader();
             reader.onload = function(e) {
                 console.log('FileReader loaded, showing preview');
-                previewImage.src = e.target.result;
-                previewContainer.classList.remove('hidden');
-                
-                // Also update the current profile image temporarily for preview
+                // Update the current profile image temporarily for preview
                 currentProfileImage.src = e.target.result;
             };
             reader.onerror = function(error) {
@@ -94,7 +85,6 @@ console.log('Profile.js script loaded - initializing immediately');
             selectedFile = null;
             uploadButton.disabled = true;
             removeButton.classList.add('hidden');
-            previewContainer.classList.add('hidden');
         }
     });
 
@@ -175,7 +165,6 @@ console.log('Profile.js script loaded - initializing immediately');
         selectedFile = null;
         uploadButton.disabled = true;
         removeButton.classList.add('hidden');
-        previewContainer.classList.add('hidden');
         
         // Reset current profile image to original (if available)
         const originalSrc = currentProfileImage.dataset.originalSrc || 'https://ui-avatars.com/api/?name=Test%20User1&background=6366f1&color=ffffff&size=80&bold=true';
