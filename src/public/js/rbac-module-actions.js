@@ -142,13 +142,30 @@ function createModuleAction() {
     const modal = document.getElementById('createModuleActionModal');
     const modalContainer = document.getElementById('createModuleActionModalContainer');
     if (modal && modalContainer) {
+        // Reset form
+        const form = document.getElementById('createModuleActionForm');
+        if (form) {
+            form.reset();
+        }
+        
+        // Show modal with animation
         modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        
         // Remove initial animation classes
         modalContainer.classList.remove('scale-95', 'opacity-0');
         // Add final animation classes with a small delay to trigger CSS transition
         setTimeout(() => {
             modalContainer.classList.add('scale-100', 'opacity-100');
         }, 10);
+        
+        // Focus on first input
+        setTimeout(() => {
+            const firstInput = document.getElementById('createModuleActionName');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }, 300);
     }
 }
 
@@ -190,6 +207,7 @@ function closeCreateModuleActionModal() {
         // Hide modal after animation
         setTimeout(() => {
             modal.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore background scrolling
         }, 300);
     }
 }
@@ -294,4 +312,52 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-});
+    
+    // Add real-time validation for create form
+    const nameInput = document.getElementById('createModuleActionName');
+    const displayNameInput = document.getElementById('createModuleActionDisplayName');
+    
+    if (nameInput) {
+        nameInput.addEventListener('input', function() {
+            // Convert to lowercase and replace spaces with underscores
+            this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+            validateField(this, 'Action name must be lowercase with underscores only');
+        });
+    }
+    
+    if (displayNameInput) {
+        displayNameInput.addEventListener('input', function() {
+            validateField(this, 'Display name is required');
+        });
+    }
+    
+    // Add ESC key support
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const createModal = document.getElementById('createModuleActionModal');
+            if (createModal && !createModal.classList.contains('hidden')) {
+                closeCreateModuleActionModal();
+            }
+        }
+    });
+}
+
+// Helper function for field validation
+function validateField(field, message) {
+    const isValid = field.value.trim() !== '';
+    field.classList.toggle('border-red-300', !isValid);
+    field.classList.toggle('border-green-300', isValid);
+    
+    // Remove existing error message
+    const existingError = field.parentNode.querySelector('.error-message');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    if (!isValid) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message text-red-500 text-xs mt-1';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+}
