@@ -232,20 +232,67 @@ const addUserPermissions = async (req, res, next) => {
             // Check if user has admin role - try multiple ways to get role info
             const userRole = req.session.user?.role || req.session.role || 'admin'; // Default to admin for now
             
-            // For admin users, bypass permission loading to avoid timeouts
+            // For admin users, load permissions for sidebar display
             if (userRole === 'admin' || userRole === 'super_admin') {
-                req.userPermissions = []; // Empty array for admin users
-                req.userPrimaryRole = { name: 'admin', display_name: 'Administrator' };
-                
-                // Create a helper function for permission checking (always true for admin)
-                req.hasPermission = async (permissionName) => {
-                    return true;
-                };
-                
-                // Create a helper function for module permission checking (always true for admin)
-                req.hasModulePermission = async (module) => {
-                    return true;
-                };
+                try {
+                    const permissions = await Promise.race([
+                        UserRole.getUserPermissions(req.session.userId),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                    ]);
+                    
+                    const primaryRole = await Promise.race([
+                        UserRole.getUserPrimaryRole(req.session.userId),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                    ]);
+                    
+                    req.userPermissions = permissions;
+                    req.userPrimaryRole = primaryRole;
+                    
+                    // Create a helper function for permission checking (always true for admin)
+                    req.hasPermission = async (permissionName) => {
+                        return true;
+                    };
+                    
+                    // Create a helper function for module permission checking (always true for admin)
+                    req.hasModulePermission = async (module) => {
+                        return true;
+                    };
+                } catch (timeoutError) {
+                    console.warn('Permission loading timeout for admin, using all permissions');
+                    // For admin users, provide all common permissions for sidebar display
+                    req.userPermissions = [
+                        { name: 'dashboard.view', module: 'dashboard' },
+                        { name: 'users.view', module: 'users' },
+                        { name: 'users.create', module: 'users' },
+                        { name: 'users.update', module: 'users' },
+                        { name: 'users.delete', module: 'users' },
+                        { name: 'users.block', module: 'users' },
+                        { name: 'media.view', module: 'media' },
+                        { name: 'media.create', module: 'media' },
+                        { name: 'media.update', module: 'media' },
+                        { name: 'media.delete', module: 'media' },
+                        { name: 'media.manage', module: 'media' },
+                        { name: 'rbac.view', module: 'rbac' },
+                        { name: 'rbac.create', module: 'rbac' },
+                        { name: 'rbac.update', module: 'rbac' },
+                        { name: 'rbac.delete', module: 'rbac' },
+                        { name: 'settings.view', module: 'settings' },
+                        { name: 'settings.update', module: 'settings' },
+                        { name: 'modules.view', module: 'modules' },
+                        { name: 'modules.create', module: 'modules' },
+                        { name: 'modules.update', module: 'modules' },
+                        { name: 'modules.delete', module: 'modules' }
+                    ];
+                    req.userPrimaryRole = { name: 'admin', display_name: 'Administrator' };
+                    
+                    req.hasPermission = async (permissionName) => {
+                        return true;
+                    };
+                    
+                    req.hasModulePermission = async (module) => {
+                        return true;
+                    };
+                }
             } else {
                 // For non-admin users, try to load permissions with timeout
                 try {

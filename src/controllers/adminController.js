@@ -36,7 +36,9 @@ class AdminController {
         title: 'Dashboard',
         stats,
         recentUsers,
-        recentMedia
+        recentMedia,
+        userPermissions: req.userPermissions || [],
+        userPrimaryRole: req.userPrimaryRole || null
       });
     } catch (error) {
       console.error('Dashboard error:', error);
@@ -45,7 +47,9 @@ class AdminController {
         title: 'Dashboard',
         stats: { totalUsers: 0, totalMedia: 0, totalVideos: 0, totalAudio: 0 },
         recentUsers: [],
-        recentMedia: []
+        recentMedia: [],
+        userPermissions: req.userPermissions || [],
+        userPrimaryRole: req.userPrimaryRole || null
       });
     }
   }

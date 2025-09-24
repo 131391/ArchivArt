@@ -190,6 +190,7 @@
         <!-- Sidebar Navigation -->
         <nav class="mt-8 px-4">
             <div class="space-y-2">
+          <!-- Dashboard - Always visible for admin users -->
           <a
             href="/admin/dashboard"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -202,6 +203,8 @@
                     <span>Dashboard</span>
                 </a>
                 
+          <!-- Users - Only for users with users.view permission -->
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('users.'))) { %>
           <a
             href="/admin/users"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-emerald-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -213,7 +216,10 @@
                     </div>
                     <span>Users</span>
                 </a>
+          <% } %>
                 
+          <!-- Media - Only for users with media.view permission -->
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('media.'))) { %>
           <a
             href="/admin/media"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -225,7 +231,10 @@
                     </div>
                     <span>Media</span>
                 </a>
+          <% } %>
                 
+          <!-- Upload Media - Only for users with media.create permission -->
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p === 'media.create')) { %>
           <a
             href="/admin/media/upload"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -237,7 +246,10 @@
                     </div>
                     <span>Upload Media</span>
                 </a>
+          <% } %>
                 
+          <!-- RBAC - Only for users with rbac.view permission -->
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('rbac.'))) { %>
           <a
             href="/admin/rbac"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -249,7 +261,10 @@
             </div>
             <span>RBAC</span>
           </a>
+          <% } %>
 
+          <!-- Module Management - Only for users with modules.view permission -->
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('modules.'))) { %>
           <a
             href="/admin/rbac/modules"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-indigo-500 hover:to-indigo-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -261,7 +276,10 @@
             </div>
             <span>Module Management</span>
           </a>
+          <% } %>
 
+          <!-- Settings - Only for users with settings.view permission -->
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('settings.'))) { %>
           <a
             href="/admin/settings"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-pink-500 hover:to-pink-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -273,6 +291,7 @@
                     </div>
                     <span>Settings</span>
                 </a>
+          <% } %>
             </div>
         </nav>
         
