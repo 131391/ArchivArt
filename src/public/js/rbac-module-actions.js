@@ -195,13 +195,10 @@ function editModuleAction(actionId) {
 function deleteModuleAction(actionId) {
     // Show custom warning modal instead of browser confirm
     if (typeof showConfirmModal !== 'undefined') {
-        showConfirmModal({
-            title: 'Delete Module Action',
-            message: 'Are you sure you want to delete this module action? This action cannot be undone.',
-            confirmText: 'Delete',
-            cancelText: 'Cancel',
-            confirmClass: 'bg-red-600 hover:bg-red-700 text-white',
-            onConfirm: function() {
+        showConfirmModal(
+            'Are you sure you want to delete this module action? This action cannot be undone.',
+            'Delete Module Action',
+            function() {
                 // Show loader while deleting
                 if (typeof window.GlobalLoader !== 'undefined') {
                     window.GlobalLoader.show({
@@ -238,7 +235,7 @@ function deleteModuleAction(actionId) {
                         showErrorToast('Error deleting module action');
                     });
             }
-        });
+        );
     } else {
         // Fallback to browser confirm if custom modal not available
         if (confirm('Are you sure you want to delete this module action?')) {
