@@ -19,7 +19,7 @@ window.formatStatus = function(item) {
         { key: 'name', label: 'Action Name', sortable: true },
         { key: 'display_name', label: 'Display Name', sortable: true },
         { key: 'description', label: 'Description', sortable: false },
-        { key: 'is_active', label: 'Status', sortable: true, formatter: 'formatStatus' }
+        { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatStatus' }
     ],
     actions: [
         { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewModuleAction(${item.id})` },
