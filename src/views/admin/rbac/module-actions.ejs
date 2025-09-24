@@ -7,6 +7,64 @@ window.formatStatus = function(item) {
 };
 </script>
 
+<style>
+/* Fix for empty toggle switches or pill-shaped buttons */
+.toggle-switch, .pill-button, .status-toggle {
+    position: relative;
+}
+
+.toggle-switch::before, .pill-button::before, .status-toggle::before {
+    content: attr(data-label) " ";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    z-index: 10;
+}
+
+/* Ensure toggle switches have proper content */
+.toggle-switch:empty::after, .pill-button:empty::after, .status-toggle:empty::after {
+    content: "Toggle";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    z-index: 10;
+}
+
+/* Fix for empty buttons with green background */
+button.bg-green-500:empty::after, button.bg-green-600:empty::after {
+    content: "Active";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    z-index: 10;
+}
+
+/* Fix for empty buttons with gray background */
+button.bg-gray-500:empty::after, button.bg-gray-600:empty::after {
+    content: "Inactive";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    z-index: 10;
+}
+</style>
+
 <!-- Include Common Table Component -->
 <%- include('../../components/table', {
     title: title,
