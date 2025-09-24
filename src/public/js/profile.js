@@ -1,8 +1,9 @@
 // Profile Picture Upload Functionality
-console.log('Profile.js script loaded');
+console.log('Profile.js script loaded - initializing immediately');
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Profile.js initializing');
+// Initialize immediately since script is loaded at end of page
+(function() {
+    console.log('Profile.js initializing...');
     
     const fileInput = document.getElementById('profilePictureInput');
     const uploadButton = document.getElementById('uploadProfilePicture');
@@ -218,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.remove();
         }
     };
-});
+})(); // End of IIFE
 
 // Password toggle functionality
 function togglePassword(fieldId) {

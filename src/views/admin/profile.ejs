@@ -352,18 +352,4 @@
     </div>
 </div>
 
-<script>
-// Load profile.js after DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Load the profile.js script dynamically
-    const script = document.createElement('script');
-    script.src = '/js/profile.js';
-    script.onload = function() {
-        console.log('Profile.js loaded successfully');
-    };
-    script.onerror = function() {
-        console.error('Failed to load profile.js');
-    };
-    document.head.appendChild(script);
-});
-</script>
+<script src="/js/profile.js"></script>
