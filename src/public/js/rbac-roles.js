@@ -14,8 +14,8 @@ function formatStatus(item) {
 // Role action functions
 function viewRole(roleId) {
     // Show loader
-    if (typeof GlobalLoader !== 'undefined') {
-        GlobalLoader.show({
+    if (typeof window.window.GlobalLoader !== 'undefined' && window.window.GlobalLoader) {
+        window.window.GlobalLoader.show({
             title: 'Loading Role Details...',
             message: 'Fetching role information from server',
             showProgress: false
@@ -29,8 +29,8 @@ function viewRole(roleId) {
         .then(response => response.json())
         .then(data => {
             // Hide loader
-            if (typeof GlobalLoader !== 'undefined') {
-                GlobalLoader.hide();
+            if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
+                window.GlobalLoader.hide();
             }
             
             if (data.success) {
@@ -141,8 +141,8 @@ function viewRole(roleId) {
         })
         .catch(error => {
             // Hide loader on error
-            if (typeof GlobalLoader !== 'undefined') {
-                GlobalLoader.hide();
+            if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
+                window.GlobalLoader.hide();
             }
             console.error('Error:', error);
             showErrorToast('Error loading role details');
@@ -151,8 +151,8 @@ function viewRole(roleId) {
 
 function editRole(roleId) {
     // Show loader
-    if (typeof GlobalLoader !== 'undefined') {
-        GlobalLoader.show({
+    if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
+        window.GlobalLoader.show({
             title: 'Loading Role Details...',
             message: 'Fetching role information for editing',
             showProgress: false
@@ -166,8 +166,8 @@ function editRole(roleId) {
         .then(response => response.json())
         .then(data => {
             // Hide loader
-            if (typeof GlobalLoader !== 'undefined') {
-                GlobalLoader.hide();
+            if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
+                window.GlobalLoader.hide();
             }
             
             if (data.success) {
@@ -194,8 +194,8 @@ function editRole(roleId) {
         })
         .catch(error => {
             // Hide loader on error
-            if (typeof GlobalLoader !== 'undefined') {
-                GlobalLoader.hide();
+            if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
+                window.GlobalLoader.hide();
             }
             console.error('Error:', error);
             showErrorToast('Error loading role details');
@@ -218,8 +218,8 @@ function deleteRole(roleId) {
 
 function performDeleteRole(roleId) {
     // Show loader
-    if (typeof GlobalLoader !== 'undefined') {
-        GlobalLoader.show({
+    if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
+        window.GlobalLoader.show({
             title: 'Deleting Role...',
             message: 'Removing role from system',
             showProgress: false
@@ -233,8 +233,8 @@ function performDeleteRole(roleId) {
     .then(response => response.json())
     .then(data => {
         // Hide loader
-        if (typeof GlobalLoader !== 'undefined') {
-            GlobalLoader.hide();
+        if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
+            window.GlobalLoader.hide();
         }
         
         if (data.success) {
@@ -253,8 +253,8 @@ function performDeleteRole(roleId) {
     })
     .catch(error => {
         // Hide loader on error
-        if (typeof GlobalLoader !== 'undefined') {
-            GlobalLoader.hide();
+        if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
+            window.GlobalLoader.hide();
         }
         console.error('Error:', error);
         showErrorToast('Error deleting role');
