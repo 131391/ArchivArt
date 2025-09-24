@@ -789,12 +789,80 @@ class AdminController {
   // Update profile
   async updateProfile(req, res) {
     try {
-      // TODO: Implement profile update
-      req.flash('success_msg', 'Profile updated successfully');
+      const userId = req.session.user.id;
+      const { name, email, mobile } = req.body;
+
+      console.log('Profile update request:', { userId, name, email, mobile });
+
+      // Check if email is being changed and if it already exists
+      if (email) {
+        const [existingUser] = await db.execute(
+          'SELECT id FROM users WHERE email = ? AND id != ?',
+          [email, userId]
+        );
+        
+        if (existingUser.length > 0) {
+          req.flash('error_msg', 'Email already exists');
+          return res.redirect('/admin/profile');
+        }
+      }
+
+      // Build update query dynamically
+      const updateFields = [];
+      const updateValues = [];
+
+      if (name) {
+        updateFields.push('name = ?');
+        updateValues.push(name);
+      }
+      
+      if (email) {
+        updateFields.push('email = ?');
+        updateValues.push(email);
+      }
+      
+      if (mobile !== undefined) {
+        updateFields.push('mobile = ?');
+        updateValues.push(mobile || null);
+      }
+
+      if (updateFields.length === 0) {
+        req.flash('error_msg', 'No fields to update');
+        return res.redirect('/admin/profile');
+      }
+
+      // Add updated_at timestamp
+      updateFields.push('updated_at = NOW()');
+      updateValues.push(userId);
+
+      const updateQuery = `
+        UPDATE users 
+        SET ${updateFields.join(', ')} 
+        WHERE id = ?
+      `;
+
+      console.log('Update query:', updateQuery);
+      console.log('Update values:', updateValues);
+
+      const [result] = await db.execute(updateQuery, updateValues);
+      
+      console.log('Database update result:', result);
+
+      if (result.affectedRows > 0) {
+        // Update session data
+        if (name) req.session.user.name = name;
+        if (email) req.session.user.email = email;
+        if (mobile !== undefined) req.session.user.mobile = mobile;
+        
+        req.flash('success_msg', 'Profile updated successfully');
+      } else {
+        req.flash('error_msg', 'No changes were made');
+      }
+
       res.redirect('/admin/profile');
     } catch (error) {
       console.error('Error updating profile:', error);
-      req.flash('error_msg', 'Error updating profile');
+      req.flash('error_msg', 'Error updating profile: ' + error.message);
       res.redirect('/admin/profile');
     }
   }
