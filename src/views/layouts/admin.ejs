@@ -204,7 +204,7 @@
                 </a>
                 
           <!-- Users - Only for users with users.view permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('users.'))) { %>
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('users.'))) { %>
           <a
             href="/admin/users"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-emerald-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -219,7 +219,7 @@
           <% } %>
                 
           <!-- Media - Only for users with media.view permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('media.'))) { %>
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.'))) { %>
           <a
             href="/admin/media"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -234,7 +234,7 @@
           <% } %>
                 
           <!-- Upload Media - Only for users with media.create permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p === 'media.create')) { %>
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.create')) { %>
           <a
             href="/admin/media/upload"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -249,7 +249,7 @@
           <% } %>
                 
           <!-- RBAC - Only for users with rbac.view permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('rbac.'))) { %>
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('rbac.'))) { %>
           <a
             href="/admin/rbac"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -264,7 +264,7 @@
           <% } %>
 
           <!-- Module Management - Only for users with modules.view permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('modules.'))) { %>
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('modules.'))) { %>
           <a
             href="/admin/rbac/modules"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-indigo-500 hover:to-indigo-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -279,7 +279,7 @@
           <% } %>
 
           <!-- Settings - Only for users with settings.view permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.startsWith('settings.'))) { %>
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('settings.'))) { %>
           <a
             href="/admin/settings"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-pink-500 hover:to-pink-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
