@@ -139,10 +139,17 @@ const columns = [
 
 <script>
 // Formatter functions for custom columns
-function formatSerialNumber(item, index) {
-    // Simple serial number based on row index (1-based)
-    const serialNumber = index + 1;
-    return `<span class="text-sm font-medium text-gray-900">${serialNumber}</span>`;
+function formatSerialNumber(item) {
+    // Return placeholder - will be updated by updateSerialNumbers function
+    return `<span class="text-sm font-medium text-gray-900 serial-number">1</span>`;
+}
+
+// Function to update all serial numbers after table loads
+function updateSerialNumbers() {
+    const serialElements = document.querySelectorAll('.serial-number');
+    serialElements.forEach((element, index) => {
+        element.textContent = index + 1;
+    });
 }
 
 function formatRole(roleDisplayName) {
@@ -392,5 +399,19 @@ function showErrorToast(message) {
     setTimeout(() => {
         toast.remove();
     }, 3000);
+}
+
+// Update serial numbers after page loads
+document.addEventListener('DOMContentLoaded', function() {
+    updateSerialNumbers();
+});
+
+// Also update when table is refreshed (for AJAX updates)
+if (typeof refreshTable === 'function') {
+    const originalRefreshTable = refreshTable;
+    refreshTable = function() {
+        originalRefreshTable();
+        setTimeout(updateSerialNumbers, 100);
+    };
 }
 </script>
