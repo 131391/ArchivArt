@@ -9,12 +9,26 @@ function formatStatus(value, item) {
 
 // Module action functions
 function viewModuleAction(actionId) {
+    // Show loader while fetching data
+    if (typeof window.GlobalLoader !== 'undefined') {
+        window.GlobalLoader.show({
+            title: 'Loading Action Details...',
+            message: 'Please wait while we fetch the action information',
+            showProgress: false
+        });
+    }
+    
     // Fetch module action details and show modal
     fetch(`/admin/api/rbac/module-actions/${actionId}`, {
         credentials: 'same-origin'
     })
         .then(response => response.json())
         .then(data => {
+            // Hide loader
+            if (typeof window.GlobalLoader !== 'undefined') {
+                window.GlobalLoader.hide();
+            }
+            
             if (data.success) {
                 const action = data.data;
                 const actionDetailsEl = document.getElementById('moduleActionDetails');
@@ -63,6 +77,8 @@ function viewModuleAction(actionId) {
                 const modalContainer = document.getElementById('viewModuleActionModalContainer');
                 if (modal && modalContainer) {
                     modal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                    
                     // Remove initial animation classes
                     modalContainer.classList.remove('scale-95', 'opacity-0');
                     // Add final animation classes with a small delay to trigger CSS transition
@@ -75,18 +91,36 @@ function viewModuleAction(actionId) {
             }
         })
         .catch(error => {
+            // Hide loader on error
+            if (typeof window.GlobalLoader !== 'undefined') {
+                window.GlobalLoader.hide();
+            }
             console.error('Error:', error);
             showErrorToast('Error loading module action details');
         });
 }
 
 function editModuleAction(actionId) {
+    // Show loader while fetching data
+    if (typeof window.GlobalLoader !== 'undefined') {
+        window.GlobalLoader.show({
+            title: 'Loading Action Details...',
+            message: 'Please wait while we fetch the action information',
+            showProgress: false
+        });
+    }
+    
     // Fetch module action details and show edit modal
     fetch(`/admin/api/rbac/module-actions/${actionId}`, {
         credentials: 'same-origin'
     })
         .then(response => response.json())
         .then(data => {
+            // Hide loader
+            if (typeof window.GlobalLoader !== 'undefined') {
+                window.GlobalLoader.hide();
+            }
+            
             if (data.success) {
                 const action = data.data;
                 document.getElementById('editModuleActionId').value = action.id;
@@ -99,18 +133,32 @@ function editModuleAction(actionId) {
                 const modalContainer = document.getElementById('editModuleActionModalContainer');
                 if (modal && modalContainer) {
                     modal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                    
                     // Remove initial animation classes
                     modalContainer.classList.remove('scale-95', 'opacity-0');
                     // Add final animation classes with a small delay to trigger CSS transition
                     setTimeout(() => {
                         modalContainer.classList.add('scale-100', 'opacity-100');
                     }, 10);
+                    
+                    // Focus on first input
+                    setTimeout(() => {
+                        const firstInput = document.getElementById('editModuleActionName');
+                        if (firstInput) {
+                            firstInput.focus();
+                        }
+                    }, 300);
                 }
             } else {
                 showErrorToast('Error loading module action details');
             }
         })
         .catch(error => {
+            // Hide loader on error
+            if (typeof window.GlobalLoader !== 'undefined') {
+                window.GlobalLoader.hide();
+            }
             console.error('Error:', error);
             showErrorToast('Error loading module action details');
         });
@@ -179,6 +227,7 @@ function closeViewModuleActionModal() {
         // Hide modal after animation
         setTimeout(() => {
             modal.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore background scrolling
         }, 300);
     }
 }
@@ -193,6 +242,7 @@ function closeEditModuleActionModal() {
         // Hide modal after animation
         setTimeout(() => {
             modal.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore background scrolling
         }, 300);
     }
 }
