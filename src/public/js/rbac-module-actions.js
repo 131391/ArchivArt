@@ -193,24 +193,73 @@ function editModuleAction(actionId) {
 }
 
 function deleteModuleAction(actionId) {
-    if (confirm('Are you sure you want to delete this module action?')) {
-        fetch(`/admin/api/rbac/module-actions/${actionId}`, {
-            method: 'DELETE',
-            credentials: 'same-origin'
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccessToast('Module action deleted successfully');
-                    location.reload();
-                } else {
-                    showErrorToast(data.message || 'Error deleting module action');
+    // Show custom warning modal instead of browser confirm
+    if (typeof showConfirmModal !== 'undefined') {
+        showConfirmModal({
+            title: 'Delete Module Action',
+            message: 'Are you sure you want to delete this module action? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            confirmClass: 'bg-red-600 hover:bg-red-700 text-white',
+            onConfirm: function() {
+                // Show loader while deleting
+                if (typeof window.GlobalLoader !== 'undefined') {
+                    window.GlobalLoader.show({
+                        title: 'Deleting Action...',
+                        message: 'Please wait while we delete the module action',
+                        showProgress: false
+                    });
                 }
+                
+                fetch(`/admin/api/rbac/module-actions/${actionId}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loader
+                        if (typeof window.GlobalLoader !== 'undefined') {
+                            window.GlobalLoader.hide();
+                        }
+                        
+                        if (data.success) {
+                            showSuccessToast('Module action deleted successfully');
+                            location.reload();
+                        } else {
+                            showErrorToast(data.message || 'Error deleting module action');
+                        }
+                    })
+                    .catch(error => {
+                        // Hide loader on error
+                        if (typeof window.GlobalLoader !== 'undefined') {
+                            window.GlobalLoader.hide();
+                        }
+                        console.error('Error:', error);
+                        showErrorToast('Error deleting module action');
+                    });
+            }
+        });
+    } else {
+        // Fallback to browser confirm if custom modal not available
+        if (confirm('Are you sure you want to delete this module action?')) {
+            fetch(`/admin/api/rbac/module-actions/${actionId}`, {
+                method: 'DELETE',
+                credentials: 'same-origin'
             })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorToast('Error deleting module action');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessToast('Module action deleted successfully');
+                        location.reload();
+                    } else {
+                        showErrorToast(data.message || 'Error deleting module action');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorToast('Error deleting module action');
+                });
+        }
     }
 }
 
