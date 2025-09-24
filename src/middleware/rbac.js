@@ -15,12 +15,6 @@ const hasPermission = (permissionName) => {
                 });
             }
 
-            // Allow all admin roles except 'user' to access RBAC endpoints
-            // TODO: Implement proper permission checking once RBAC is fully working
-            if (req.session.user && req.session.user.role !== 'user') {
-                return next();
-            }
-
             const hasAccess = await UserRole.hasPermission(req.session.userId, permissionName);
             
             if (!hasAccess) {
@@ -51,11 +45,6 @@ const hasModuleActionPermission = (moduleName, actionName) => {
                     success: false,
                     message: 'Authentication required'
                 });
-            }
-
-            // Allow all admin roles except 'user' to access RBAC endpoints
-            if (req.session.user && req.session.user.role !== 'user') {
-                return next();
             }
 
             // Check if user has permission for this module.action
@@ -90,25 +79,20 @@ const hasModuleActionPermissionWeb = (moduleName, actionName) => {
                 return res.redirect('/admin/login');
             }
 
-            // Allow all admin roles except 'user' to access RBAC endpoints
-            if (req.session.user && req.session.user.role !== 'user') {
-                return next();
-            }
-
             // Check if user has permission for this module.action
             const permissionName = `${moduleName}.${actionName}`;
             const hasAccess = await UserRole.hasPermission(req.session.userId, permissionName);
             
             if (!hasAccess) {
-                req.flash('error_msg', `Insufficient permissions. Required: ${permissionName}`);
-                return res.redirect('/admin/login');
+                req.flash('error_msg', `Access denied. You don't have permission to access ${moduleName}. Required permission: ${permissionName}`);
+                return res.redirect('/admin/dashboard');
             }
 
             next();
         } catch (error) {
             console.error('Permission check error:', error);
             req.flash('error_msg', 'Permission check failed');
-            return res.redirect('/admin/login');
+            return res.redirect('/admin/dashboard');
         }
     };
 };
