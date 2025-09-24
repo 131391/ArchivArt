@@ -867,6 +867,96 @@ class AdminController {
     }
   }
 
+  // Update profile picture
+  async updateProfilePicture(req, res) {
+    try {
+      const userId = req.session.user.id;
+      const profilePictureFile = req.file;
+
+      console.log('Profile picture update request:', { userId, hasFile: !!profilePictureFile });
+
+      if (!profilePictureFile) {
+        return res.status(400).json({
+          success: false,
+          message: 'No profile picture file provided'
+        });
+      }
+
+      // Get current profile picture URL to delete old one
+      const [currentUser] = await db.execute(
+        'SELECT profile_picture FROM users WHERE id = ?',
+        [userId]
+      );
+
+      const currentProfilePicture = currentUser[0]?.profile_picture;
+
+      // Generate unique filename
+      const fileExtension = profilePictureFile.originalname.split('.').pop();
+      const fileName = `profile-pictures/${userId}-${Date.now()}.${fileExtension}`;
+
+      console.log('Uploading profile picture to S3:', fileName);
+
+      // Upload to S3
+      const S3Service = require('../services/s3Service');
+      const uploadResult = await S3Service.uploadFile(
+        profilePictureFile.buffer,
+        fileName,
+        profilePictureFile.mimetype
+      );
+
+      console.log('S3 upload result:', uploadResult);
+
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || 'Failed to upload profile picture to S3');
+      }
+
+      // Update database with new profile picture URL
+      const [result] = await db.execute(
+        'UPDATE users SET profile_picture = ?, updated_at = NOW() WHERE id = ?',
+        [uploadResult.url, userId]
+      );
+
+      console.log('Database update result:', result);
+
+      if (result.affectedRows > 0) {
+        // Update session data
+        req.session.user.profile_picture = uploadResult.url;
+
+        // Delete old profile picture from S3 if it exists and is from our bucket
+        if (currentProfilePicture && currentProfilePicture.includes('amazonaws.com')) {
+          try {
+            const oldFileName = currentProfilePicture.split('/').pop();
+            await S3Service.deleteFile(`profile-pictures/${oldFileName}`);
+            console.log('Deleted old profile picture from S3');
+          } catch (deleteError) {
+            console.warn('Failed to delete old profile picture from S3:', deleteError);
+            // Don't fail the request if old file deletion fails
+          }
+        }
+
+        res.json({
+          success: true,
+          message: 'Profile picture updated successfully',
+          user: {
+            profile_picture: uploadResult.url
+          }
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: 'Failed to update profile picture in database'
+        });
+      }
+
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error updating profile picture: ' + error.message
+      });
+    }
+  }
+
   // Run RBAC migration
   async runRBACMigration(req, res) {
     try {

@@ -16,6 +16,7 @@ const {
   preventSQLInjection,
   ipWhitelist 
 } = require('../middleware/security');
+const { profileUpload } = require('../config/multer');
 
 // Root admin route - redirect to dashboard
 router.get('/', (req, res) => {
@@ -150,6 +151,14 @@ router.post('/profile', [
   commonValidations.email,
   validateInput
 ], adminController.updateProfile);
+
+// Profile picture upload route
+router.post('/profile/picture', [
+  requireAdminWeb,
+  addUserPermissions,
+  preventSQLInjection,
+  profileUpload
+], adminController.updateProfilePicture);
 
 // Security Dashboard
 router.get('/security', [
