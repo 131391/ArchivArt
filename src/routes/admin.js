@@ -137,7 +137,8 @@ router.post('/settings', [
 
 // Profile
 router.get('/profile', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
   loadSettings, 
   preventSQLInjection
 ], adminController.profile);

@@ -23,7 +23,13 @@
                 </div>
                 <div class="text-right">
                     <p class="text-blue-100 text-sm">Member since</p>
-                    <p class="text-white text-lg font-semibold"><%= new Date(user.created_at).toLocaleDateString() %></p>
+                    <p class="text-white text-lg font-semibold">
+                        <% if (user && user.created_at) { %>
+                            <%= new Date(user.created_at).toLocaleDateString() %>
+                        <% } else { %>
+                            N/A
+                        <% } %>
+                    </p>
                 </div>
             </div>
         </div>

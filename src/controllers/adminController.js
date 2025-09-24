@@ -753,14 +753,35 @@ class AdminController {
   // Profile
   async profile(req, res) {
     try {
+      // Get user data from session
+      const user = req.session.user;
+      
+      // Get user's created_at date from database
+      let userWithCreatedAt = user;
+      if (user && user.id) {
+        const [userData] = await db.execute(
+          'SELECT created_at FROM users WHERE id = ?',
+          [user.id]
+        );
+        if (userData.length > 0) {
+          userWithCreatedAt = { ...user, created_at: userData[0].created_at };
+        }
+      }
+      
       res.render('admin/profile', {
-        title: 'Profile'
+        title: 'Profile',
+        user: userWithCreatedAt,
+        userPermissions: req.userPermissions || [],
+        userPrimaryRole: req.userPrimaryRole || null
       });
     } catch (error) {
       console.error('Error loading profile:', error);
       req.flash('error_msg', 'Error loading profile');
       res.render('admin/profile', {
-        title: 'Profile'
+        title: 'Profile',
+        user: req.session.user,
+        userPermissions: req.userPermissions || [],
+        userPrimaryRole: req.userPrimaryRole || null
       });
     }
   }
