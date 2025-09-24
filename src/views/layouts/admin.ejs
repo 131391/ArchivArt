@@ -682,7 +682,7 @@
     <% } %>
 
     <!-- RBAC Module Actions javascript - only loaded on module actions page -->
-    <% if (typeof title !== 'undefined' && title.includes('Module Actions')) {
+    <% if (typeof title !== 'undefined' && (title.includes('Module Actions') || title.includes('module-actions'))) {
     %>
     <script src="/js/rbac-module-actions.js?v=<%= Date.now() %>"></script>
     <% } %>
