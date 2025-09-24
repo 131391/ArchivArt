@@ -899,9 +899,8 @@ class AdminController {
       // Upload to S3
       const S3Service = require('../services/s3Service');
       const uploadResult = await S3Service.uploadFile(
-        profilePictureFile.buffer,
-        fileName,
-        profilePictureFile.mimetype
+        profilePictureFile,
+        'profile-pictures'
       );
 
       console.log('S3 upload result:', uploadResult);
