@@ -449,10 +449,6 @@ function generateTableRows(data) {
 function generateUserTableRows(users) {
     return users.map(user => `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatAvatar" data-item='${JSON.stringify(user)}'>
-                <!-- Avatar will be formatted by JavaScript -->
-            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.name || ''}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.email || ''}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatRole" data-item='${JSON.stringify(user)}'>
