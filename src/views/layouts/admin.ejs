@@ -731,6 +731,40 @@
     <% if (typeof title !== 'undefined' && title.includes('Profile')) { %>
     <script src="/js/profile.js"></script>
     <% } %>
+    
+    <!-- Profile picture update script for header and sidebar -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Function to update profile pictures in header and sidebar
+        function updateProfilePictures() {
+            <% if (typeof user !== 'undefined' && user && user.profile_picture) { %>
+                // Update header profile picture
+                const headerProfileImg = document.querySelector('#user-menu-button img');
+                if (headerProfileImg) {
+                    headerProfileImg.src = '<%= user.profile_picture %>';
+                    headerProfileImg.classList.add('object-cover');
+                }
+                
+                // Update sidebar profile picture
+                const sidebarProfileImg = document.querySelector('.sidebar-footer img');
+                if (sidebarProfileImg) {
+                    sidebarProfileImg.src = '<%= user.profile_picture %>';
+                    sidebarProfileImg.classList.add('object-cover');
+                }
+                
+                console.log('Profile pictures updated:', '<%= user.profile_picture %>');
+            <% } else { %>
+                console.log('No profile picture available for user');
+            <% } %>
+        }
+        
+        // Update immediately
+        updateProfilePictures();
+        
+        // Also update after a short delay to handle any async loading
+        setTimeout(updateProfilePictures, 100);
+    });
+    </script>
 
     <!-- Table initialization for management pages -->
     <% if (typeof title !== 'undefined' && (title.includes('Media') ||

@@ -131,6 +131,9 @@ console.log('Profile.js script loaded - initializing immediately');
                 currentProfileImage.src = result.user.profile_picture;
                 headerProfileImage.src = result.user.profile_picture;
                 
+                // Update header and sidebar profile pictures globally
+                updateGlobalProfilePictures(result.user.profile_picture);
+                
                 showModal('Success', 'Profile picture updated successfully!', 'success');
                 
                 // Reset form
@@ -169,6 +172,27 @@ console.log('Profile.js script loaded - initializing immediately');
             }
         }
     });
+
+    // Function to update profile pictures globally (header and sidebar)
+    function updateGlobalProfilePictures(profilePictureUrl) {
+        // Update header profile picture
+        const headerProfileImg = document.querySelector('#user-menu-button img');
+        if (headerProfileImg) {
+            headerProfileImg.src = profilePictureUrl;
+            headerProfileImg.classList.add('object-cover');
+            console.log('Header profile picture updated');
+        }
+        
+        // Update sidebar profile picture
+        const sidebarProfileImg = document.querySelector('.sidebar-footer img');
+        if (sidebarProfileImg) {
+            sidebarProfileImg.src = profilePictureUrl;
+            sidebarProfileImg.classList.add('object-cover');
+            console.log('Sidebar profile picture updated');
+        }
+        
+        console.log('Global profile pictures updated with:', profilePictureUrl);
+    }
 
     // Function to reset the form
     function resetForm() {
