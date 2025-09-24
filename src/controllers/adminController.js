@@ -756,21 +756,33 @@ class AdminController {
       // Get user data from session
       const user = req.session.user;
       
-      // Get user's created_at date from database
-      let userWithCreatedAt = user;
+      // Get user's complete data from database including profile_picture
+      let userWithCompleteData = user;
       if (user && user.id) {
         const [userData] = await db.execute(
-          'SELECT created_at FROM users WHERE id = ?',
+          'SELECT created_at, profile_picture FROM users WHERE id = ?',
           [user.id]
         );
         if (userData.length > 0) {
-          userWithCreatedAt = { ...user, created_at: userData[0].created_at };
+          userWithCompleteData = { 
+            ...user, 
+            created_at: userData[0].created_at,
+            profile_picture: userData[0].profile_picture
+          };
         }
       }
       
+      // Debug logging to check user data
+      console.log('Profile page - User data:', {
+        id: userWithCompleteData?.id,
+        name: userWithCompleteData?.name,
+        profile_picture: userWithCompleteData?.profile_picture,
+        hasProfilePicture: !!userWithCompleteData?.profile_picture
+      });
+      
       res.render('admin/profile', {
         title: 'Profile',
-        user: userWithCreatedAt,
+        user: userWithCompleteData,
         userPermissions: req.userPermissions || [],
         userPrimaryRole: req.userPrimaryRole || null
       });
