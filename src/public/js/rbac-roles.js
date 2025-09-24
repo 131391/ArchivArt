@@ -464,7 +464,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-});
 
 // Toast notification functions (fallback if not available globally)
 if (typeof showSuccessToast === 'undefined') {
