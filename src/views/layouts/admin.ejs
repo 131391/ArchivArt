@@ -425,6 +425,7 @@
                                 </div>
                                 Profile
                             </a>
+                <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('settings.'))) { %>
                 <a
                   href="/admin/settings"
                   class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-600 transition-all duration-200"
@@ -436,6 +437,7 @@
                                 </div>
                                 Settings
                             </a>
+                <% } %>
                 <hr class="my-2 border-gray-100" />
                 <a
                   href="/admin/logout"
