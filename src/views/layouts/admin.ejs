@@ -782,11 +782,6 @@
     <script src="/js/rbac-dashboard.js?v=<%= Date.now() %>"></script>
     <% } %>
 
-    <!-- RBAC Roles javascript - only loaded on roles management page -->
-    <% if (typeof title !== 'undefined' && title.includes('Roles Management')) {
-    %>
-    <script src="/js/rbac-roles.js?v=<%= Date.now() %>"></script>
-    <% } %>
 
     <!-- RBAC Permissions javascript - only loaded on permissions management page -->
     <% if (typeof title !== 'undefined' && title.includes('Permissions Management')) { %>
@@ -819,6 +814,11 @@
     <!-- Media edit javascript - only loaded on media edit pages -->
     <% if (typeof title !== 'undefined' && title.includes('Edit Media')) { %>
     <script src="/js/media-edit.js"></script>
+    <% } %>
+
+    <!-- RBAC Roles javascript - only loaded on roles management page -->
+    <% if (typeof title !== 'undefined' && title.includes('Roles Management')) { %>
+    <script src="/js/rbac-roles.js?v=<%= Date.now() %>"></script>
     <% } %>
 
     <!-- Settings javascript - only loaded on settings pages -->
