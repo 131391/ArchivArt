@@ -15,6 +15,7 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
 
 // Prepare columns
 const columns = [
+    { key: 'serial', label: 'Sr. No.', sortable: false, type: 'custom', formatter: 'formatSerialNumber' },
     { key: 'id', label: 'ID', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'email', label: 'Email', sortable: true },
@@ -138,6 +139,12 @@ const columns = [
 
 <script>
 // Formatter functions for custom columns
+function formatSerialNumber(item, index) {
+    // Simple serial number based on row index (1-based)
+    const serialNumber = index + 1;
+    return `<span class="text-sm font-medium text-gray-900">${serialNumber}</span>`;
+}
+
 function formatRole(roleDisplayName) {
     if (!roleDisplayName || roleDisplayName === 'null') {
         return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
