@@ -213,6 +213,22 @@ const hasAllPermissions = (permissions) => {
 const addUserPermissions = async (req, res, next) => {
     try {
         if (req.session && req.session.userId) {
+            // Update session user data with fresh profile picture data
+            if (req.session.user && req.session.user.id) {
+                try {
+                    const db = require('../config/database');
+                    const [userData] = await db.execute(
+                        'SELECT profile_picture FROM users WHERE id = ?',
+                        [req.session.user.id]
+                    );
+                    if (userData.length > 0) {
+                        req.session.user.profile_picture = userData[0].profile_picture;
+                    }
+                } catch (error) {
+                    console.warn('Could not update session user profile picture:', error);
+                }
+            }
+            
             // Get user's primary role from RBAC system
             let primaryRole = null;
             let isAdmin = false;
