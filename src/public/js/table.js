@@ -220,6 +220,12 @@ async function loadTableData() {
             endpoint = '/admin/rbac/roles/data';
         } else if (currentPath.includes('/rbac/permissions')) {
             endpoint = '/admin/rbac/permissions/data';
+        } else if (currentPath.includes('/rbac/modules') && currentPath.includes('/actions')) {
+            // Extract module ID from URL for module actions
+            const pathParts = currentPath.split('/');
+            const moduleIdIndex = pathParts.findIndex(part => part === 'modules') + 1;
+            const moduleId = pathParts[moduleIdIndex];
+            endpoint = `/admin/rbac/modules/${moduleId}/actions/data`;
         } else if (currentPath.includes('/rbac/modules')) {
             endpoint = '/admin/rbac/modules/data';
         } else {

@@ -872,4 +872,69 @@ router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermi
   }
 });
 
+// AJAX endpoint for module actions data
+router.get('/rbac/modules/:id/actions/data', addUserPermissions, hasModuleActionPermissionWeb('modules', 'view'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const sort = req.query.sort || 'name';
+    const order = req.query.order || 'asc';
+    
+    const db = require('../config/database');
+    
+    // Build query for module actions with search
+    let query = 'SELECT * FROM module_actions WHERE module_id = ?';
+    let countQuery = 'SELECT COUNT(*) as total FROM module_actions WHERE module_id = ?';
+    let queryParams = [id];
+    let countParams = [id];
+    
+    // Search condition
+    if (search) {
+      query += ' AND (name LIKE ? OR display_name LIKE ? OR description LIKE ?)';
+      countQuery += ' AND (name LIKE ? OR display_name LIKE ? OR description LIKE ?)';
+      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    
+    // Add sorting and pagination
+    const validSortColumns = ['id', 'name', 'display_name', 'description', 'is_active'];
+    const sortColumn = validSortColumns.includes(sort) ? sort : 'name';
+    const sortOrder = order.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+    query += ` ORDER BY ${sortColumn} ${sortOrder} LIMIT ${limit} OFFSET ${offset}`;
+    
+    const [actions] = await db.execute(query, queryParams);
+    const [countResult] = await db.execute(countQuery, countParams);
+    const totalActions = countResult[0].total;
+    const totalPages = Math.ceil(totalActions / limit);
+    
+    // Calculate pagination info
+    const startItem = offset + 1;
+    const endItem = Math.min(offset + limit, totalActions);
+    
+    res.json({
+      success: true,
+      data: actions,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalActions,
+        itemsPerPage: limit,
+        startItem: startItem,
+        endItem: endItem,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching module actions data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching module actions data'
+    });
+  }
+});
+
 module.exports = router;
