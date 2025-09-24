@@ -1,5 +1,9 @@
 // Profile Picture Upload Functionality
+console.log('Profile.js script loaded');
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Profile.js initializing');
+    
     const fileInput = document.getElementById('profilePictureInput');
     const uploadButton = document.getElementById('uploadProfilePicture');
     const removeButton = document.getElementById('removeProfilePicture');
@@ -26,8 +30,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!fileInput || !uploadButton || !removeButton || !previewContainer || !previewImage || !currentProfileImage || !headerProfileImage) {
         console.error('Some profile picture elements not found. Please check the HTML structure.');
+        console.log('Available elements:', {
+            fileInput: fileInput,
+            uploadButton: uploadButton,
+            removeButton: removeButton,
+            previewContainer: previewContainer,
+            previewImage: previewImage,
+            currentProfileImage: currentProfileImage,
+            headerProfileImage: headerProfileImage
+        });
         return;
     }
+
+    console.log('All profile picture elements found successfully');
 
     fileInput.addEventListener('change', function(e) {
         console.log('File input changed:', e.target.files);
