@@ -3,9 +3,10 @@
 -- =====================================================
 -- This script creates the entire database schema from scratch
 -- Includes: Core tables, Security tables, Settings, Sample data
--- Version: 1.1.0
--- Date: 2025-09-23
+-- Version: 1.2.0
+-- Date: 2025-01-23
 -- Latest Changes:
+-- - Removed legacy role column from users table (now uses RBAC system)
 -- - Added perceptual_hash column to media table (VARCHAR(128))
 -- - Updated scanning_image and file_path to TEXT for S3 URLs
 -- - Added perceptual_hash index for duplicate detection
@@ -31,7 +32,6 @@ CREATE TABLE IF NOT EXISTS users (
     provider_id VARCHAR(255),
     provider_data JSON NULL COMMENT 'Additional provider data (profile picture, etc.)',
     profile_picture TEXT NULL COMMENT 'User profile picture URL',
-    role ENUM('admin', 'user') DEFAULT 'user',
     is_active BOOLEAN DEFAULT true,
     is_blocked BOOLEAN DEFAULT false,
     is_verified BOOLEAN DEFAULT false,

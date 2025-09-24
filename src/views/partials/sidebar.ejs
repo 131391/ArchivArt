@@ -60,7 +60,7 @@
             </div>
             <div class="ml-3">
                 <p class="text-sm font-medium text-white"><%= user ? user.name : 'Admin' %></p>
-                <p class="text-xs text-gray-400"><%= user ? user.role : 'admin' %></p>
+                <p class="text-xs text-gray-400"><%= user ? (user.role_display_name || user.role) : 'admin' %></p>
             </div>
         </div>
     </div>

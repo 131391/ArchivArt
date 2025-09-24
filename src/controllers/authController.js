@@ -296,7 +296,7 @@ class AuthController {
 
       // Generate JWT access token (short-lived)
       const accessToken = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role, username: user.username },
+        { userId: user.id, email: user.email,  username: user.username },
         process.env.JWT_SECRET,
         { expiresIn: '15m' } // Short-lived access token
       );
@@ -339,7 +339,6 @@ class AuthController {
           username: user.username || null,
           email: user.email,
           mobile: user.mobile || null,
-          role: user.role,
           profile_picture: user.profile_picture || null,
           is_verified: user.is_verified || false
         }
@@ -412,8 +411,21 @@ class AuthController {
         });
       }
 
-      // Check if user has admin access role (using RBAC) - allow all roles except 'user'
-      if (!user.role || user.role === 'user') {
+      // Check if user has admin access using RBAC system
+      // Allow all users who have any role in the RBAC system (except those without roles)
+      const UserRole = require('../models/UserRole');
+      let hasRole = false;
+      let primaryRole = null;
+      
+      try {
+        primaryRole = await UserRole.getUserPrimaryRole(user.id);
+        hasRole = primaryRole && primaryRole.name !== 'user';
+      } catch (error) {
+        console.error('Error checking user role:', error);
+        hasRole = false;
+      }
+      
+      if (!hasRole) {
         req.flash('error_msg', 'Access denied. Admin panel access required.');
         return res.render('admin/login', { 
           title: 'Login',
@@ -428,7 +440,8 @@ class AuthController {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: primaryRole ? primaryRole.name : 'user', // Use RBAC role
+        role_display_name: primaryRole ? primaryRole.display_name : 'User',
         profile_picture: user.profile_picture,
         is_active: user.is_active,
         is_blocked: user.is_blocked
@@ -552,7 +565,7 @@ class AuthController {
 
       // Generate JWT access token (short-lived)
       const accessToken = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role, username: user.username },
+        { userId: user.id, email: user.email,  username: user.username },
         process.env.JWT_SECRET,
         { expiresIn: '15m' } // Short-lived access token
       );
@@ -582,7 +595,6 @@ class AuthController {
           username: user.username,
           email: user.email,
           mobile: user.mobile,
-          role: user.role,
           is_verified: user.is_verified,
           profile_picture: user.profile_picture
         }
@@ -652,7 +664,7 @@ class AuthController {
 
       // Generate new access token
       const newAccessToken = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role, username: user.username },
+        { userId: user.id, email: user.email,  username: user.username },
         process.env.JWT_SECRET,
         { expiresIn: '15m' }
       );
@@ -673,7 +685,6 @@ class AuthController {
           username: user.username,
           email: user.email,
           mobile: user.mobile,
-          role: user.role,
           is_verified: user.is_verified
         }
       });
@@ -737,7 +748,6 @@ class AuthController {
           email: user.email,
           username: user.username,
           mobile: user.mobile,
-          role: user.role,
           profile_picture: user.profile_picture,
           created_at: user.created_at
         }
@@ -898,7 +908,6 @@ class AuthController {
           username: user.username || null,
           email: user.email,
           mobile: user.mobile || null,
-          role: user.role,
           profile_picture: user.profile_picture || null,
           is_verified: user.is_verified || false
         }

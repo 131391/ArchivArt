@@ -213,24 +213,18 @@ const hasAllPermissions = (permissions) => {
 const addUserPermissions = async (req, res, next) => {
     try {
         if (req.session && req.session.userId) {
-            // Check if user has admin role - try multiple ways to get role info
-            const userRole = req.session.user?.role || req.session.role || 'admin'; // Default to admin for now
+            // Get user's primary role from RBAC system
+            let primaryRole = null;
+            let isAdmin = false;
             
-            // Check if user is admin in the users table (legacy role system)
-            // OR if user has admin role in RBAC system
-            let isAdmin = userRole === 'admin' || userRole === 'super_admin';
-            
-            if (!isAdmin) {
-                // Check if user has admin role in RBAC system
-                try {
-                    const primaryRole = await Promise.race([
-                        UserRole.getUserPrimaryRole(req.session.userId),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-                    ]);
-                    isAdmin = primaryRole && (primaryRole.name === 'admin' || primaryRole.name === 'super_admin');
-                } catch (error) {
-                    console.warn('Could not check RBAC role, defaulting to non-admin');
-                }
+            try {
+                primaryRole = await Promise.race([
+                    UserRole.getUserPrimaryRole(req.session.userId),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+                ]);
+                isAdmin = primaryRole && (primaryRole.name === 'admin' || primaryRole.name === 'super_admin');
+            } catch (error) {
+                console.warn('Could not load RBAC role, defaulting to non-admin');
             }
             
             // For admin users, load permissions for sidebar display

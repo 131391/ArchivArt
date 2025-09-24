@@ -316,7 +316,7 @@
                 <%= user ? user.name : 'Admin' %>
               </p>
               <p class="text-xs text-slate-400 capitalize">
-                <%= user ? user.role : 'admin' %>
+                <%= user ? (user.role_display_name || user.role) : 'admin' %>
               </p>
                     </div>
                 </div>
@@ -393,7 +393,7 @@
                     <%= user ? user.name : 'Admin' %>
                   </p>
                   <p class="text-xs text-gray-500 capitalize">
-                    <%= user ? user.role : 'admin' %>
+                    <%= user ? (user.role_display_name || user.role) : 'admin' %>
                   </p>
                             </div>
                 <i

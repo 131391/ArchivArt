@@ -16,7 +16,7 @@ const authenticateToken = async (req, res, next) => {
     
     // Get user from database
     const [users] = await db.execute(
-      'SELECT id, name, email, role, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+      'SELECT id, name, email, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
       [decoded.userId]
     );
 
@@ -58,7 +58,7 @@ const authenticateWithRefresh = async (req, res, next) => {
     
     // Get user from database
     const [users] = await db.execute(
-      'SELECT id, name, email, role, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+      'SELECT id, name, email, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
       [decoded.userId]
     );
 
@@ -120,7 +120,7 @@ const authenticateWithRefresh = async (req, res, next) => {
 
         // Get user information
         const [users] = await db.execute(
-          'SELECT id, name, email, role, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+          'SELECT id, name, email, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
           [session.user_id]
         );
 
@@ -162,12 +162,30 @@ const authenticateWithRefresh = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user has admin access - allow all roles except 'user'
-const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role === 'user') {
+// Middleware to check if user has admin access - use RBAC system
+const requireAdmin = async (req, res, next) => {
+  if (!req.user) {
     return res.status(403).json({ error: 'Admin panel access required' });
   }
-  next();
+  
+  // Check if user has any role in RBAC system (except 'user' role)
+  try {
+    const UserRole = require('../models/UserRole');
+    const primaryRole = await UserRole.getUserPrimaryRole(req.user.id);
+    
+    if (!primaryRole || primaryRole.name === 'user') {
+      return res.status(403).json({ error: 'Admin panel access required' });
+    }
+    
+    // Add role info to request for downstream use
+    req.user.role = primaryRole.name;
+    req.user.role_display_name = primaryRole.display_name;
+    
+    next();
+  } catch (error) {
+    console.error('Error checking user role:', error);
+    return res.status(403).json({ error: 'Admin panel access required' });
+  }
 };
 
 // Middleware for web routes (session-based)
@@ -179,9 +197,29 @@ const requireAuth = (req, res, next) => {
   next();
 };
 
-// Middleware for admin web routes - allow all roles except 'user'
-const requireAdminWeb = (req, res, next) => {
-  if (!req.session.user || req.session.user.role === 'user') {
+// Middleware for admin web routes - use RBAC system
+const requireAdminWeb = async (req, res, next) => {
+  if (!req.session.user) {
+    req.flash('error_msg', 'Admin panel access required');
+    return res.redirect('/admin/login');
+  }
+  
+  // Check if user has any role in RBAC system (except 'user' role)
+  try {
+    const UserRole = require('../models/UserRole');
+    const primaryRole = await UserRole.getUserPrimaryRole(req.session.user.id);
+    
+    if (!primaryRole || primaryRole.name === 'user') {
+      req.flash('error_msg', 'Admin panel access required');
+      return res.redirect('/admin/login');
+    }
+    
+    // Update session with current role info
+    req.session.user.role = primaryRole.name;
+    req.session.user.role_display_name = primaryRole.display_name;
+    
+  } catch (error) {
+    console.error('Error checking user role:', error);
     req.flash('error_msg', 'Admin panel access required');
     return res.redirect('/admin/login');
   }
