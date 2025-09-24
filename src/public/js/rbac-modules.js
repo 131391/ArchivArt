@@ -413,5 +413,71 @@ function showErrorToast(message) {
     }, 3000);
 }
 
-// Make sure formatters are available globally
+// Additional formatter functions for module table
+function formatIcon(item) {
+    const iconPath = item.icon || item;
+    if (!iconPath) return '<span class="text-gray-400 italic">No icon</span>';
+    return `<div class="flex items-center space-x-2">
+        <i class="${iconPath} text-indigo-600 text-sm"></i>
+        <span class="text-xs text-gray-500 font-mono">${iconPath}</span>
+    </div>`;
+}
+
+function formatRoute(item) {
+    const route = item.route || item;
+    if (!route) return '<span class="text-gray-400 italic">No route</span>';
+    return `<div class="flex items-center space-x-2">
+        <i class="fas fa-link text-blue-600 text-xs"></i>
+        <span class="text-sm font-mono text-gray-700">${route}</span>
+    </div>`;
+}
+
+function formatOrderIndex(item) {
+    const orderIndex = item.order_index !== undefined ? item.order_index : item;
+    if (orderIndex === null || orderIndex === undefined) return '<span class="text-gray-400 italic">No order</span>';
+    const orderText = orderIndex === 0 ? 'First' : 
+                     orderIndex === 1 ? 'Second' : 
+                     orderIndex === 2 ? 'Third' : 
+                     orderIndex === 3 ? 'Fourth' : 
+                     orderIndex === 4 ? 'Fifth' : 
+                     `Position ${orderIndex}`;
+    return `<div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+            <i class="fas fa-sort-numeric-up mr-1"></i>
+            ${orderText}
+        </span>
+        <span class="text-xs text-gray-500">(${orderIndex})</span>
+    </div>`;
+}
+
+function formatActionCount(item) {
+    const count = item.action_count !== undefined ? item.action_count : item;
+    if (!count || count === 0) return '<span class="text-gray-400 italic">No actions</span>';
+    const actionText = count === 1 ? '1 Action' : `${count} Actions`;
+    return `<div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+            <i class="fas fa-cogs mr-1"></i>
+            ${actionText}
+        </span>
+    </div>`;
+}
+
+function formatPermissionCount(item) {
+    const count = item.permission_count !== undefined ? item.permission_count : item;
+    if (!count || count === 0) return '<span class="text-gray-400 italic">No permissions</span>';
+    const permissionText = count === 1 ? '1 Permission' : `${count} Permissions`;
+    return `<div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+            <i class="fas fa-key mr-1"></i>
+            ${permissionText}
+        </span>
+    </div>`;
+}
+
+// Make sure all formatters are available globally
 window.formatStatus = formatStatus;
+window.formatIcon = formatIcon;
+window.formatRoute = formatRoute;
+window.formatOrderIndex = formatOrderIndex;
+window.formatActionCount = formatActionCount;
+window.formatPermissionCount = formatPermissionCount;
