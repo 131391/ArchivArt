@@ -711,6 +711,48 @@ function generateModuleTableRows(modules) {
     `).join('');
 }
 
+// Generate module table rows
+function generateModuleTableRows(modules) {
+    return modules.map(module => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.id}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.display_name || ''}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.name || ''}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatIcon" data-item='${JSON.stringify(module)}'>
+                <!-- Icon will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatRoute" data-item='${JSON.stringify(module)}'>
+                <!-- Route will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatOrderIndex" data-item='${JSON.stringify(module)}'>
+                <!-- Order will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionCount" data-item='${JSON.stringify(module)}'>
+                <!-- Action count will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermissionCount" data-item='${JSON.stringify(module)}'>
+                <!-- Permission count will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                    <button onclick="viewModule(${module.id})" class="text-blue-600 hover:text-blue-900" title="View">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button onclick="editModule(${module.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="manageModuleActions(${module.id})" class="text-green-600 hover:text-green-900" title="Actions">
+                        <i class="fas fa-cogs"></i>
+                    </button>
+                    <button onclick="deleteModule(${module.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
 // Generate module action table rows
 function generateModuleActionTableRows(actions) {
     return actions.map(action => `

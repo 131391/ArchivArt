@@ -1,22 +1,22 @@
 <script>
-// Formatter functions for custom columns
-function formatIcon(iconPath) {
+// Make formatter functions available globally for table formatting
+window.formatIcon = function(iconPath) {
     if (!iconPath) return '<span class="text-gray-400 italic">No icon</span>';
     return `<div class="flex items-center space-x-2">
         <i class="${iconPath} text-indigo-600 text-sm"></i>
         <span class="text-xs text-gray-500 font-mono">${iconPath}</span>
     </div>`;
-}
+};
 
-function formatRoute(route) {
+window.formatRoute = function(route) {
     if (!route) return '<span class="text-gray-400 italic">No route</span>';
     return `<div class="flex items-center space-x-2">
         <i class="fas fa-link text-blue-600 text-xs"></i>
         <span class="text-sm font-mono text-gray-700">${route}</span>
     </div>`;
-}
+};
 
-function formatOrderIndex(orderIndex) {
+window.formatOrderIndex = function(orderIndex) {
     if (orderIndex === null || orderIndex === undefined) return '<span class="text-gray-400 italic">No order</span>';
     const orderText = orderIndex === 0 ? 'First' : 
                      orderIndex === 1 ? 'Second' : 
@@ -31,9 +31,9 @@ function formatOrderIndex(orderIndex) {
         </span>
         <span class="text-xs text-gray-500">(${orderIndex})</span>
     </div>`;
-}
+};
 
-function formatActionCount(count) {
+window.formatActionCount = function(count) {
     if (!count || count === 0) return '<span class="text-gray-400 italic">No actions</span>';
     const actionText = count === 1 ? '1 Action' : `${count} Actions`;
     return `<div class="flex items-center space-x-2">
@@ -42,9 +42,9 @@ function formatActionCount(count) {
             ${actionText}
         </span>
     </div>`;
-}
+};
 
-function formatPermissionCount(count) {
+window.formatPermissionCount = function(count) {
     if (!count || count === 0) return '<span class="text-gray-400 italic">No permissions</span>';
     const permissionText = count === 1 ? '1 Permission' : `${count} Permissions`;
     return `<div class="flex items-center space-x-2">
@@ -53,7 +53,14 @@ function formatPermissionCount(count) {
             ${permissionText}
         </span>
     </div>`;
-}
+};
+
+// Also create local function references for backward compatibility
+function formatIcon(iconPath) { return window.formatIcon(iconPath); }
+function formatRoute(route) { return window.formatRoute(route); }
+function formatOrderIndex(orderIndex) { return window.formatOrderIndex(orderIndex); }
+function formatActionCount(count) { return window.formatActionCount(count); }
+function formatPermissionCount(count) { return window.formatPermissionCount(count); }
 </script>
 
 <!-- Include Common Table Component -->
