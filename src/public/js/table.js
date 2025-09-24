@@ -438,6 +438,8 @@ function generateTableRows(data) {
         return generateRoleTableRows(data);
     } else if (currentPath.includes('/rbac/permissions')) {
         return generatePermissionTableRows(data);
+    } else if (currentPath.includes('/rbac/modules') && currentPath.includes('/actions')) {
+        return generateModuleActionTableRows(data);
     } else if (currentPath.includes('/rbac/modules')) {
         return generateModuleTableRows(data);
     } else {
@@ -612,6 +614,34 @@ function generateModuleTableRows(modules) {
                         <i class="fas fa-cogs"></i>
                     </button>
                     <button onclick="deleteModule(${module.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Generate module action table rows
+function generateModuleActionTableRows(actions) {
+    return actions.map(action => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.id}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.name || ''}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.display_name || ''}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.description || ''}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatStatus" data-item='${JSON.stringify(action)}'>
+                <!-- Status will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                    <button onclick="viewModuleAction(${action.id})" class="text-blue-600 hover:text-blue-900" title="View">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button onclick="editModuleAction(${action.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deleteModuleAction(${action.id})" class="text-red-600 hover:text-red-900" title="Delete">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
