@@ -139,6 +139,10 @@
                                 <i class="fas fa-save mr-2"></i>
                                 Upload
                             </button>
+                            <button id="removeProfilePicture" class="hidden inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+                                <i class="fas fa-trash mr-2"></i>
+                                Remove
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -367,6 +371,7 @@ function togglePassword(fieldId) {
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('profilePictureInput');
     const uploadButton = document.getElementById('uploadProfilePicture');
+    const removeButton = document.getElementById('removeProfilePicture');
     const previewContainer = document.getElementById('imagePreview');
     const previewImage = document.getElementById('previewImage');
     const progressContainer = document.getElementById('uploadProgress');
@@ -377,38 +382,74 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let selectedFile = null;
 
+    // Debug logging
+    console.log('Profile picture elements found:', {
+        fileInput: !!fileInput,
+        uploadButton: !!uploadButton,
+        removeButton: !!removeButton,
+        previewContainer: !!previewContainer,
+        previewImage: !!previewImage,
+        currentProfileImage: !!currentProfileImage,
+        headerProfileImage: !!headerProfileImage
+    });
+
     fileInput.addEventListener('change', function(e) {
+        console.log('File input changed:', e.target.files);
         const file = e.target.files[0];
         if (file) {
+            console.log('Selected file:', {
+                name: file.name,
+                type: file.type,
+                size: file.size
+            });
+
             // Validate file type
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
             if (!allowedTypes.includes(file.type)) {
                 showModal('Error', 'Please select a valid image file (JPEG, PNG, or WebP).', 'error');
+                fileInput.value = ''; // Clear the input
                 return;
             }
 
             // Validate file size (5MB)
             if (file.size > 5 * 1024 * 1024) {
                 showModal('Error', 'File size must be less than 5MB.', 'error');
+                fileInput.value = ''; // Clear the input
                 return;
             }
 
             selectedFile = file;
             uploadButton.disabled = false;
+            removeButton.classList.remove('hidden');
 
             // Show preview
             const reader = new FileReader();
             reader.onload = function(e) {
+                console.log('FileReader loaded, showing preview');
                 previewImage.src = e.target.result;
                 previewContainer.classList.remove('hidden');
+                
+                // Also update the current profile image temporarily for preview
+                currentProfileImage.src = e.target.result;
+            };
+            reader.onerror = function(error) {
+                console.error('FileReader error:', error);
+                showModal('Error', 'Failed to read the selected file.', 'error');
             };
             reader.readAsDataURL(file);
+        } else {
+            // No file selected
+            selectedFile = null;
+            uploadButton.disabled = true;
+            removeButton.classList.add('hidden');
+            previewContainer.classList.add('hidden');
         }
     });
 
     uploadButton.addEventListener('click', async function() {
         if (!selectedFile) return;
 
+        console.log('Starting upload for file:', selectedFile.name);
         uploadButton.disabled = true;
         progressContainer.classList.remove('hidden');
         progressBar.style.width = '0%';
@@ -422,6 +463,8 @@ document.addEventListener('DOMContentLoaded', function() {
             progressBar.style.width = '30%';
             progressText.textContent = 'Uploading to cloud storage...';
 
+            console.log('Sending request to /admin/profile/picture');
+            
             // Upload to server using proper file upload endpoint
             const response = await fetch('/admin/profile/picture', {
                 method: 'POST',
@@ -429,9 +472,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 credentials: 'same-origin' // Include session cookies
             });
 
-            const result = await response.json();
+            console.log('Response received:', response.status, response.statusText);
 
-            if (response.ok && result.success) {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('Upload result:', result);
+
+            if (result.success) {
                 progressBar.style.width = '100%';
                 progressText.textContent = 'Upload complete!';
                 
@@ -442,10 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showModal('Success', 'Profile picture updated successfully!', 'success');
                 
                 // Reset form
-                fileInput.value = '';
-                selectedFile = null;
-                uploadButton.disabled = true;
-                previewContainer.classList.add('hidden');
+                resetForm();
                 
                 setTimeout(() => {
                     progressContainer.classList.add('hidden');
@@ -461,6 +508,27 @@ document.addEventListener('DOMContentLoaded', function() {
             progressContainer.classList.add('hidden');
         }
     });
+
+    // Remove button functionality
+    removeButton.addEventListener('click', function() {
+        console.log('Remove button clicked');
+        if (confirm('Are you sure you want to remove the selected image?')) {
+            resetForm();
+        }
+    });
+
+    // Function to reset the form
+    function resetForm() {
+        fileInput.value = '';
+        selectedFile = null;
+        uploadButton.disabled = true;
+        removeButton.classList.add('hidden');
+        previewContainer.classList.add('hidden');
+        
+        // Reset current profile image to original (if available)
+        const originalSrc = '<%= user.profile_picture || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.name) + "&background=6366f1&color=ffffff&size=80&bold=true" %>';
+        currentProfileImage.src = originalSrc;
+    }
 
 
     function showModal(title, message, type) {
