@@ -1,3 +1,12 @@
+<script>
+// Make formatStatus function available globally for table formatting
+window.formatStatus = function(item) {
+    return item.is_active ? 
+        '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>' : 
+        '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>';
+};
+</script>
+
 <!-- Include Common Table Component -->
 <%- include('../../components/table', {
     title: title,
@@ -32,15 +41,6 @@
         }
     ]
 }) %>
-
-<script>
-// Make formatStatus function available globally for table formatting
-window.formatStatus = function(item) {
-    return item.is_active ? 
-        '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>' : 
-        '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>';
-};
-</script>
 
 <!-- View Module Action Modal -->
 <div id="viewModuleActionModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50">
