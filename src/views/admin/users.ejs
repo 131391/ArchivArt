@@ -15,8 +15,6 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
 
 // Prepare columns
 const columns = [
-    { key: 'serial', label: 'Sr. No.', sortable: false, type: 'custom', formatter: 'formatSerialNumber' },
-    { key: 'id', label: 'ID', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'email', label: 'Email', sortable: true },
     { key: 'role_display_name', label: 'Role', sortable: true, type: 'custom', formatter: 'formatRole' },
@@ -139,18 +137,6 @@ const columns = [
 
 <script>
 // Formatter functions for custom columns
-function formatSerialNumber(item) {
-    // Return placeholder - will be updated by updateSerialNumbers function
-    return `<span class="text-sm font-medium text-gray-900 serial-number">1</span>`;
-}
-
-// Function to update all serial numbers after table loads
-function updateSerialNumbers() {
-    const serialElements = document.querySelectorAll('.serial-number');
-    serialElements.forEach((element, index) => {
-        element.textContent = index + 1;
-    });
-}
 
 function formatRole(roleDisplayName) {
     if (!roleDisplayName || roleDisplayName === 'null') {
@@ -182,9 +168,15 @@ function formatStatus(isActive) {
 function formatDate(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
+    // Format as d/m/Y (day/month/year)
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const formattedDate = `${day}/${month}/${year}`;
+    
     return `<div class="flex items-center space-x-2">
         <i class="fas fa-calendar text-gray-400 text-xs"></i>
-        <span class="text-sm text-gray-900">${date.toLocaleDateString()}</span>
+        <span class="text-sm text-gray-900">${formattedDate}</span>
     </div>`;
 }
 
@@ -401,17 +393,4 @@ function showErrorToast(message) {
     }, 3000);
 }
 
-// Update serial numbers after page loads
-document.addEventListener('DOMContentLoaded', function() {
-    updateSerialNumbers();
-});
-
-// Also update when table is refreshed (for AJAX updates)
-if (typeof refreshTable === 'function') {
-    const originalRefreshTable = refreshTable;
-    refreshTable = function() {
-        originalRefreshTable();
-        setTimeout(updateSerialNumbers, 100);
-    };
-}
 </script>
