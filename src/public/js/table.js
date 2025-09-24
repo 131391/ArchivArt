@@ -155,8 +155,36 @@ async function loadTableData() {
     // Show global loader for AJAX request
     const currentPath = window.location.pathname;
     const isMediaPage = currentPath.includes('/media');
-    const loadingTitle = isMediaPage ? 'Loading Media...' : 'Loading Users...';
-    const loadingMessage = isMediaPage ? 'Fetching media data from server' : 'Fetching user data from server';
+    const isModuleActionsPage = currentPath.includes('/rbac/modules') && currentPath.includes('/actions');
+    const isUsersPage = currentPath.includes('/users');
+    const isRolesPage = currentPath.includes('/rbac/roles');
+    const isPermissionsPage = currentPath.includes('/rbac/permissions');
+    const isModulesPage = currentPath.includes('/rbac/modules');
+    
+    let loadingTitle, loadingMessage;
+    
+    if (isModuleActionsPage) {
+        loadingTitle = 'Loading Module Actions...';
+        loadingMessage = 'Fetching module actions data from server';
+    } else if (isMediaPage) {
+        loadingTitle = 'Loading Media...';
+        loadingMessage = 'Fetching media data from server';
+    } else if (isUsersPage) {
+        loadingTitle = 'Loading Users...';
+        loadingMessage = 'Fetching user data from server';
+    } else if (isRolesPage) {
+        loadingTitle = 'Loading Roles...';
+        loadingMessage = 'Fetching roles data from server';
+    } else if (isPermissionsPage) {
+        loadingTitle = 'Loading Permissions...';
+        loadingMessage = 'Fetching permissions data from server';
+    } else if (isModulesPage) {
+        loadingTitle = 'Loading Modules...';
+        loadingMessage = 'Fetching modules data from server';
+    } else {
+        loadingTitle = 'Loading Users...';
+        loadingMessage = 'Fetching user data from server';
+    }
     
     if (typeof showAjaxLoader === 'function') {
         showAjaxLoader({
@@ -280,12 +308,43 @@ function updateTableContent(data) {
             // Show empty state when no data - determine content based on current page
             const currentPath = window.location.pathname;
             const isMediaPage = currentPath.includes('/media');
+            const isModuleActionsPage = currentPath.includes('/rbac/modules') && currentPath.includes('/actions');
+            const isUsersPage = currentPath.includes('/users');
+            const isRolesPage = currentPath.includes('/rbac/roles');
+            const isPermissionsPage = currentPath.includes('/rbac/permissions');
+            const isModulesPage = currentPath.includes('/rbac/modules');
             
-            const emptyIcon = isMediaPage ? 'fas fa-images' : 'fas fa-users';
-            const emptyTitle = isMediaPage ? 'No Media Found' : 'No Users Found';
-            const emptyMessage = isMediaPage ? 
-                'No media files have been uploaded yet.' : 
-                'No users match your current filter criteria.';
+            let emptyIcon, emptyTitle, emptyMessage;
+            
+            if (isModuleActionsPage) {
+                emptyIcon = 'fas fa-cogs';
+                emptyTitle = 'No Module Actions Found';
+                emptyMessage = 'No module actions match your current search criteria.';
+            } else if (isMediaPage) {
+                emptyIcon = 'fas fa-images';
+                emptyTitle = 'No Media Found';
+                emptyMessage = 'No media files have been uploaded yet.';
+            } else if (isUsersPage) {
+                emptyIcon = 'fas fa-users';
+                emptyTitle = 'No Users Found';
+                emptyMessage = 'No users match your current filter criteria.';
+            } else if (isRolesPage) {
+                emptyIcon = 'fas fa-user-tag';
+                emptyTitle = 'No Roles Found';
+                emptyMessage = 'No roles match your current filter criteria.';
+            } else if (isPermissionsPage) {
+                emptyIcon = 'fas fa-key';
+                emptyTitle = 'No Permissions Found';
+                emptyMessage = 'No permissions match your current filter criteria.';
+            } else if (isModulesPage) {
+                emptyIcon = 'fas fa-cube';
+                emptyTitle = 'No Modules Found';
+                emptyMessage = 'No modules match your current filter criteria.';
+            } else {
+                emptyIcon = 'fas fa-users';
+                emptyTitle = 'No Users Found';
+                emptyMessage = 'No users match your current filter criteria.';
+            }
             
             console.log('Showing empty state:', emptyTitle);
             tbody.innerHTML = `
@@ -381,12 +440,36 @@ function updateTableContent(data) {
 function showLoadingState() {
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
+        const currentPath = window.location.pathname;
+        const isModuleActionsPage = currentPath.includes('/rbac/modules') && currentPath.includes('/actions');
+        const isUsersPage = currentPath.includes('/users');
+        const isMediaPage = currentPath.includes('/media');
+        const isRolesPage = currentPath.includes('/rbac/roles');
+        const isPermissionsPage = currentPath.includes('/rbac/permissions');
+        const isModulesPage = currentPath.includes('/rbac/modules');
+        
+        let loadingText = 'Loading...';
+        
+        if (isModuleActionsPage) {
+            loadingText = 'Loading module actions...';
+        } else if (isUsersPage) {
+            loadingText = 'Loading users...';
+        } else if (isMediaPage) {
+            loadingText = 'Loading media...';
+        } else if (isRolesPage) {
+            loadingText = 'Loading roles...';
+        } else if (isPermissionsPage) {
+            loadingText = 'Loading permissions...';
+        } else if (isModulesPage) {
+            loadingText = 'Loading modules...';
+        }
+        
         tbody.innerHTML = `
             <tr>
                 <td colspan="100%" class="px-6 py-4 text-center">
                     <div class="flex items-center justify-center">
                         <i class="fas fa-spinner fa-spin text-indigo-600 mr-2"></i>
-                        Loading...
+                        ${loadingText}
                     </div>
                 </td>
             </tr>
