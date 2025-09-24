@@ -651,12 +651,36 @@
                 return; // Skip highlighting for this case
             }
             
-            // Check for exact match or if current path starts with the link href
-            // This handles sub-paths like /admin/media/edit/1 matching /admin/media
-        if (
-          linkHref === currentPath ||
-          currentPath.startsWith(linkHref + "/")
-        ) {
+            // Special handling for RBAC sub-menu items
+            if (linkHref === "/admin/rbac" && currentPath === "/admin/rbac") {
+                // Only highlight RBAC Dashboard for exact match
+            } else if (linkHref === "/admin/rbac/modules" && currentPath.startsWith("/admin/rbac/modules")) {
+                // Only highlight Module Management for module pages
+            } else if (linkHref === "/admin/rbac/roles" && currentPath.startsWith("/admin/rbac/roles")) {
+                // Only highlight Role Management for role pages
+            } else if (linkHref === "/admin/rbac/permissions" && currentPath.startsWith("/admin/rbac/permissions")) {
+                // Only highlight Permission Management for permission pages
+            } else if (linkHref !== "/admin/rbac" && linkHref !== "/admin/rbac/modules" && linkHref !== "/admin/rbac/roles" && linkHref !== "/admin/rbac/permissions") {
+                // For non-RBAC links, use the original logic
+                // Check for exact match or if current path starts with the link href
+                // This handles sub-paths like /admin/media/edit/1 matching /admin/media
+                if (
+                  linkHref === currentPath ||
+                  currentPath.startsWith(linkHref + "/")
+                ) {
+                    // Apply highlighting for non-RBAC links
+                }
+            }
+            
+            // Apply highlighting if any condition matches
+            if (
+              (linkHref === "/admin/rbac" && currentPath === "/admin/rbac") ||
+              (linkHref === "/admin/rbac/modules" && currentPath.startsWith("/admin/rbac/modules")) ||
+              (linkHref === "/admin/rbac/roles" && currentPath.startsWith("/admin/rbac/roles")) ||
+              (linkHref === "/admin/rbac/permissions" && currentPath.startsWith("/admin/rbac/permissions")) ||
+              (linkHref !== "/admin/rbac" && linkHref !== "/admin/rbac/modules" && linkHref !== "/admin/rbac/roles" && linkHref !== "/admin/rbac/permissions" && 
+               (linkHref === currentPath || currentPath.startsWith(linkHref + "/")))
+            ) {
           link.classList.remove(
             "text-slate-300",
             "text-slate-400",
