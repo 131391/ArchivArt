@@ -727,6 +727,11 @@
     <script src="/js/settings.js"></script>
     <% } %>
 
+    <!-- Profile javascript - only loaded on profile pages -->
+    <% if (typeof title !== 'undefined' && title.includes('Profile')) { %>
+    <script src="/js/profile.js"></script>
+    <% } %>
+
     <!-- Table initialization for management pages -->
     <% if (typeof title !== 'undefined' && (title.includes('Media') ||
     title.includes('Users') || title.includes('Roles Management') ||
