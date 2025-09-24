@@ -13,50 +13,113 @@ function formatStatus(item) {
 
 // Role action functions
 function viewRole(roleId) {
+    // Show loader
+    if (typeof GlobalLoader !== 'undefined') {
+        GlobalLoader.show({
+            title: 'Loading Role Details...',
+            message: 'Fetching role information from server',
+            showProgress: false
+        });
+    }
+    
     // Fetch role details and show modal
     fetch(`/admin/api/rbac/roles/${roleId}`, {
         credentials: 'same-origin'
     })
         .then(response => response.json())
         .then(data => {
+            // Hide loader
+            if (typeof GlobalLoader !== 'undefined') {
+                GlobalLoader.hide();
+            }
+            
             if (data.success) {
                 const role = data.data;
                 const roleDetailsEl = document.getElementById('roleDetails');
                 if (roleDetailsEl) {
                     roleDetailsEl.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="flex items-center space-x-4">
-                                <div class="flex-shrink-0 h-16 w-16">
-                                    <div class="h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
-                                        <span class="text-xl font-medium text-white">${role.display_name.charAt(0).toUpperCase()}</span>
+                        <div class="space-y-6">
+                            <!-- Role Header -->
+                            <div class="flex items-center space-x-6">
+                                <div class="flex-shrink-0 h-20 w-20">
+                                    <div class="h-20 w-20 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+                                        <span class="text-2xl font-bold text-white">${role.display_name.charAt(0).toUpperCase()}</span>
                                     </div>
                                 </div>
-                                <div>
-                                    <h4 class="text-lg font-semibold text-gray-900">${role.display_name}</h4>
-                                    <p class="text-sm text-gray-500">${role.name}</p>
+                                <div class="flex-1">
+                                    <h4 class="text-2xl font-bold text-gray-900 mb-1">${role.display_name}</h4>
+                                    <p class="text-sm text-gray-500 font-mono bg-gray-100 px-3 py-1 rounded-full inline-block">${role.name}</p>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Users</label>
-                                    <p class="mt-1 text-sm text-gray-900">${role.user_count || 0}</p>
+                            
+                            <!-- Role Stats -->
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-users text-white text-sm"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <p class="text-sm font-medium text-blue-600">Users</p>
+                                            <p class="text-2xl font-bold text-blue-900">${role.user_count || 0}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Permissions</label>
-                                    <p class="mt-1 text-sm text-gray-900">${role.permission_count || 0}</p>
+                                
+                                <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-key text-white text-sm"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <p class="text-sm font-medium text-green-600">Permissions</p>
+                                            <p class="text-2xl font-bold text-green-900">${role.permission_count || 0}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Status</label>
-                                    <p class="mt-1 text-sm text-gray-900">${role.is_active ? 'Active' : 'Inactive'}</p>
+                                
+                                <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-info-circle text-white text-sm"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <p class="text-sm font-medium text-purple-600">Status</p>
+                                            <p class="text-lg font-bold ${role.is_active ? 'text-green-600' : 'text-red-600'}">
+                                                ${role.is_active ? 'Active' : 'Inactive'}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Created</label>
-                                    <p class="mt-1 text-sm text-gray-900">${new Date(role.created_at).toLocaleDateString()}</p>
+                                
+                                <div class="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-calendar text-white text-sm"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <p class="text-sm font-medium text-orange-600">Created</p>
+                                            <p class="text-lg font-bold text-orange-900">${new Date(role.created_at).toLocaleDateString('en-GB')}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Description</label>
-                                <p class="mt-1 text-sm text-gray-900">${role.description || 'No description provided'}</p>
+                            
+                            <!-- Description -->
+                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                    <i class="fas fa-align-left mr-2 text-gray-500"></i>
+                                    Description
+                                </h5>
+                                <p class="text-sm text-gray-900 leading-relaxed">${role.description || 'No description provided for this role.'}</p>
                             </div>
                         </div>
                     `;
@@ -77,18 +140,36 @@ function viewRole(roleId) {
             }
         })
         .catch(error => {
+            // Hide loader on error
+            if (typeof GlobalLoader !== 'undefined') {
+                GlobalLoader.hide();
+            }
             console.error('Error:', error);
             showErrorToast('Error loading role details');
         });
 }
 
 function editRole(roleId) {
+    // Show loader
+    if (typeof GlobalLoader !== 'undefined') {
+        GlobalLoader.show({
+            title: 'Loading Role Details...',
+            message: 'Fetching role information for editing',
+            showProgress: false
+        });
+    }
+    
     // Fetch role details and show edit modal
     fetch(`/admin/api/rbac/roles/${roleId}`, {
         credentials: 'same-origin'
     })
         .then(response => response.json())
         .then(data => {
+            // Hide loader
+            if (typeof GlobalLoader !== 'undefined') {
+                GlobalLoader.hide();
+            }
+            
             if (data.success) {
                 const role = data.data;
                 document.getElementById('editRoleId').value = role.id;
@@ -112,6 +193,10 @@ function editRole(roleId) {
             }
         })
         .catch(error => {
+            // Hide loader on error
+            if (typeof GlobalLoader !== 'undefined') {
+                GlobalLoader.hide();
+            }
             console.error('Error:', error);
             showErrorToast('Error loading role details');
         });
@@ -132,11 +217,26 @@ function deleteRole(roleId) {
 }
 
 function performDeleteRole(roleId) {
+    // Show loader
+    if (typeof GlobalLoader !== 'undefined') {
+        GlobalLoader.show({
+            title: 'Deleting Role...',
+            message: 'Removing role from system',
+            showProgress: false
+        });
+    }
+    
     fetch(`/admin/api/rbac/roles/${roleId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'same-origin'
     })
     .then(response => response.json())
     .then(data => {
+        // Hide loader
+        if (typeof GlobalLoader !== 'undefined') {
+            GlobalLoader.hide();
+        }
+        
         if (data.success) {
             showSuccessToast('Role deleted successfully');
             // Refresh the table
@@ -152,6 +252,10 @@ function performDeleteRole(roleId) {
         }
     })
     .catch(error => {
+        // Hide loader on error
+        if (typeof GlobalLoader !== 'undefined') {
+            GlobalLoader.hide();
+        }
         console.error('Error:', error);
         showErrorToast('Error deleting role');
     });
@@ -222,34 +326,56 @@ function closeCreateModal() {
 }
 
 // Click outside modal to close
-document.addEventListener('click', function(event) {
-    // Close view modal
+document.addEventListener('DOMContentLoaded', function() {
+    // View modal click outside to close
     const viewModal = document.getElementById('viewRoleModal');
-    const viewModalContainer = document.getElementById('viewRoleModalContainer');
-    if (viewModal && !viewModal.classList.contains('hidden') && 
-        !viewModalContainer.contains(event.target) && event.target === viewModal) {
-        closeViewModal();
+    if (viewModal) {
+        viewModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeViewModal();
+            }
+        });
     }
     
-    // Close edit modal
+    // Edit modal click outside to close
     const editModal = document.getElementById('editRoleModal');
-    const editModalContainer = document.getElementById('editRoleModalContainer');
-    if (editModal && !editModal.classList.contains('hidden') && 
-        !editModalContainer.contains(event.target) && event.target === editModal) {
-        closeEditModal();
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
     }
     
-    // Close create modal
+    // Create modal click outside to close
     const createModal = document.getElementById('createRoleModal');
-    const createModalContainer = document.getElementById('createRoleModalContainer');
-    if (createModal && !createModal.classList.contains('hidden') && 
-        !createModalContainer.contains(event.target) && event.target === createModal) {
-        closeCreateModal();
+    if (createModal) {
+        createModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCreateModal();
+            }
+        });
     }
+    
+    // ESC key to close modals
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const viewModal = document.getElementById('viewRoleModal');
+            const editModal = document.getElementById('editRoleModal');
+            const createModal = document.getElementById('createRoleModal');
+            
+            if (viewModal && !viewModal.classList.contains('hidden')) {
+                closeViewModal();
+            } else if (editModal && !editModal.classList.contains('hidden')) {
+                closeEditModal();
+            } else if (createModal && !createModal.classList.contains('hidden')) {
+                closeCreateModal();
+            }
+        }
+    });
 });
 
-// Form submission handlers
-document.addEventListener('DOMContentLoaded', function() {
+    // Form submission handlers
     // Edit form submission
     const editForm = document.getElementById('editRoleForm');
     if (editForm) {
