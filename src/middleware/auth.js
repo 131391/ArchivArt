@@ -162,10 +162,10 @@ const authenticateWithRefresh = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user is admin
+// Middleware to check if user has admin access - allow all roles except 'user'
 const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+  if (!req.user || req.user.role === 'user') {
+    return res.status(403).json({ error: 'Admin panel access required' });
   }
   next();
 };
@@ -179,10 +179,10 @@ const requireAuth = (req, res, next) => {
   next();
 };
 
-// Middleware for admin web routes
+// Middleware for admin web routes - allow all roles except 'user'
 const requireAdminWeb = (req, res, next) => {
-  if (!req.session.user || req.session.user.role !== 'admin') {
-    req.flash('error_msg', 'Admin access required');
+  if (!req.session.user || req.session.user.role === 'user') {
+    req.flash('error_msg', 'Admin panel access required');
     return res.redirect('/admin/login');
   }
   

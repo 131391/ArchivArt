@@ -15,9 +15,9 @@ const hasPermission = (permissionName) => {
                 });
             }
 
-            // For now, allow admin users to access all RBAC endpoints
+            // Allow all admin roles except 'user' to access RBAC endpoints
             // TODO: Implement proper permission checking once RBAC is fully working
-            if (req.session.user && (req.session.user.role === 'admin' || req.session.user.role === 'super_admin')) {
+            if (req.session.user && req.session.user.role !== 'user') {
                 return next();
             }
 
@@ -53,8 +53,8 @@ const hasModuleActionPermission = (moduleName, actionName) => {
                 });
             }
 
-            // For now, allow admin users to access all RBAC endpoints
-            if (req.session.user && (req.session.user.role === 'admin' || req.session.user.role === 'super_admin')) {
+            // Allow all admin roles except 'user' to access RBAC endpoints
+            if (req.session.user && req.session.user.role !== 'user') {
                 return next();
             }
 
@@ -90,8 +90,8 @@ const hasModuleActionPermissionWeb = (moduleName, actionName) => {
                 return res.redirect('/admin/login');
             }
 
-            // For now, allow admin users to access all RBAC endpoints
-            if (req.session.user && (req.session.user.role === 'admin' || req.session.user.role === 'super_admin')) {
+            // Allow all admin roles except 'user' to access RBAC endpoints
+            if (req.session.user && req.session.user.role !== 'user') {
                 return next();
             }
 

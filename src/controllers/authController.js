@@ -412,9 +412,9 @@ class AuthController {
         });
       }
 
-      // Check if user has admin role (using RBAC)
-      if (!user.role || (user.role !== 'admin' && user.role !== 'super_admin')) {
-        req.flash('error_msg', 'Access denied. Admin privileges required.');
+      // Check if user has admin access role (using RBAC) - allow all roles except 'user'
+      if (!user.role || user.role === 'user') {
+        req.flash('error_msg', 'Access denied. Admin panel access required.');
         return res.render('admin/login', { 
           title: 'Login',
           email: req.body.email,
