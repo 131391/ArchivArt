@@ -254,6 +254,13 @@ router.delete('/module-actions/:id',
     RBACController.deleteModuleAction
 );
 
+// Restore/Activate module action
+router.patch('/module-actions/:id/restore',
+    addUserPermissions,
+    hasModuleActionPermission('modules', 'update'),
+    RBACController.restoreModuleAction
+);
+
 // Get all module actions
 router.get('/module-actions',
     addUserPermissions,
@@ -320,6 +327,16 @@ router.put('/modules/:id',
     RBACController.updateModule
 );
 
+// Get module deletion impact (related data count)
+router.get('/modules/:id/deletion-impact',
+    addUserPermissions,
+    hasModuleActionPermission('modules', 'view'),
+    [
+        param('id').isInt({ min: 1 }).withMessage('Module ID must be a positive integer')
+    ],
+    RBACController.getModuleDeletionImpact
+);
+
 // Delete module
 router.delete('/modules/:id',
     addUserPermissions,
@@ -335,7 +352,7 @@ router.delete('/modules/:id',
 // Get role permissions
 router.get('/roles/:id/permissions',
     addUserPermissions,
-    hasPermission('admin.roles.view'),
+    hasModuleActionPermission('rbac', 'view'),
     [
         param('id').isInt({ min: 1 })
     ],
@@ -358,7 +375,7 @@ router.put('/roles/:id/permissions',
 // Get user roles
 router.get('/users/:userId/roles',
     addUserPermissions,
-    hasPermission('admin.users.view'),
+    hasModuleActionPermission('users', 'view'),
     [
         param('userId').isInt({ min: 1 })
     ],
@@ -368,7 +385,7 @@ router.get('/users/:userId/roles',
 // Assign role to user
 router.post('/users/roles',
     addUserPermissions,
-    hasPermission('admin.users.update'),
+    hasModuleActionPermission('users', 'update'),
     [
         body('userId')
             .isInt({ min: 1 })
@@ -383,7 +400,7 @@ router.post('/users/roles',
 // Remove role from user
 router.delete('/users/roles',
     addUserPermissions,
-    hasPermission('admin.users.update'),
+    hasModuleActionPermission('users', 'update'),
     [
         body('userId')
             .isInt({ min: 1 })
@@ -398,7 +415,7 @@ router.delete('/users/roles',
 // Update user's primary role
 router.put('/users/primary-role',
     addUserPermissions,
-    hasPermission('admin.users.update'),
+    hasModuleActionPermission('users', 'update'),
     [
         body('userId')
             .isInt({ min: 1 })
@@ -412,7 +429,8 @@ router.put('/users/primary-role',
 
 // Get role statistics
 router.get('/stats',
-    hasPermission('admin.roles.view'),
+    addUserPermissions,
+    hasModuleActionPermission('rbac', 'view'),
     RBACController.getRoleStats
 );
 

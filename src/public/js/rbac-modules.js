@@ -141,17 +141,62 @@ function editModule(moduleId) {
 }
 
 function deleteModule(moduleId) {
-    if (typeof showConfirmModal === 'function') {
-        showConfirmModal(
-            'Are you sure you want to delete this module? This action cannot be undone.',
-            'Confirm Delete',
-            function() {
+    // First check the deletion impact
+    fetch(`/admin/api/rbac/modules/${moduleId}/deletion-impact`, {
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let message = `Are you sure you want to delete the module "${data.module.display_name}"? This action cannot be undone.`;
+            
+            if (data.willDeleteData) {
+                message += '\n\nThis will also delete:';
+                if (data.relatedData.actions > 0) {
+                    message += `\n• ${data.relatedData.actions} module action(s)`;
+                }
+                if (data.relatedData.permissions > 0) {
+                    message += `\n• ${data.relatedData.permissions} permission(s)`;
+                }
+                if (data.relatedData.rolePermissions > 0) {
+                    message += `\n• ${data.relatedData.rolePermissions} role permission assignment(s)`;
+                }
+            }
+            
+            if (typeof showConfirmModal === 'function') {
+                showConfirmModal(
+                    message,
+                    'Confirm Delete',
+                    function() {
+                        performDeleteModule(moduleId);
+                    }
+                );
+            } else if (confirm(message)) {
                 performDeleteModule(moduleId);
             }
-        );
-    } else if (confirm('Are you sure you want to delete this module? This action cannot be undone.')) {
-        performDeleteModule(moduleId);
-    }
+        } else {
+            if (data.isSystemModule) {
+                alert('Cannot delete system modules.');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error checking deletion impact:', error);
+        // Fallback to simple confirmation
+        if (typeof showConfirmModal === 'function') {
+            showConfirmModal(
+                'Are you sure you want to delete this module? This action cannot be undone.',
+                'Confirm Delete',
+                function() {
+                    performDeleteModule(moduleId);
+                }
+            );
+        } else if (confirm('Are you sure you want to delete this module? This action cannot be undone.')) {
+            performDeleteModule(moduleId);
+        }
+    });
 }
 
 function performDeleteModule(moduleId) {
@@ -172,10 +217,19 @@ function performDeleteModule(moduleId) {
             }
             
             if (data.success) {
-                showSuccessToast('Module deleted successfully');
+                // Show detailed success message
+                if (typeof showSuccessToast !== 'undefined') {
+                    showSuccessToast(data.message);
+                } else {
+                    alert(data.message);
+                }
                 location.reload();
             } else {
-                showErrorToast(data.message || 'Error deleting module');
+                if (typeof showErrorToast !== 'undefined') {
+                    showErrorToast(data.message || 'Error deleting module');
+                } else {
+                    alert('Error: ' + (data.message || 'Error deleting module'));
+                }
             }
         })
         .catch(error => {

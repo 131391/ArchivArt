@@ -1000,6 +1000,52 @@ class RBACController {
     }
     
     // Delete module
+    // Get module deletion impact
+    async getModuleDeletionImpact(req, res) {
+        try {
+            const { id } = req.params;
+            const Module = require('../models/Module');
+            
+            // Check if module exists
+            const existingModule = await Module.findById(id);
+            if (!existingModule) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Module not found'
+                });
+            }
+            
+            // Check if module is system module (prevent deletion of core modules)
+            if (existingModule.is_system_module) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Cannot delete system modules',
+                    isSystemModule: true
+                });
+            }
+            
+            // Get related data count
+            const relatedData = await Module.getRelatedDataCount(id);
+            
+            res.json({
+                success: true,
+                module: {
+                    id: existingModule.id,
+                    name: existingModule.name,
+                    display_name: existingModule.display_name
+                },
+                relatedData: relatedData,
+                willDeleteData: relatedData.actions > 0 || relatedData.permissions > 0 || relatedData.rolePermissions > 0
+            });
+        } catch (error) {
+            console.error('Error getting module deletion impact:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error getting module deletion impact'
+            });
+        }
+    }
+
     async deleteModule(req, res) {
         try {
             const { id } = req.params;
@@ -1022,12 +1068,26 @@ class RBACController {
                 });
             }
             
-            // Delete module
-            await Module.delete(id);
+            // Get related data count to inform user what will be deleted
+            const relatedData = await Module.getRelatedDataCount(id);
+            
+            // Delete module with cascade (delete all related data)
+            await Module.deleteWithCascade(id);
+            
+            // Build deletion summary message
+            let deletionSummary = `Module "${existingModule.display_name}" deleted successfully.`;
+            if (relatedData.actions > 0 || relatedData.permissions > 0 || relatedData.rolePermissions > 0) {
+                deletionSummary += ' Also deleted:';
+                if (relatedData.actions > 0) deletionSummary += ` ${relatedData.actions} module action(s),`;
+                if (relatedData.permissions > 0) deletionSummary += ` ${relatedData.permissions} permission(s),`;
+                if (relatedData.rolePermissions > 0) deletionSummary += ` ${relatedData.rolePermissions} role permission assignment(s),`;
+                deletionSummary = deletionSummary.slice(0, -1) + '.'; // Remove last comma
+            }
             
             res.json({
                 success: true,
-                message: 'Module deleted successfully'
+                message: deletionSummary,
+                deletedData: relatedData
             });
         } catch (error) {
             console.error('Error deleting module:', error);
@@ -1046,7 +1106,7 @@ class RBACController {
             const { id } = req.params;
             const ModuleAction = require('../models/ModuleAction');
             
-            const action = await ModuleAction.findById(id);
+            const action = await ModuleAction.findByIdAny(id);
             if (!action) {
                 return res.status(404).json({
                     success: false,
@@ -1120,8 +1180,8 @@ class RBACController {
             const { name, display_name, description, is_active } = req.body;
             const ModuleAction = require('../models/ModuleAction');
             
-            // Check if action exists
-            const existingAction = await ModuleAction.findById(id);
+            // Check if action exists (including inactive)
+            const existingAction = await ModuleAction.findByIdAny(id);
             if (!existingAction) {
                 return res.status(404).json({
                     success: false,
@@ -1167,8 +1227,8 @@ class RBACController {
             const { id } = req.params;
             const ModuleAction = require('../models/ModuleAction');
             
-            // Check if action exists
-            const existingAction = await ModuleAction.findById(id);
+            // Check if action exists (including inactive)
+            const existingAction = await ModuleAction.findByIdAny(id);
             if (!existingAction) {
                 return res.status(404).json({
                     success: false,
@@ -1188,6 +1248,43 @@ class RBACController {
             res.status(500).json({
                 success: false,
                 message: 'Error deleting module action'
+            });
+        }
+    }
+    
+    // Restore/Activate module action
+    async restoreModuleAction(req, res) {
+        try {
+            const { id } = req.params;
+            const ModuleAction = require('../models/ModuleAction');
+            
+            // Check if action exists (including inactive)
+            const existingAction = await ModuleAction.findByIdAny(id);
+            if (!existingAction) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Module action not found'
+                });
+            }
+            
+            // Restore module action (set is_active to 1)
+            await ModuleAction.update(id, {
+                name: existingAction.name,
+                display_name: existingAction.display_name,
+                description: existingAction.description,
+                route: existingAction.route,
+                is_active: 1
+            });
+            
+            res.json({
+                success: true,
+                message: 'Module action restored successfully'
+            });
+        } catch (error) {
+            console.error('Error restoring module action:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error restoring module action'
             });
         }
     }

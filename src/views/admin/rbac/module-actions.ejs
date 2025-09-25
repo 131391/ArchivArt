@@ -72,6 +72,9 @@ button.bg-gray-500:empty::after, button.bg-gray-600:empty::after {
     showSearch: true,
     showFilters: false,
     searchPlaceholder: 'Search actions...',
+    emptyIcon: 'fas fa-cog',
+    emptyTitle: 'No Actions Found',
+    emptyMessage: 'This module has no actions yet. Create your first action to get started.',
     columns: [
         { key: 'id', label: 'ID', sortable: true },
         { key: 'name', label: 'Action Name', sortable: true },
@@ -82,6 +85,7 @@ button.bg-gray-500:empty::after, button.bg-gray-600:empty::after {
     actions: [
         { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewModuleAction(${item.id})` },
         { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', onclick: (item) => `editModuleAction(${item.id})` },
+        { name: 'restore', label: 'Restore', icon: 'fas fa-undo', class: 'text-green-600 hover:text-green-900', onclick: (item) => `restoreModuleAction(${item.id})`, condition: (item) => !item.is_active },
         { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', onclick: (item) => `deleteModuleAction(${item.id})` }
     ],
     headerButtons: [

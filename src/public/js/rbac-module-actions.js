@@ -485,3 +485,61 @@ function validateField(field, message) {
         field.parentNode.appendChild(errorDiv);
     }
 }
+
+// Restore module action
+function restoreModuleAction(actionId) {
+    if (typeof window.GlobalLoader !== 'undefined') {
+        window.GlobalLoader.show({
+            title: 'Restoring Action...',
+            message: 'Please wait while we restore the action',
+            showProgress: false
+        });
+    }
+    
+    fetch(`/admin/api/rbac/module-actions/${actionId}/restore`, {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (typeof window.GlobalLoader !== 'undefined') {
+            window.GlobalLoader.hide();
+        }
+        
+        if (data.success) {
+            if (typeof showSuccessToast !== 'undefined') {
+                showSuccessToast(data.message);
+            } else {
+                alert(data.message);
+            }
+            
+            // Reload the table
+            if (typeof window.reloadTable === 'function') {
+                window.reloadTable();
+            } else {
+                location.reload();
+            }
+        } else {
+            if (typeof showErrorToast !== 'undefined') {
+                showErrorToast(data.message);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        }
+    })
+    .catch(error => {
+        if (typeof window.GlobalLoader !== 'undefined') {
+            window.GlobalLoader.hide();
+        }
+        
+        console.error('Error:', error);
+        if (typeof showErrorToast !== 'undefined') {
+            showErrorToast('An error occurred while restoring the action');
+        } else {
+            alert('An error occurred while restoring the action');
+        }
+    });
+}

@@ -142,7 +142,7 @@
                                 <% if (button.icon) { %>
                                     <i class="<%= button.icon %> mr-2"></i>
                                 <% } %>
-                                <%= button.text %>
+                                <%= button.text || button.label %>
                             </button>
                         <% } else { %>
                             <a href="<%= button.href %>" 
@@ -150,7 +150,7 @@
                                 <% if (button.icon) { %>
                                     <i class="<%= button.icon %> mr-2"></i>
                                 <% } %>
-                                <%= button.text %>
+                                <%= button.text || button.label %>
                             </a>
                         <% } %>
                     <% }); %>

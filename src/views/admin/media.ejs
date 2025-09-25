@@ -83,7 +83,7 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
         onclick: (item) => `window.location.href='/admin/media/view/${item.id}'`
     });
 }
-if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.update')) {
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.manage')) {
     actions.push({
         icon: (item) => 'fas fa-edit',
         title: (item) => 'Edit',
@@ -97,7 +97,7 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
         onclick: (item) => `toggleMediaStatus(${item.id})`
     });
 }
-if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.delete')) {
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.manage')) {
     actions.push({
         icon: (item) => 'fas fa-trash',
         title: (item) => 'Delete',

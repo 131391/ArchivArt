@@ -387,42 +387,40 @@ router.get('/rbac/roles', addUserPermissions, hasModuleActionPermissionWeb('rbac
     const status = req.query.status || 'all';
     
     const Role = require('../models/Role');
-    const db = require('../config/database');
     
-    // Build query with search and status filters
-    let query = 'SELECT * FROM roles';
-    let countQuery = 'SELECT COUNT(*) as total FROM roles';
-    let whereConditions = [];
-    let queryParams = [];
-    let countParams = [];
+    // Use the Role model with search functionality (same as AJAX endpoint)
+    const roles = await Role.findAll({
+      search: search,
+      is_active: status === 'active' ? 1 : status === 'inactive' ? 0 : null,
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+    
+    // Get total count with search and status filters
+    let countQuery = 'SELECT COUNT(*) as total FROM roles r';
+    const countParams = [];
+    const whereConditions = [];
     
     // Search condition
-    if (search) {
-      whereConditions.push('(name LIKE ? OR display_name LIKE ? OR description LIKE ?)');
-      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    if (search && search.trim()) {
+      whereConditions.push('(r.name LIKE ? OR r.display_name LIKE ? OR r.description LIKE ?)');
+      const searchTerm = `%${search.trim()}%`;
+      countParams.push(searchTerm, searchTerm, searchTerm);
     }
     
     // Status filter
-    if (status !== 'all') {
-      if (status === 'active') {
-        whereConditions.push('is_active = 1');
-      } else if (status === 'inactive') {
-        whereConditions.push('is_active = 0');
-      }
+    if (status === 'active') {
+      whereConditions.push('r.is_active = 1');
+    } else if (status === 'inactive') {
+      whereConditions.push('r.is_active = 0');
     }
     
     // Build WHERE clause
     if (whereConditions.length > 0) {
-      const whereClause = ' WHERE ' + whereConditions.join(' AND ');
-      query += whereClause;
-      countQuery += whereClause;
+      countQuery += ' WHERE ' + whereConditions.join(' AND ');
     }
     
-    // Add sorting and pagination
-    query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
-    
-    const [roles] = await db.execute(query, queryParams);
+    const db = require('../config/database');
     const [countResult] = await db.execute(countQuery, countParams);
     const totalRoles = countResult[0].total;
     const totalPages = Math.ceil(totalRoles / limit);
@@ -815,9 +813,9 @@ router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermi
       });
     }
     
-    // Build query for module actions with search
-    let query = 'SELECT * FROM module_actions WHERE module_id = ? AND is_active = 1';
-    let countQuery = 'SELECT COUNT(*) as total FROM module_actions WHERE module_id = ? AND is_active = 1';
+    // Build query for module actions with search (show all actions, active and inactive)
+    let query = 'SELECT * FROM module_actions WHERE module_id = ?';
+    let countQuery = 'SELECT COUNT(*) as total FROM module_actions WHERE module_id = ?';
     let queryParams = [id];
     let countParams = [id];
     

@@ -34,7 +34,7 @@ router.get('/data', [
 router.get('/upload', [
   requireAdminWeb,
   addUserPermissions,
-  hasModuleActionPermissionWeb('media', 'create'),
+  hasModuleActionPermissionWeb('media', 'manage'),
   preventSQLInjection
 ], MediaController.showUploadForm);
 
@@ -42,7 +42,7 @@ router.get('/upload', [
 router.post('/upload', [
   requireAdminWeb,
   addUserPermissions,
-  hasModuleActionPermissionWeb('media', 'create'),
+  hasModuleActionPermissionWeb('media', 'manage'),
   uploadRateLimit,
   combinedUpload,
   validateFileUpload,
@@ -75,7 +75,7 @@ router.get('/view/:id', [
 router.get('/edit/:id', [
   requireAdminWeb,
   addUserPermissions,
-  hasModuleActionPermissionWeb('media', 'update'),
+  hasModuleActionPermissionWeb('media', 'manage'),
   preventSQLInjection,
   (req, res, next) => {
     // Validate ID parameter
@@ -133,7 +133,7 @@ router.put('/:id/text', [
 router.put('/:id', [
   requireAdminWeb,
   addUserPermissions,
-  hasModuleActionPermissionWeb('media', 'update'),
+  hasModuleActionPermissionWeb('media', 'manage'),
   strictRateLimit,
   preventSQLInjection,
   (req, res, next) => {
@@ -174,7 +174,7 @@ router.patch('/:id/toggle', [
 router.delete('/:id', [
   requireAdminWeb,
   addUserPermissions,
-  hasModuleActionPermissionWeb('media', 'delete'),
+  hasModuleActionPermissionWeb('media', 'manage'),
   strictRateLimit,
   preventSQLInjection,
   (req, res, next) => {

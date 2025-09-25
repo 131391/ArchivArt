@@ -27,13 +27,26 @@ class ModuleAction {
         return rows.map(row => new ModuleAction(row));
     }
 
-    // Get action by ID
+    // Get action by ID (active only)
     static async findById(id) {
         const query = `
             SELECT ma.*, m.name as module_name, m.display_name as module_display_name
             FROM module_actions ma
             INNER JOIN modules m ON ma.module_id = m.id
             WHERE ma.id = ? AND ma.is_active = 1 AND m.is_active = 1
+        `;
+        
+        const [rows] = await db.execute(query, [id]);
+        return rows.length > 0 ? new ModuleAction(rows[0]) : null;
+    }
+
+    // Get action by ID (including inactive)
+    static async findByIdAny(id) {
+        const query = `
+            SELECT ma.*, m.name as module_name, m.display_name as module_display_name
+            FROM module_actions ma
+            INNER JOIN modules m ON ma.module_id = m.id
+            WHERE ma.id = ? AND m.is_active = 1
         `;
         
         const [rows] = await db.execute(query, [id]);
@@ -72,12 +85,15 @@ class ModuleAction {
     static async create(actionData) {
         const { module_id, name, display_name, description, route } = actionData;
         
+        // Handle undefined route field
+        const routeValue = route !== undefined ? route : null;
+        
         const query = `
             INSERT INTO module_actions (module_id, name, display_name, description, route) 
             VALUES (?, ?, ?, ?, ?)
         `;
         
-        const [result] = await db.execute(query, [module_id, name, display_name, description, route]);
+        const [result] = await db.execute(query, [module_id, name, display_name, description, routeValue]);
         return result.insertId;
     }
 
@@ -85,13 +101,19 @@ class ModuleAction {
     static async update(id, updateData) {
         const { name, display_name, description, route, is_active } = updateData;
         
+        // Convert is_active to integer if it's a string, default to 1 if undefined
+        const isActiveValue = is_active !== undefined ? parseInt(is_active) : 1;
+        
+        // Handle undefined values by using null for SQL
+        const routeValue = route !== undefined ? route : null;
+        
         const query = `
             UPDATE module_actions 
-            SET name = ?, display_name = ?, description = ?, route = ?, is_active = ?
+            SET name = ?, display_name = ?, description = ?, route = ?, is_active = ?, updated_at = NOW()
             WHERE id = ?
         `;
         
-        const [result] = await db.execute(query, [name, display_name, description, route, is_active, id]);
+        const [result] = await db.execute(query, [name, display_name, description, routeValue, isActiveValue, id]);
         return result.affectedRows > 0;
     }
 

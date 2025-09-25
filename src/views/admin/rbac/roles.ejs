@@ -45,7 +45,7 @@
                     </div>
                     <h3 class="text-xl font-bold">Role Details</h3>
                 </div>
-                <button onclick="closeViewModal()" class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                <button type="button" class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50" data-modal-close="viewRoleModal">
                     <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
@@ -72,7 +72,7 @@
                     </div>
                     <h3 class="text-xl font-bold">Edit Role</h3>
                 </div>
-                <button onclick="closeEditModal()" class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                <button class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20" data-modal-close="editRoleModal">
                     <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
@@ -107,7 +107,7 @@
                 
                 <!-- Modal Actions -->
                 <div class="flex justify-end space-x-4">
-                    <button type="button" onclick="closeEditModal()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 font-medium">
+                    <button type="button" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 font-medium" data-modal-close="editRoleModal">
                         Cancel
                     </button>
                     <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
@@ -132,7 +132,7 @@
                     </div>
                     <h3 class="text-xl font-bold">Create Role</h3>
                 </div>
-                <button onclick="closeCreateModal()" class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                <button class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20" data-modal-close="createRoleModal">
                     <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
@@ -165,7 +165,7 @@
                 
                 <!-- Modal Actions -->
                 <div class="flex justify-end space-x-4">
-                    <button type="button" onclick="closeCreateModal()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 font-medium">
+                    <button type="button" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 font-medium" data-modal-close="createRoleModal">
                         Cancel
                     </button>
                     <button type="submit" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-300 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105">

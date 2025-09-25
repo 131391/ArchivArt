@@ -153,6 +153,63 @@ class Module {
         return result.affectedRows > 0;
     }
 
+    // Get related data count for a module
+    static async getRelatedDataCount(id) {
+        const [actionsCount] = await db.execute('SELECT COUNT(*) as count FROM module_actions WHERE module_id = ?', [id]);
+        const [permissionsCount] = await db.execute('SELECT COUNT(*) as count FROM permissions WHERE module_id = ?', [id]);
+        const [rolePermissionsCount] = await db.execute(`
+            SELECT COUNT(*) as count 
+            FROM role_permissions rp 
+            INNER JOIN permissions p ON rp.permission_id = p.id 
+            WHERE p.module_id = ?
+        `, [id]);
+        
+        return {
+            actions: actionsCount[0].count,
+            permissions: permissionsCount[0].count,
+            rolePermissions: rolePermissionsCount[0].count
+        };
+    }
+
+    // Delete module with cascade (delete all related data)
+    static async deleteWithCascade(id) {
+        const connection = await db.getConnection();
+        
+        try {
+            await connection.beginTransaction();
+            
+            // 1. Delete all role permissions for this module's permissions
+            await connection.execute(`
+                DELETE rp FROM role_permissions rp 
+                INNER JOIN permissions p ON rp.permission_id = p.id 
+                WHERE p.module_id = ?
+            `, [id]);
+            
+            // 2. Delete all permissions for this module
+            await connection.execute(`
+                DELETE FROM permissions WHERE module_id = ?
+            `, [id]);
+            
+            // 3. Delete all module actions for this module
+            await connection.execute(`
+                DELETE FROM module_actions WHERE module_id = ?
+            `, [id]);
+            
+            // 4. Finally, delete the module itself
+            await connection.execute(`
+                DELETE FROM modules WHERE id = ?
+            `, [id]);
+            
+            await connection.commit();
+            return true;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
+
     // Get module actions
     async getActions() {
         const query = `

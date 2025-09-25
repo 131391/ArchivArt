@@ -802,6 +802,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Back button functionality
+    const backButton = document.getElementById('back-button');
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            // Go back to media list page
+            window.location.href = '/admin/media';
+        });
+    }
+
     // Using global toaster system for notifications
 
     // Form submission is already handled above at line 714

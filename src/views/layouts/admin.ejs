@@ -247,7 +247,7 @@
           <% } %>
                 
           <!-- Media - Only for users with media.view permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.'))) { %>
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.view')) { %>
           <a
             href="/admin/media"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -261,8 +261,8 @@
                 </a>
           <% } %>
                 
-          <!-- Upload Media - Only for users with media.create permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.create')) { %>
+          <!-- Upload Media - Only for users with media.manage permission -->
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.manage')) { %>
           <a
             href="/admin/media/upload"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -759,6 +759,17 @@
     <script src="/js/table.js"></script>
     <% } %>
 
+    <!-- RBAC Roles javascript - Load early for roles management page -->
+    <% if (typeof title !== 'undefined' && title.includes('Roles Management')) { %>
+    <script src="/js/rbac-roles.js?v=<%= Date.now() %>&fix=2"></script>
+    <script>
+        console.log('RBAC Roles script loaded, checking functions...');
+        console.log('viewRole function available:', typeof viewRole !== 'undefined');
+        console.log('window.viewRole function available:', typeof window.viewRole !== 'undefined');
+        console.log('testFunction available:', typeof window.testFunction !== 'undefined');
+    </script>
+    <% } %>
+
     <!-- ============================================ -->
     <!-- MANAGEMENT SCRIPTS (Load After Dependencies) -->
     <!-- ============================================ -->
@@ -775,6 +786,8 @@
     !title.includes('Upload Media') && !title.includes('Edit Media')) { %>
     <script src="/js/media-management.js"></script>
     <% } %>
+
+    <!-- RBAC Roles javascript moved to core dependencies section -->
 
     <!-- RBAC Dashboard javascript - only loaded on RBAC dashboard page -->
     <% if (typeof title !== 'undefined' && title.includes('RBAC Management')) {
@@ -816,10 +829,7 @@
     <script src="/js/media-edit.js"></script>
     <% } %>
 
-    <!-- RBAC Roles javascript - only loaded on roles management page -->
-    <% if (typeof title !== 'undefined' && title.includes('Roles Management')) { %>
-    <script src="/js/rbac-roles.js?v=<%= Date.now() %>"></script>
-    <% } %>
+    <!-- RBAC Roles javascript moved to core dependencies section -->
 
     <!-- Settings javascript - only loaded on settings pages -->
     <% if (typeof title !== 'undefined' && title.includes('Settings')) { %>
@@ -901,23 +911,7 @@
         waitForFormatters();
       });
 
-        function closeViewModal() {
-            const modal = document.getElementById('viewUserModal');
-            const modalContainer = document.getElementById('viewUserModalContainer');
-            
-            if (modalContainer) {
-                // Trigger closing animation
-                modalContainer.classList.remove('scale-100', 'opacity-100');
-                modalContainer.classList.add('scale-95', 'opacity-0');
-                
-                // Hide modal after animation
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 300);
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
+        // closeViewModal function moved to external files to avoid conflicts
 
         // Generic modal close function
         function closeModal(modalId) {
