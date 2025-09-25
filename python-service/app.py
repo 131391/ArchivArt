@@ -12,6 +12,9 @@ from datetime import datetime
 import psutil
 import json
 from ocr_service import ocr_service
+from werkzeug.utils import secure_filename
+import tempfile
+import uuid
 
 # Configure logging
 logging.basicConfig(
@@ -237,6 +240,8 @@ def get_info():
             "compare": "POST /compare",
             "ocr_extract": "POST /ocr/extract",
             "ocr_extract_with_boxes": "POST /ocr/extract-with-boxes",
+            "ocr_upload_extract": "POST /ocr/upload-extract",
+            "ocr_upload_extract_with_boxes": "POST /ocr/upload-extract-with-boxes",
             "ocr_languages": "GET /ocr/languages",
             "ocr_info": "GET /ocr/info"
         },
@@ -504,6 +509,138 @@ def ocr_info():
         logger.error(f"OCR info endpoint error: {str(e)}", exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/ocr/upload-extract', methods=['POST'])
+def ocr_upload_extract():
+    """Extract text from uploaded image file"""
+    start_time = time.time()
+    success = False
+    
+    try:
+        # Check if file was uploaded
+        if 'image' not in request.files:
+            return jsonify({"success": False, "error": "No image file provided"}), 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No image file selected"}), 400
+        
+        # Get optional parameters from form data
+        language = request.form.get('language', 'eng')
+        preprocess = request.form.get('preprocess', 'true').lower() == 'true'
+        config = request.form.get('config', None)
+        
+        # Validate file type
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        if file_ext not in allowed_extensions:
+            return jsonify({"success": False, "error": f"Invalid file type. Allowed: {', '.join(allowed_extensions)}"}), 400
+        
+        # Create temporary file
+        temp_dir = tempfile.gettempdir()
+        temp_filename = f"ocr_{uuid.uuid4()}{file_ext}"
+        temp_path = os.path.join(temp_dir, temp_filename)
+        
+        try:
+            # Save uploaded file to temporary location
+            file.save(temp_path)
+            logger.info(f"OCR upload extract request for: {file.filename} (lang: {language})")
+            
+            # Process with OCR
+            result = ocr_service.extract_text(temp_path, language, preprocess, config)
+            success = result.get('success', False)
+            
+            processing_time = time.time() - start_time
+            result['total_processing_time'] = processing_time
+            result['original_filename'] = file.filename
+            
+            if success:
+                logger.info(f"OCR upload extraction completed: {result['character_count']} characters, confidence: {result['confidence']:.1f}%")
+            else:
+                logger.error(f"OCR upload extraction failed: {result.get('error', 'Unknown error')}")
+            
+            return jsonify(result)
+            
+        finally:
+            # Clean up temporary file
+            try:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+            except Exception as cleanup_error:
+                logger.warning(f"Failed to cleanup temp file {temp_path}: {cleanup_error}")
+
+    except Exception as e:
+        logger.error(f"OCR upload extract endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        if metrics:
+            metrics.increment_requests(success)
+
+@app.route('/ocr/upload-extract-with-boxes', methods=['POST'])
+def ocr_upload_extract_with_boxes():
+    """Extract text with bounding boxes from uploaded image file"""
+    start_time = time.time()
+    success = False
+    
+    try:
+        # Check if file was uploaded
+        if 'image' not in request.files:
+            return jsonify({"success": False, "error": "No image file provided"}), 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No image file selected"}), 400
+        
+        # Get optional parameters from form data
+        language = request.form.get('language', 'eng')
+        preprocess = request.form.get('preprocess', 'true').lower() == 'true'
+        config = request.form.get('config', None)
+        
+        # Validate file type
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        if file_ext not in allowed_extensions:
+            return jsonify({"success": False, "error": f"Invalid file type. Allowed: {', '.join(allowed_extensions)}"}), 400
+        
+        # Create temporary file
+        temp_dir = tempfile.gettempdir()
+        temp_filename = f"ocr_boxes_{uuid.uuid4()}{file_ext}"
+        temp_path = os.path.join(temp_dir, temp_filename)
+        
+        try:
+            # Save uploaded file to temporary location
+            file.save(temp_path)
+            logger.info(f"OCR upload extract with boxes request for: {file.filename} (lang: {language})")
+            
+            # Process with OCR
+            result = ocr_service.extract_text_with_boxes(temp_path, language, preprocess, config)
+            success = result.get('success', False)
+            
+            processing_time = time.time() - start_time
+            result['total_processing_time'] = processing_time
+            result['original_filename'] = file.filename
+            
+            if success:
+                logger.info(f"OCR upload extraction with boxes completed: {len(result['boxes'])} text regions, {result['character_count']} characters")
+            else:
+                logger.error(f"OCR upload extraction with boxes failed: {result.get('error', 'Unknown error')}")
+            
+            return jsonify(result)
+            
+        finally:
+            # Clean up temporary file
+            try:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+            except Exception as cleanup_error:
+                logger.warning(f"Failed to cleanup temp file {temp_path}: {cleanup_error}")
+
+    except Exception as e:
+        logger.error(f"OCR upload extract with boxes endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        if metrics:
+            metrics.increment_requests(success)
+
 # Graceful shutdown handler
 def signal_handler(signum, frame):
     logger.info(f"Received signal {signum}, shutting down gracefully...")
@@ -530,6 +667,8 @@ if __name__ == "__main__":
     logger.info(f"  - POST /compare - Compare image against stored descriptors")
     logger.info(f"  - POST /ocr/extract - Extract text from image using OCR")
     logger.info(f"  - POST /ocr/extract-with-boxes - Extract text with bounding boxes")
+    logger.info(f"  - POST /ocr/upload-extract - Extract text from uploaded image file")
+    logger.info(f"  - POST /ocr/upload-extract-with-boxes - Extract text with boxes from uploaded file")
     logger.info(f"  - GET  /ocr/languages - Get supported OCR languages")
     logger.info(f"  - GET  /ocr/info - Get OCR service information")
     logger.info(f"📊 OpenCV Version: {cv2.__version__}")

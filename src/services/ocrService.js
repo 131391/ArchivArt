@@ -280,6 +280,173 @@ class OCRService {
     }
 
     /**
+     * Extract text from uploaded image file
+     * @param {Buffer|File} imageFile - Image file buffer or File object
+     * @param {string} filename - Original filename
+     * @param {Object} options - OCR options
+     * @param {string} options.language - Language code (default: 'eng')
+     * @param {boolean} options.preprocess - Whether to preprocess image (default: true)
+     * @param {string} options.config - Custom Tesseract configuration
+     * @returns {Promise<Object>} - OCR result
+     */
+    async extractTextFromUpload(imageFile, filename, options = {}) {
+        try {
+            console.log(`🔍 Extracting text from uploaded file: ${filename}`);
+            
+            const FormData = require('form-data');
+            const form = new FormData();
+            
+            // Add the image file
+            form.append('image', imageFile, {
+                filename: filename,
+                contentType: this.getContentType(filename)
+            });
+            
+            // Add optional parameters
+            if (options.language) {
+                form.append('language', options.language);
+            }
+            if (options.preprocess !== undefined) {
+                form.append('preprocess', options.preprocess.toString());
+            }
+            if (options.config) {
+                form.append('config', options.config);
+            }
+
+            const response = await axios.post(`${this.baseURL}/ocr/upload-extract`, form, {
+                headers: {
+                    ...form.getHeaders()
+                },
+                timeout: this.timeout
+            });
+
+            if (response.data.success) {
+                console.log(`✅ Text extracted from upload: ${response.data.character_count} characters, confidence: ${response.data.confidence.toFixed(1)}%`);
+                return {
+                    success: true,
+                    text: response.data.text,
+                    confidence: response.data.confidence,
+                    language: response.data.language,
+                    wordCount: response.data.word_count,
+                    characterCount: response.data.character_count,
+                    processingTime: response.data.processing_time,
+                    totalProcessingTime: response.data.total_processing_time,
+                    originalFilename: response.data.original_filename
+                };
+            } else {
+                console.error('❌ Text extraction from upload failed:', response.data.error);
+                return {
+                    success: false,
+                    error: response.data.error,
+                    text: '',
+                    confidence: 0
+                };
+            }
+        } catch (error) {
+            console.error('❌ OCR upload service error:', error.message);
+            return {
+                success: false,
+                error: error.message,
+                text: '',
+                confidence: 0
+            };
+        }
+    }
+
+    /**
+     * Extract text with bounding boxes from uploaded image file
+     * @param {Buffer|File} imageFile - Image file buffer or File object
+     * @param {string} filename - Original filename
+     * @param {Object} options - OCR options
+     * @param {string} options.language - Language code (default: 'eng')
+     * @param {boolean} options.preprocess - Whether to preprocess image (default: true)
+     * @param {string} options.config - Custom Tesseract configuration
+     * @returns {Promise<Object>} - OCR result with bounding boxes
+     */
+    async extractTextWithBoxesFromUpload(imageFile, filename, options = {}) {
+        try {
+            console.log(`🔍 Extracting text with boxes from uploaded file: ${filename}`);
+            
+            const FormData = require('form-data');
+            const form = new FormData();
+            
+            // Add the image file
+            form.append('image', imageFile, {
+                filename: filename,
+                contentType: this.getContentType(filename)
+            });
+            
+            // Add optional parameters
+            if (options.language) {
+                form.append('language', options.language);
+            }
+            if (options.preprocess !== undefined) {
+                form.append('preprocess', options.preprocess.toString());
+            }
+            if (options.config) {
+                form.append('config', options.config);
+            }
+
+            const response = await axios.post(`${this.baseURL}/ocr/upload-extract-with-boxes`, form, {
+                headers: {
+                    ...form.getHeaders()
+                },
+                timeout: this.timeout
+            });
+
+            if (response.data.success) {
+                console.log(`✅ Text with boxes extracted from upload: ${response.data.boxes.length} text regions, ${response.data.character_count} characters`);
+                return {
+                    success: true,
+                    text: response.data.text,
+                    boxes: response.data.boxes,
+                    language: response.data.language,
+                    wordCount: response.data.word_count,
+                    characterCount: response.data.character_count,
+                    processingTime: response.data.processing_time,
+                    totalProcessingTime: response.data.total_processing_time,
+                    originalFilename: response.data.original_filename
+                };
+            } else {
+                console.error('❌ Text extraction with boxes from upload failed:', response.data.error);
+                return {
+                    success: false,
+                    error: response.data.error,
+                    text: '',
+                    boxes: []
+                };
+            }
+        } catch (error) {
+            console.error('❌ OCR upload with boxes service error:', error.message);
+            return {
+                success: false,
+                error: error.message,
+                text: '',
+                boxes: []
+            };
+        }
+    }
+
+    /**
+     * Get content type based on file extension
+     * @param {string} filename - Filename
+     * @returns {string} - Content type
+     */
+    getContentType(filename) {
+        const ext = path.extname(filename).toLowerCase();
+        const contentTypes = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.bmp': 'image/bmp',
+            '.tiff': 'image/tiff',
+            '.webp': 'image/webp'
+        };
+        return contentTypes[ext] || 'image/jpeg';
+    }
+
+    /**
      * Extract text and save to file
      * @param {string} imagePath - Path to the image file
      * @param {string} outputPath - Path to save the extracted text

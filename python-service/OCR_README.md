@@ -16,7 +16,7 @@ The OCR functionality has been integrated into the existing OpenCV Python micros
 
 ## API Endpoints
 
-### 1. OCR Text Extraction
+### 1. OCR Text Extraction (File Path)
 ```
 POST /ocr/extract
 ```
@@ -45,7 +45,33 @@ POST /ocr/extract
 }
 ```
 
-### 2. OCR Text Extraction with Bounding Boxes
+### 2. OCR Text Extraction (File Upload)
+```
+POST /ocr/upload-extract
+```
+
+**Request:** Multipart form data
+- `image`: Image file (required)
+- `language`: Language code (optional, default: 'eng')
+- `preprocess`: Boolean (optional, default: true)
+- `config`: Custom Tesseract config (optional)
+
+**Response:**
+```json
+{
+  "success": true,
+  "text": "Extracted text content",
+  "confidence": 85.5,
+  "language": "eng",
+  "word_count": 10,
+  "character_count": 50,
+  "processing_time": 1.234,
+  "total_processing_time": 1.456,
+  "original_filename": "uploaded_image.jpg"
+}
+```
+
+### 3. OCR Text Extraction with Bounding Boxes (File Path)
 ```
 POST /ocr/extract-with-boxes
 ```
@@ -81,7 +107,41 @@ POST /ocr/extract-with-boxes
 }
 ```
 
-### 3. Get Supported Languages
+### 4. OCR Text Extraction with Bounding Boxes (File Upload)
+```
+POST /ocr/upload-extract-with-boxes
+```
+
+**Request:** Multipart form data
+- `image`: Image file (required)
+- `language`: Language code (optional, default: 'eng')
+- `preprocess`: Boolean (optional, default: true)
+- `config`: Custom Tesseract config (optional)
+
+**Response:**
+```json
+{
+  "success": true,
+  "text": "Extracted text content",
+  "boxes": [
+    {
+      "text": "Hello",
+      "confidence": 95,
+      "left": 10,
+      "top": 20,
+      "width": 50,
+      "height": 25
+    }
+  ],
+  "language": "eng",
+  "word_count": 10,
+  "character_count": 50,
+  "processing_time": 1.234,
+  "original_filename": "uploaded_image.jpg"
+}
+```
+
+### 5. Get Supported Languages
 ```
 GET /ocr/languages
 ```
@@ -95,7 +155,7 @@ GET /ocr/languages
 }
 ```
 
-### 4. Get OCR Service Information
+### 6. Get OCR Service Information
 ```
 GET /ocr/info
 ```
@@ -118,14 +178,20 @@ A Node.js service (`src/services/ocrService.js`) has been created to interface w
 ```javascript
 const ocrService = require('./services/ocrService');
 
-// Extract text from image
+// Extract text from image file path
 const result = await ocrService.extractText('/path/to/image.jpg', {
   language: 'eng',
   preprocess: true
 });
 
-// Extract text with bounding boxes
-const resultWithBoxes = await ocrService.extractTextWithBoxes('/path/to/image.jpg');
+// Extract text from uploaded file
+const uploadResult = await ocrService.extractTextFromUpload(fileBuffer, 'image.jpg', {
+  language: 'eng',
+  preprocess: true
+});
+
+// Extract text with bounding boxes from upload
+const boxesResult = await ocrService.extractTextWithBoxesFromUpload(fileBuffer, 'image.jpg');
 
 // Search for specific text
 const searchResult = await ocrService.searchTextInImage('/path/to/image.jpg', 'search term');
