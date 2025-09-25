@@ -29,9 +29,147 @@ class OCRService:
             logger.error(f"Tesseract OCR not found or not properly installed: {str(e)}")
             logger.error("Please install Tesseract OCR: https://github.com/tesseract-ocr/tesseract")
     
-    def preprocess_image(self, image_path: str, enhance_contrast: bool = True, denoise: bool = True) -> Optional[np.ndarray]:
+    def detect_text_rotation(self, image: np.ndarray) -> float:
         """
-        Preprocess image for better OCR results
+        Detect the rotation angle of text in the image using multiple methods
+        """
+        try:
+            # Method 1: Try Tesseract's orientation detection
+            try:
+                from PIL import Image
+                pil_image = Image.fromarray(image)
+                osd = pytesseract.image_to_osd(pil_image, output_type=pytesseract.Output.DICT)
+                if 'orientation' in osd:
+                    orientation = osd['orientation']
+                    # Convert Tesseract orientation to rotation angle
+                    rotation_angle = 0
+                    if orientation == 1:
+                        rotation_angle = 90
+                    elif orientation == 2:
+                        rotation_angle = 180
+                    elif orientation == 3:
+                        rotation_angle = 270
+                    
+                    if rotation_angle != 0:
+                        logger.info(f"Tesseract detected orientation: {orientation} (rotation: {rotation_angle}°)")
+                        return rotation_angle
+            except Exception as e:
+                logger.debug(f"Tesseract orientation detection failed: {str(e)}")
+            
+            # Method 2: Hough line transform with improved parameters
+            try:
+                # Apply edge detection with better parameters
+                edges = cv2.Canny(image, 30, 100, apertureSize=3)
+                
+                # Apply Hough line transform with lower threshold
+                lines = cv2.HoughLines(edges, 1, np.pi/180, threshold=50)
+                
+                if lines is not None and len(lines) > 5:
+                    angles = []
+                    for line in lines:
+                        rho, theta = line[0]
+                        # Convert to degrees
+                        angle = np.degrees(theta)
+                        # Normalize angle to -90 to 90 degrees
+                        if angle > 90:
+                            angle = angle - 180
+                        elif angle < -90:
+                            angle = angle + 180
+                        angles.append(angle)
+                    
+                    if angles:
+                        # Filter out angles that are too close to 0 or 90 degrees
+                        filtered_angles = [a for a in angles if abs(a) > 2 and abs(a) < 88]
+                        if filtered_angles:
+                            # Use median angle for robustness
+                            median_angle = np.median(filtered_angles)
+                            logger.info(f"Hough lines detected text rotation angle: {median_angle:.2f} degrees")
+                            return median_angle
+            except Exception as e:
+                logger.debug(f"Hough line detection failed: {str(e)}")
+            
+            # Method 3: Try different rotation angles and find the best one
+            try:
+                best_angle = 0
+                best_confidence = 0
+                
+                # Test rotation angles from -45 to 45 degrees in 5-degree steps
+                for test_angle in range(-45, 46, 5):
+                    if test_angle == 0:
+                        continue
+                    
+                    # Rotate image
+                    rotated = self.rotate_image(image, test_angle)
+                    
+                    # Quick OCR test to get confidence
+                    try:
+                        from PIL import Image
+                        pil_rotated = Image.fromarray(rotated)
+                        data = pytesseract.image_to_data(pil_rotated, output_type=pytesseract.Output.DICT)
+                        
+                        # Calculate average confidence
+                        confidences = [int(conf) for conf in data['conf'] if int(conf) > 0]
+                        if confidences:
+                            avg_confidence = sum(confidences) / len(confidences)
+                            if avg_confidence > best_confidence:
+                                best_confidence = avg_confidence
+                                best_angle = test_angle
+                    except:
+                        continue
+                
+                if best_confidence > 30:  # Only use if confidence is reasonable
+                    logger.info(f"Best rotation angle found: {best_angle}° (confidence: {best_confidence:.1f}%)")
+                    return best_angle
+                    
+            except Exception as e:
+                logger.debug(f"Rotation testing failed: {str(e)}")
+            
+            return 0.0
+            
+        except Exception as e:
+            logger.warning(f"Could not detect text rotation: {str(e)}")
+            return 0.0
+    
+    def rotate_image(self, image: np.ndarray, angle: float) -> np.ndarray:
+        """
+        Rotate image by the specified angle
+        """
+        try:
+            if abs(angle) < 1.0:  # Skip rotation for very small angles
+                return image
+            
+            # Get image dimensions
+            height, width = image.shape[:2]
+            center = (width // 2, height // 2)
+            
+            # Create rotation matrix
+            rotation_matrix = cv2.getRotationMatrix2D(center, -angle, 1.0)
+            
+            # Calculate new dimensions to avoid cropping
+            cos_angle = abs(rotation_matrix[0, 0])
+            sin_angle = abs(rotation_matrix[0, 1])
+            new_width = int((height * sin_angle) + (width * cos_angle))
+            new_height = int((height * cos_angle) + (width * sin_angle))
+            
+            # Adjust rotation matrix for new dimensions
+            rotation_matrix[0, 2] += (new_width / 2) - center[0]
+            rotation_matrix[1, 2] += (new_height / 2) - center[1]
+            
+            # Rotate the image
+            rotated = cv2.warpAffine(image, rotation_matrix, (new_width, new_height), 
+                                   borderValue=(255, 255, 255) if len(image.shape) == 3 else 255)
+            
+            logger.info(f"Rotated image by {angle:.2f} degrees")
+            return rotated
+            
+        except Exception as e:
+            logger.error(f"Error rotating image: {str(e)}")
+            return image
+
+    def preprocess_image(self, image_path: str, enhance_contrast: bool = True, denoise: bool = True, 
+                        auto_rotate: bool = True) -> Optional[np.ndarray]:
+        """
+        Preprocess image for better OCR results with optional rotation correction
         """
         try:
             # Read image
@@ -42,6 +180,12 @@ class OCRService:
             
             # Convert to grayscale
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            
+            # Auto-rotate if requested
+            if auto_rotate:
+                rotation_angle = self.detect_text_rotation(gray)
+                if abs(rotation_angle) > 1.0:  # Only rotate if angle is significant
+                    gray = self.rotate_image(gray, rotation_angle)
             
             # Enhance contrast if requested
             if enhance_contrast:
@@ -63,7 +207,7 @@ class OCRService:
             return None
     
     def extract_text(self, image_path: str, language: str = None, 
-                    preprocess: bool = True, config: str = None) -> Dict[str, Any]:
+                    preprocess: bool = True, config: str = None, auto_rotate: bool = True) -> Dict[str, Any]:
         """
         Extract text from image using Tesseract OCR
         
@@ -72,6 +216,7 @@ class OCRService:
             language: Language code for OCR (default: 'eng')
             preprocess: Whether to preprocess image for better results
             config: Custom Tesseract configuration
+            auto_rotate: Whether to automatically detect and correct text rotation
             
         Returns:
             Dictionary with extracted text and metadata
@@ -103,7 +248,7 @@ class OCRService:
             
             # Preprocess image if requested
             if preprocess:
-                processed_img = self.preprocess_image(image_path)
+                processed_img = self.preprocess_image(image_path, auto_rotate=auto_rotate)
                 if processed_img is None:
                     return {
                         "success": False,
@@ -155,9 +300,16 @@ class OCRService:
             }
     
     def extract_text_with_boxes(self, image_path: str, language: str = None, 
-                               preprocess: bool = True, config: str = None) -> Dict[str, Any]:
+                               preprocess: bool = True, config: str = None, auto_rotate: bool = True) -> Dict[str, Any]:
         """
         Extract text with bounding box information
+        
+        Args:
+            image_path: Path to the image file
+            language: Language code for OCR (default: 'eng')
+            preprocess: Whether to preprocess image for better results
+            config: Custom Tesseract configuration
+            auto_rotate: Whether to automatically detect and correct text rotation
         
         Returns:
             Dictionary with text, bounding boxes, and metadata
@@ -185,7 +337,7 @@ class OCRService:
             
             # Preprocess image if requested
             if preprocess:
-                processed_img = self.preprocess_image(image_path)
+                processed_img = self.preprocess_image(image_path, auto_rotate=auto_rotate)
                 if processed_img is None:
                     return {
                         "success": False,

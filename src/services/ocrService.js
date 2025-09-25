@@ -82,6 +82,7 @@ class OCRService {
      * @param {string} options.language - Language code (default: 'eng')
      * @param {boolean} options.preprocess - Whether to preprocess image (default: true)
      * @param {string} options.config - Custom Tesseract configuration
+     * @param {boolean} options.auto_rotate - Whether to automatically detect and correct rotation (default: true)
      * @returns {Promise<Object>} - OCR result
      */
     async extractText(imagePath, options = {}) {
@@ -94,7 +95,8 @@ class OCRService {
                 image_path: absolutePath,
                 language: options.language || 'eng',
                 preprocess: options.preprocess !== false, // default to true
-                config: options.config || null
+                config: options.config || null,
+                auto_rotate: options.auto_rotate !== false // default to true
             };
 
             const response = await axios.post(`${this.baseURL}/ocr/extract`, requestData, {
@@ -140,6 +142,7 @@ class OCRService {
      * @param {string} options.language - Language code (default: 'eng')
      * @param {boolean} options.preprocess - Whether to preprocess image (default: true)
      * @param {string} options.config - Custom Tesseract configuration
+     * @param {boolean} options.auto_rotate - Whether to automatically detect and correct rotation (default: true)
      * @returns {Promise<Object>} - OCR result with bounding boxes
      */
     async extractTextWithBoxes(imagePath, options = {}) {
@@ -152,7 +155,8 @@ class OCRService {
                 image_path: absolutePath,
                 language: options.language || 'eng',
                 preprocess: options.preprocess !== false, // default to true
-                config: options.config || null
+                config: options.config || null,
+                auto_rotate: options.auto_rotate !== false // default to true
             };
 
             const response = await axios.post(`${this.baseURL}/ocr/extract-with-boxes`, requestData, {
@@ -312,6 +316,9 @@ class OCRService {
             if (options.config) {
                 form.append('config', options.config);
             }
+            if (options.auto_rotate !== undefined) {
+                form.append('auto_rotate', options.auto_rotate.toString());
+            }
 
             const response = await axios.post(`${this.baseURL}/ocr/upload-extract`, form, {
                 headers: {
@@ -385,6 +392,9 @@ class OCRService {
             }
             if (options.config) {
                 form.append('config', options.config);
+            }
+            if (options.auto_rotate !== undefined) {
+                form.append('auto_rotate', options.auto_rotate.toString());
             }
 
             const response = await axios.post(`${this.baseURL}/ocr/upload-extract-with-boxes`, form, {
