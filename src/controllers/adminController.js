@@ -941,7 +941,7 @@ class AdminController {
       }
 
       // Verify current password
-      const bcrypt = require('bcrypt');
+      const bcrypt = require('bcryptjs');
       const isCurrentPasswordValid = await bcrypt.compare(current_password, userData[0].password);
       
       if (!isCurrentPasswordValid) {
