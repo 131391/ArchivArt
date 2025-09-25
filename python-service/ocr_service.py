@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class OCRService:
     def __init__(self):
         """Initialize OCR service with Tesseract configuration"""
-        self.supported_languages = ['eng', 'fra', 'deu', 'spa', 'ita', 'por', 'rus', 'ara', 'chi_sim', 'chi_tra']
+        self.supported_languages = ['eng', 'hin', 'fra', 'deu', 'spa', 'ita', 'por', 'rus', 'ara', 'chi_sim', 'chi_tra']
         self.default_language = 'eng'
         self.default_config = '--oem 3 --psm 6'  # OCR Engine Mode 3, Page Segmentation Mode 6
         # Alternative configs for different image types
@@ -29,10 +29,16 @@ class OCRService:
             '--oem 3 --psm 13', # Raw line. Treat the image as a single text line
         ]
         
-        # Try to detect Tesseract installation
+        # Try to detect Tesseract installation and available languages
         try:
             pytesseract.get_tesseract_version()
+            # Get actually available languages from Tesseract
+            available_langs = pytesseract.get_languages()
+            # Update supported languages with actually available ones
+            self.supported_languages = [lang for lang in self.supported_languages if lang in available_langs]
             logger.info(f"Tesseract OCR initialized successfully")
+            logger.info(f"Available languages: {available_langs}")
+            logger.info(f"Supported languages: {self.supported_languages}")
         except Exception as e:
             logger.error(f"Tesseract OCR not found or not properly installed: {str(e)}")
             logger.error("Please install Tesseract OCR: https://github.com/tesseract-ocr/tesseract")
