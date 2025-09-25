@@ -112,22 +112,35 @@ class Media {
     // Find similar media using perceptual hash comparison
     static async findSimilarByImageHash(image_hash, threshold = 5) {
         try {
-            if (!image_hash || !PerceptualHash.isValidHash(image_hash)) {
+            // Enhanced validation
+            if (!image_hash || typeof image_hash !== 'string' || image_hash.trim() === '') {
+                console.warn('Invalid image_hash provided to findSimilarByImageHash:', image_hash);
+                return [];
+            }
+            
+            if (!PerceptualHash.isValidHash(image_hash)) {
+                console.warn('Invalid hash format provided to findSimilarByImageHash:', image_hash);
                 return [];
             }
 
-            // Get all media with image hashes
-            const query = 'SELECT * FROM media WHERE image_hash IS NOT NULL';
-            const [rows] = await db.execute(query);
+            // Get all media with valid image hashes using parameterized query
+            const query = 'SELECT * FROM media WHERE image_hash IS NOT NULL AND image_hash != ?';
+            const [rows] = await db.execute(query, ['']);
             
             const similarMedia = [];
             
             for (const row of rows) {
-                if (row.image_hash && PerceptualHash.isValidHash(row.image_hash)) {
-                    const isSimilar = PerceptualHash.areSimilar(image_hash, row.image_hash, threshold);
-                    if (isSimilar) {
-                        similarMedia.push(new Media(row));
+                try {
+                    if (row.image_hash && PerceptualHash.isValidHash(row.image_hash)) {
+                        const isSimilar = PerceptualHash.areSimilar(image_hash, row.image_hash, threshold);
+                        if (isSimilar) {
+                            similarMedia.push(new Media(row));
+                        }
                     }
+                } catch (hashError) {
+                    console.warn(`Error comparing hash with media ID ${row.id}:`, hashError);
+                    // Continue with next row instead of failing completely
+                    continue;
                 }
             }
             
@@ -141,9 +154,16 @@ class Media {
     // Find identical media using perceptual hash (distance = 0)
     static async findIdenticalByImageHash(image_hash) {
         try {
+            // Validate input before proceeding
+            if (!image_hash || typeof image_hash !== 'string' || image_hash.trim() === '') {
+                console.warn('Invalid image_hash provided to findIdenticalByImageHash:', image_hash);
+                return null;
+            }
+            
             const similarMedia = await this.findSimilarByImageHash(image_hash, 0);
             return similarMedia.length > 0 ? similarMedia[0] : null;
         } catch (error) {
+            console.error('Error in findIdenticalByImageHash:', error);
             throw error;
         }
     }

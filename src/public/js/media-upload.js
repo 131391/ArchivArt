@@ -150,10 +150,11 @@ function updateFormPlaceholders(mediaType) {
                 titleInput.placeholder = 'Enter audio title';
                 descriptionTextarea.placeholder = 'Enter audio description';
                 break;
-            case 'image':
-                titleInput.placeholder = 'Enter image title';
-                descriptionTextarea.placeholder = 'Enter image description';
-                break;
+            // Image case removed - only video and audio are needed
+            // case 'image':
+            //     titleInput.placeholder = 'Enter image title';
+            //     descriptionTextarea.placeholder = 'Enter image description';
+            //     break;
         }
     } catch (error) {
     }
@@ -225,14 +226,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listeners to tabs
     mediaTabs.forEach((tab, index) => {
-        tab.addEventListener('click', function(e) {
-            e.preventDefault();
-            const mediaType = this.getAttribute('data-type');
-            if (typeof switchMediaType === 'function') {
-                switchMediaType(mediaType);
-            } else {
-            }
-        });
+        if (tab) {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                const mediaType = this.getAttribute('data-type');
+                if (typeof switchMediaType === 'function') {
+                    switchMediaType(mediaType);
+                }
+            });
+        }
     });
     
     const dropZone = document.getElementById('drop-zone');
@@ -240,12 +242,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if we're on the media upload page
     if (!dropZone || !fileInput) {
+        console.warn('Media upload elements not found, skipping event listeners');
         return;
     }
 
     // Scanning image elements
     const scanningImageDropZone = document.getElementById('scanning-image-drop-zone');
     const scanningImageInput = document.getElementById('scanning-image-input');
+    
+    // Check if scanning image elements exist
+    if (!scanningImageDropZone || !scanningImageInput) {
+        console.warn('Scanning image elements not found, skipping scanning image event listeners');
+    }
 
     // Media type configurations
     const mediaConfigs = {
@@ -267,15 +275,16 @@ document.addEventListener('DOMContentLoaded', function() {
             detailsSubtitle: 'Additional information for your audio',
             submitText: 'Save Media'
         },
-        image: {
-            title: 'Upload Image',
-            subtitle: 'Supported formats: JPEG, PNG, GIF, WebP (Max: 100MB)',
-            icon: 'fas fa-image',
-            accept: 'image/*',
-            detailsTitle: 'Image Details',
-            detailsSubtitle: 'Additional information for your image',
-            submitText: 'Save Media'
-        }
+        // Image configuration removed - only video and audio are needed
+        // image: {
+        //     title: 'Upload Image',
+        //     subtitle: 'Supported formats: JPEG, PNG, GIF, WebP (Max: 100MB)',
+        //     icon: 'fas fa-image',
+        //     accept: 'image/*',
+        //     detailsTitle: 'Image Details',
+        //     detailsSubtitle: 'Additional information for your image',
+        //     submitText: 'Save Media'
+        // }
     };
 
     // Global variables are already declared at the top of the file
@@ -315,10 +324,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 titleInput.placeholder = 'Enter audio title';
                 descriptionTextarea.placeholder = 'Enter audio description';
                 break;
-            case 'image':
-                titleInput.placeholder = 'Enter image title';
-                descriptionTextarea.placeholder = 'Enter image description';
-                break;
+            // Image case removed - only video and audio are needed
+            // case 'image':
+            //     titleInput.placeholder = 'Enter image title';
+            //     descriptionTextarea.placeholder = 'Enter image description';
+            //     break;
         }
     }
 
@@ -363,10 +373,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 dropZone.querySelector('p:last-of-type').textContent = 'Drag and drop your audio files here, or click to browse';
                 chooseFilesBtn.innerHTML = '<i class="fas fa-upload mr-2"></i>Choose Files';
                 break;
-            case 'image':
-                dropZone.querySelector('p:last-of-type').textContent = 'Drag and drop your image files here, or click to browse';
-                chooseFilesBtn.innerHTML = '<i class="fas fa-upload mr-2"></i>Choose Files';
-                break;
+            // Image case removed - only video and audio are needed
+            // case 'image':
+            //     dropZone.querySelector('p:last-of-type').textContent = 'Drag and drop your image files here, or click to browse';
+            //     chooseFilesBtn.innerHTML = '<i class="fas fa-upload mr-2"></i>Choose Files';
+            //     break;
         }
     }
 
@@ -518,47 +529,59 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Remove file handler
-    document.getElementById('remove-file').addEventListener('click', function() {
-        clearFileSelection();
-    });
+    const removeFileBtn = document.getElementById('remove-file');
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+            clearFileSelection();
+        });
+    }
 
     // Scanning image drag and drop functionality
-    scanningImageDropZone.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.classList.add('dragover');
-    });
+    if (scanningImageDropZone) {
+        scanningImageDropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
 
-    scanningImageDropZone.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-    });
+        scanningImageDropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
 
-    scanningImageDropZone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleScanningImageSelection(files[0]);
-        }
-    });
+        scanningImageDropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleScanningImageSelection(files[0]);
+            }
+        });
 
-    // Click to browse scanning image
-    scanningImageDropZone.addEventListener('click', function() {
-        scanningImageInput.click();
-    });
+        // Click to browse scanning image
+        scanningImageDropZone.addEventListener('click', function() {
+            if (scanningImageInput) {
+                scanningImageInput.click();
+            }
+        });
+    }
 
-    document.getElementById('choose-scanning-image-btn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        scanningImageInput.click();
-    });
+    const chooseScanningImageBtn = document.getElementById('choose-scanning-image-btn');
+    if (chooseScanningImageBtn && scanningImageInput) {
+        chooseScanningImageBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            scanningImageInput.click();
+        });
+    }
 
     // Scanning image input change handler
-    scanningImageInput.addEventListener('change', function(e) {
-        if (e.target.files.length > 0) {
-            handleScanningImageSelection(e.target.files[0]);
-        }
-    });
+    if (scanningImageInput) {
+        scanningImageInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleScanningImageSelection(e.target.files[0]);
+            }
+        });
+    }
 
     // Handle scanning image selection
     function handleScanningImageSelection(file) {
@@ -607,9 +630,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Remove scanning image handler
-    document.getElementById('remove-scanning-image').addEventListener('click', function() {
-        clearScanningImageSelection();
-    });
+    const removeScanningImageBtn = document.getElementById('remove-scanning-image');
+    if (removeScanningImageBtn) {
+        removeScanningImageBtn.addEventListener('click', function() {
+            clearScanningImageSelection();
+        });
+    }
 
     // Format file size
     function formatFileSize(bytes) {
@@ -621,7 +647,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Form submission with AJAX
-    document.getElementById('media-form').addEventListener('submit', async function(e) {
+    const mediaForm = document.getElementById('media-form');
+    if (mediaForm) {
+        mediaForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         // Get form elements
@@ -646,7 +674,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showErrorToast('Please select a scanning image');
             return;
         }
-        
         // Show loading state
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
@@ -669,14 +696,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            const result = await response.json();
-            
             // Hide loader immediately after API response
             if (typeof hideLoader === 'function') {
                 hideLoader();
             }
             
-            if (response.ok && result.success) {
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Upload error:', errorText);
+                
+                // Try to parse JSON error response for user-friendly message
+                let errorMessage = `Upload failed (${response.status})`;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    if (errorData.message) {
+                        errorMessage = errorData.message;
+                    }
+                } catch (parseError) {
+                    // If JSON parsing fails, use the raw error text but truncate if too long
+                    errorMessage = errorText.length > 100 ? errorText.substring(0, 100) + '...' : errorText;
+                }
+                
+                showErrorToast(errorMessage);
+                return;
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
                 // Show success notification using global toaster
                 showSuccessToast('Media uploaded successfully!', 2000);
                 
@@ -704,6 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.innerHTML = originalButtonText;
         }
     });
+    }
 
     // Back button functionality
     const backButton = document.getElementById('back-button');

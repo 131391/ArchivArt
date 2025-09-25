@@ -35,13 +35,23 @@ class PerceptualHash {
             throw new Error('Both hashes must be provided');
         }
 
-        if (hash1.length !== hash2.length) {
-            throw new Error('Hashes must be the same length');
+        // Normalize hashes - ensure they are strings and trim whitespace
+        const normalizedHash1 = String(hash1).trim();
+        const normalizedHash2 = String(hash2).trim();
+
+        if (!normalizedHash1 || !normalizedHash2) {
+            throw new Error('Both hashes must be non-empty strings');
+        }
+
+        if (normalizedHash1.length !== normalizedHash2.length) {
+            console.warn(`Hash length mismatch: hash1=${normalizedHash1.length}, hash2=${normalizedHash2.length}. Hash1: "${normalizedHash1}", Hash2: "${normalizedHash2}"`);
+            // Return maximum distance for mismatched lengths
+            return Math.max(normalizedHash1.length, normalizedHash2.length);
         }
 
         let distance = 0;
-        for (let i = 0; i < hash1.length; i++) {
-            if (hash1[i] !== hash2[i]) {
+        for (let i = 0; i < normalizedHash1.length; i++) {
+            if (normalizedHash1[i] !== normalizedHash2[i]) {
                 distance++;
             }
         }
@@ -57,6 +67,18 @@ class PerceptualHash {
      */
     static areSimilar(hash1, hash2, threshold = 5) {
         try {
+            // Validate inputs
+            if (!hash1 || !hash2) {
+                console.warn('Cannot compare hashes: one or both hashes are null/undefined');
+                return false;
+            }
+
+            // Check if hashes are valid
+            if (!this.isValidHash(hash1) || !this.isValidHash(hash2)) {
+                console.warn('Cannot compare hashes: one or both hashes are invalid format');
+                return false;
+            }
+
             const distance = this.hammingDistance(hash1, hash2);
             return distance <= threshold;
         } catch (error) {
@@ -108,8 +130,24 @@ class PerceptualHash {
             return false;
         }
         
-        // Check if it's a valid hex string
-        return /^[a-f0-9]+$/i.test(hash);
+        const trimmedHash = hash.trim();
+        
+        // Check if it's a valid hex string and has reasonable length
+        return /^[a-f0-9]+$/i.test(trimmedHash) && trimmedHash.length >= 8;
+    }
+
+    /**
+     * Normalize hash by trimming and converting to lowercase
+     * @param {string} hash - Hash to normalize
+     * @returns {string|null} - Normalized hash or null if invalid
+     */
+    static normalizeHash(hash) {
+        if (!hash || typeof hash !== 'string') {
+            return null;
+        }
+        
+        const normalized = hash.trim().toLowerCase();
+        return this.isValidHash(normalized) ? normalized : null;
     }
 
     /**

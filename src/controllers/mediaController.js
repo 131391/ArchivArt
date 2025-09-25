@@ -354,8 +354,7 @@ class MediaController {
                         await fs.mkdir(tempDir, { recursive: true });
                         tempScanningPath = path.join(tempDir, `${uuidv4()}${path.extname(scanningImageFile.originalname)}`);
                         await fs.writeFile(tempScanningPath, scanningImageFile.buffer);
-                        
-                        // Extract features from the scanning image
+                      
                         const featureResult = await smartImageService.extractFeatures(tempScanningPath);
                         if (featureResult.success) {
                             descriptors = featureResult.descriptors;
@@ -366,6 +365,7 @@ class MediaController {
                         // Generate image hashes for duplicate detection
                         try {
                             imageHash = ImageHash.generateHashFromBuffer(scanningImageFile.buffer);
+                            
                             perceptualHash = await PerceptualHash.generateHash(tempScanningPath, 8, true);
                         } catch (hashError) {
                             console.error('Error generating hashes:', hashError);
@@ -450,9 +450,16 @@ class MediaController {
                             await fs.unlink(tempScanningPath).catch(() => {});
                         }
                         
+                        // Provide more specific error message
+                        let errorMessage = 'Error processing scanning image. Please try again.';
+                        if (featureError.message) {
+                            errorMessage = `Error processing scanning image: ${featureError.message}`;
+                        }
+                        
                         return res.status(400).json({
                             success: false,
-                            message: 'Error processing scanning image. Please try again.'
+                            message: errorMessage,
+                            error: featureError.message || 'Unknown error'
                         });
                     } finally {
                         // Clean up temporary file after successful processing
