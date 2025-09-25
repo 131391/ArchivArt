@@ -14,10 +14,10 @@
         { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatStatus' }
     ],
     actions: [
-        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewRole(${item.id})` },
-        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', onclick: (item) => `editRole(${item.id})` },
-        { name: 'permissions', label: 'Permissions', icon: 'fas fa-key', class: 'text-green-600 hover:text-green-900', onclick: (item) => `manageRolePermissions(${item.id})` },
-        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', onclick: (item) => `deleteRole(${item.id})` }
+        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', title: 'View Role Details', onclick: (item) => `viewRole(${item.id})` },
+        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit Role', onclick: (item) => `editRole(${item.id})` },
+        { name: 'permissions', label: 'Permissions', icon: 'fas fa-key', class: 'text-green-600 hover:text-green-900', title: 'Manage Role Permissions', onclick: (item) => `manageRolePermissions(${item.id})` },
+        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Role', onclick: (item) => `deleteRole(${item.id})` }
     ],
     pagination: pagination,
     search: search,

@@ -17,10 +17,10 @@
         { key: 'permission_count', label: 'Permissions', sortable: true, type: 'custom', formatter: 'formatModulePermissions' }
     ],
     actions: [
-        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewModule(${item.id})` },
-        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', onclick: (item) => `editModule(${item.id})` },
-        { name: 'actions', label: 'Actions', icon: 'fas fa-cogs', class: 'text-green-600 hover:text-green-900', onclick: (item) => `manageModuleActions(${item.id})` },
-        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', onclick: (item) => `deleteModule(${item.id})` }
+        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', title: 'View Module Details', onclick: (item) => `viewModule(${item.id})` },
+        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit Module', onclick: (item) => `editModule(${item.id})` },
+        { name: 'actions', label: 'Actions', icon: 'fas fa-cogs', class: 'text-green-600 hover:text-green-900', title: 'Manage Module Actions', onclick: (item) => `manageModuleActions(${item.id})` },
+        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Module', onclick: (item) => `deleteModule(${item.id})` }
     ],
     pagination: pagination,
     search: search,

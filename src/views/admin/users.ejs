@@ -2,15 +2,15 @@
 // Prepare actions
 const actions = [];
 if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.view')) {
-    actions.push({ name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewUser(${item.id})` });
+    actions.push({ name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', title: 'View User Details', onclick: (item) => `viewUser(${item.id})` });
 }
 if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.update')) {
-    actions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', onclick: (item) => `editUser(${item.id})` });
-    actions.push({ name: 'block', label: 'Block', icon: 'fas fa-ban', class: 'text-yellow-600 hover:text-yellow-900', onclick: (item) => `toggleUserStatus(${item.id}, 'block')` });
-    actions.push({ name: 'unblock', label: 'Unblock', icon: 'fas fa-check', class: 'text-green-600 hover:text-green-900', onclick: (item) => `toggleUserStatus(${item.id}, 'unblock')` });
+    actions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit User', onclick: (item) => `editUser(${item.id})` });
+    actions.push({ name: 'block', label: 'Block', icon: 'fas fa-ban', class: 'text-yellow-600 hover:text-yellow-900', title: 'Block User', onclick: (item) => `toggleUserStatus(${item.id}, 'block')` });
+    actions.push({ name: 'unblock', label: 'Unblock', icon: 'fas fa-check', class: 'text-green-600 hover:text-green-900', title: 'Unblock User', onclick: (item) => `toggleUserStatus(${item.id}, 'unblock')` });
 }
 if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.delete')) {
-    actions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', onclick: (item) => `deleteUser(${item.id})` });
+    actions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete User', onclick: (item) => `deleteUser(${item.id})` });
 }
 
 // Prepare columns
