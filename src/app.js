@@ -1,3 +1,14 @@
+// Suppress specific deprecation warnings
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'DeprecationWarning' && warning.message.includes('util.isArray')) {
+    // Suppress util.isArray deprecation warnings from dependencies
+    return;
+  }
+  // Log other warnings normally
+  console.warn(warning.name + ': ' + warning.message);
+});
+
 const express = require('express');
 const session = require('express-session');
 const flash = require('connect-flash');
