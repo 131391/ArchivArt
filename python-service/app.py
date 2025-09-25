@@ -11,6 +11,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 import psutil
 import json
+from ocr_service import ocr_service
 
 # Configure logging
 logging.basicConfig(
@@ -233,7 +234,11 @@ def get_info():
             "info": "GET /info",
             "extract": "POST /extract",
             "match": "POST /match",
-            "compare": "POST /compare"
+            "compare": "POST /compare",
+            "ocr_extract": "POST /ocr/extract",
+            "ocr_extract_with_boxes": "POST /ocr/extract-with-boxes",
+            "ocr_languages": "GET /ocr/languages",
+            "ocr_info": "GET /ocr/info"
         },
         "config": {
             "orb_features": config.ORB_FEATURES,
@@ -397,6 +402,108 @@ def compare():
         if metrics:
             metrics.increment_requests(success)
 
+@app.route('/ocr/extract', methods=['POST'])
+def ocr_extract():
+    """Extract text from image using OCR"""
+    start_time = time.time()
+    success = False
+    
+    try:
+        data = request.get_json()
+        if not data or 'image_path' not in data:
+            logger.warning("OCR extract request missing image_path")
+            return jsonify({"success": False, "error": "Missing image_path in request"}), 400
+
+        image_path = data['image_path']
+        language = data.get('language', 'eng')
+        preprocess = data.get('preprocess', True)
+        config = data.get('config', None)
+        
+        logger.info(f"OCR text extraction request for: {os.path.basename(image_path)} (lang: {language})")
+        
+        result = ocr_service.extract_text(image_path, language, preprocess, config)
+        success = result.get('success', False)
+        
+        processing_time = time.time() - start_time
+        result['total_processing_time'] = processing_time
+        
+        if success:
+            logger.info(f"OCR extraction completed: {result['character_count']} characters, confidence: {result['confidence']:.1f}%")
+        else:
+            logger.error(f"OCR extraction failed: {result.get('error', 'Unknown error')}")
+        
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"OCR extract endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        if metrics:
+            metrics.increment_requests(success)
+
+@app.route('/ocr/extract-with-boxes', methods=['POST'])
+def ocr_extract_with_boxes():
+    """Extract text with bounding boxes from image using OCR"""
+    start_time = time.time()
+    success = False
+    
+    try:
+        data = request.get_json()
+        if not data or 'image_path' not in data:
+            logger.warning("OCR extract-with-boxes request missing image_path")
+            return jsonify({"success": False, "error": "Missing image_path in request"}), 400
+
+        image_path = data['image_path']
+        language = data.get('language', 'eng')
+        preprocess = data.get('preprocess', True)
+        config = data.get('config', None)
+        
+        logger.info(f"OCR text extraction with boxes request for: {os.path.basename(image_path)} (lang: {language})")
+        
+        result = ocr_service.extract_text_with_boxes(image_path, language, preprocess, config)
+        success = result.get('success', False)
+        
+        processing_time = time.time() - start_time
+        result['total_processing_time'] = processing_time
+        
+        if success:
+            logger.info(f"OCR extraction with boxes completed: {len(result['boxes'])} text regions, {result['character_count']} characters")
+        else:
+            logger.error(f"OCR extraction with boxes failed: {result.get('error', 'Unknown error')}")
+        
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"OCR extract-with-boxes endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        if metrics:
+            metrics.increment_requests(success)
+
+@app.route('/ocr/languages', methods=['GET'])
+def ocr_languages():
+    """Get supported OCR languages"""
+    try:
+        languages = ocr_service.get_supported_languages()
+        return jsonify({
+            "success": True,
+            "languages": languages,
+            "default_language": ocr_service.default_language
+        })
+    except Exception as e:
+        logger.error(f"OCR languages endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/ocr/info', methods=['GET'])
+def ocr_info():
+    """Get OCR service information"""
+    try:
+        info = ocr_service.get_tesseract_info()
+        return jsonify(info)
+    except Exception as e:
+        logger.error(f"OCR info endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # Graceful shutdown handler
 def signal_handler(signum, frame):
     logger.info(f"Received signal {signum}, shutting down gracefully...")
@@ -421,6 +528,10 @@ if __name__ == "__main__":
     logger.info(f"  - POST /extract - Extract features from image")
     logger.info(f"  - POST /match - Match two descriptor sets")
     logger.info(f"  - POST /compare - Compare image against stored descriptors")
+    logger.info(f"  - POST /ocr/extract - Extract text from image using OCR")
+    logger.info(f"  - POST /ocr/extract-with-boxes - Extract text with bounding boxes")
+    logger.info(f"  - GET  /ocr/languages - Get supported OCR languages")
+    logger.info(f"  - GET  /ocr/info - Get OCR service information")
     logger.info(f"📊 OpenCV Version: {cv2.__version__}")
     logger.info(f"🐍 Python Version: {sys.version.split()[0]}")
     logger.info("=" * 60)
