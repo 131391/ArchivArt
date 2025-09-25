@@ -200,20 +200,13 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin`);
-  console.log(`API base: http://localhost:${PORT}/api`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  
   // Start keep-alive service for production
   if (process.env.NODE_ENV === 'production') {
     const keepAlive = () => {
       setInterval(async () => {
         try {
           const response = await fetch(`http://localhost:${PORT}/keep-alive`);
-          console.log('Keep-alive ping sent');
         } catch (error) {
-          console.log('Keep-alive ping failed:', error.message);
         }
       }, 14 * 60 * 1000); // Every 14 minutes
     };

@@ -9,7 +9,6 @@ const { securityUtils } = require('../config/security');
 
 // Standalone function for generating username suggestions
 async function generateUsernameSuggestions(baseUsername) {
-  console.log('Starting suggestion generation for:', baseUsername);
   const suggestions = [];
   const maxSuggestions = 5;
 
@@ -25,7 +24,6 @@ async function generateUsernameSuggestions(baseUsername) {
           );
           if (existing.length === 0) {
             suggestions.push(suggestion);
-            console.log('Added suggestion:', suggestion);
           }
         } catch (dbError) {
           console.error('Database error in suggestion generation:', dbError);
@@ -822,7 +820,6 @@ class AuthController {
           }
 
           profilePicturePath = uploadResult.url;
-          console.log('Profile picture uploaded to S3:', uploadResult.url);
 
         } catch (base64Error) {
           console.error('Base64 processing error:', base64Error);
@@ -849,8 +846,6 @@ class AuthController {
         updateValues.push(profilePicturePath);
       }
 
-      console.log('Update fields:', updateFields);
-      console.log('Update values:', updateValues);
 
       if (updateFields.length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
@@ -869,11 +864,6 @@ class AuthController {
           if (currentUser && currentUser.profile_picture) {
             // Delete old profile picture from S3
             const deleteResult = await S3Service.deleteFile(currentUser.profile_picture);
-            if (deleteResult.success) {
-              console.log('Old profile picture deleted from S3:', currentUser.profile_picture);
-            } else {
-              console.log('Failed to delete old profile picture from S3:', deleteResult.error);
-            }
           }
         } catch (deleteError) {
           console.error('Error deleting old profile picture:', deleteError);
@@ -886,11 +876,8 @@ class AuthController {
 
       // Update user
       const updateQuery = `UPDATE users SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-      console.log('Executing update query:', updateQuery);
-      console.log('With values:', updateValues);
       
       const updateResult = await db.execute(updateQuery, updateValues);
-      console.log('Update result:', updateResult);
 
       // Get updated user data
       const [users] = await db.execute(
@@ -952,12 +939,8 @@ class AuthController {
       let suggestions = [];
       if (!isAvailable) {
         try {
-          console.log('Generating suggestions for username:', username);
           suggestions = await generateUsernameSuggestions(username);
-          console.log('Generated suggestions:', suggestions);
         } catch (suggestionError) {
-          console.error('Error generating suggestions:', suggestionError);
-          console.error('Suggestion error stack:', suggestionError.stack);
           // Continue without suggestions if generation fails
           suggestions = [];
         }
@@ -981,7 +964,6 @@ class AuthController {
 
   // Generate username suggestions
   async generateUsernameSuggestions(baseUsername) {
-    console.log('Starting suggestion generation for:', baseUsername);
     const suggestions = [];
     const maxSuggestions = 5;
 
@@ -997,7 +979,6 @@ class AuthController {
             );
             if (existing.length === 0) {
               suggestions.push(suggestion);
-              console.log('Added suggestion:', suggestion);
             }
           } catch (dbError) {
             console.error('Database error in suggestion generation:', dbError);

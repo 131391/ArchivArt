@@ -1,10 +1,3 @@
-// Users Management JavaScript Functions
-console.log('Users management script loaded');
-console.log('Current page path:', window.location.pathname);
-console.log('Current page title:', document.title);
-
-// Enhanced formatter functions for custom columns
-
 function formatUserName(item) {
     const name = typeof item === 'object' ? item.name : item;
     const email = typeof item === 'object' ? item.email : '';
@@ -163,8 +156,6 @@ function formatUserDate(item) {
 }
 
 function formatAvatar(item) {
-    console.log('formatAvatar called with item:', item);
-    
     if (item && item.name) {
         const initials = item.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
         return `<div class="flex items-center justify-center">
@@ -182,11 +173,8 @@ function formatAvatar(item) {
 
 // User management functions
 function viewUser(userId) {
-    console.log('viewUser called with userId:', userId);
-    
     // Show loader immediately without delay
     if (typeof showLoader === 'function') {
-        console.log('Showing loader for viewUser');
         showLoader({
             title: 'Loading User Details...',
             message: 'Fetching user information',
@@ -206,19 +194,15 @@ function viewUser(userId) {
         .then(data => {
             // Hide loader immediately
             if (typeof hideLoader === 'function') {
-                console.log('Hiding loader for viewUser success');
                 hideLoader();
             }
             
-            console.log('viewUser API response:', data);
             
             if (data.success && data.data) {
                 const user = data.data;
-                console.log('User data:', user);
                 
                 // Check if user has required properties
                 if (!user.name) {
-                    console.error('User name is missing:', user);
                     showErrorToast('User data is incomplete');
                     return;
                 }
@@ -314,7 +298,6 @@ function viewUser(userId) {
                     }, 10);
                 }
             } else {
-                console.error('API response indicates failure:', data);
                 const errorMessage = data.message || 'Error loading user details';
                 showErrorToast(errorMessage);
             }
@@ -322,16 +305,13 @@ function viewUser(userId) {
         .catch(error => {
             // Hide loader
             if (typeof hideLoader === 'function') {
-                console.log('Hiding loader for viewUser error');
                 hideLoader();
             }
-            console.error('Error in viewUser:', error);
             showErrorToast('Error loading user details: ' + error.message);
         });
 }
 
 function editUser(userId) {
-    console.log('editUser called with userId:', userId);
     fetch(`/admin/users/${userId}`, {
         method: 'GET',
         headers: {
@@ -342,10 +322,8 @@ function editUser(userId) {
     })
         .then(response => response.json())
         .then(data => {
-            console.log('editUser API response:', data);
             if (data.success && data.data) {
                 const user = data.data;
-                console.log('Setting form values for user:', user);
                 
                 // Set form values with null checks
                 const editUserId = document.getElementById('editUserId');
@@ -375,13 +353,11 @@ function editUser(userId) {
                     }, 10);
                 }
             } else {
-                console.error('editUser API response indicates failure:', data);
                 const errorMessage = data.message || 'Error loading user details';
                 showErrorToast(errorMessage);
             }
         })
         .catch(error => {
-            console.error('Error in editUser:', error);
             showErrorToast('Error loading user details: ' + error.message);
         });
 }
@@ -482,14 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const formData = new FormData(this);
             const userId = formData.get('id');
-            
-            console.log('Updating user with data:', {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                role_id: formData.get('role_id'),
-                is_active: formData.get('is_active')
-            });
-            
+           
             fetch(`/admin/users/${userId}`, {
                 method: 'PUT',
                 credentials: 'same-origin',
@@ -505,7 +474,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             })
                 .then(response => {
-                    console.log('Edit response status:', response.status);
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
@@ -517,7 +485,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         hideLoader();
                     }
                     
-                    console.log('Edit response data:', data);
                     if (data.success) {
                         showSuccessToast('User updated successfully');
                         closeEditModal();
@@ -532,7 +499,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         hideLoader();
                     }
                     
-                    console.error('Edit error:', error);
                     showErrorToast(`Error updating user: ${error.message}`);
                 });
         });
@@ -540,7 +506,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function toggleUserStatus(userId, action) {
-    console.log('toggleUserStatus called with userId:', userId, 'action:', action);
     const actionText = action === 'block' ? 'block' : 'unblock';
     
     if (typeof showConfirmModal === 'function') {
@@ -566,15 +531,12 @@ function performToggleUserStatus(userId, action, actionText) {
         },
     })
     .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
-        console.log('Response data:', data);
         if (data.success) {
             showSuccessToast(`User ${actionText}ed successfully`);
             setTimeout(() => location.reload(), 1000);
@@ -583,13 +545,11 @@ function performToggleUserStatus(userId, action, actionText) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
         showErrorToast(`Error ${actionText}ing user: ${error.message}`);
     });
 }
 
 function deleteUser(userId) {
-    console.log('deleteUser called with userId:', userId);
     
     if (typeof showDeleteModal === 'function') {
         showDeleteModal(
@@ -623,7 +583,6 @@ function performDeleteUser(userId) {
         },
     })
     .then(response => {
-        console.log('Delete response status:', response.status);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -635,7 +594,6 @@ function performDeleteUser(userId) {
             window.GlobalLoader.hide();
         }
         
-        console.log('Delete response data:', data);
         if (data.success) {
             showSuccessToast('User deleted successfully');
             setTimeout(() => location.reload(), 1000);
@@ -648,7 +606,6 @@ function performDeleteUser(userId) {
         if (typeof window.GlobalLoader !== 'undefined') {
             window.GlobalLoader.hide();
         }
-        console.error('Delete error:', error);
         showErrorToast(`Error deleting user: ${error.message}`);
     });
 }
@@ -688,25 +645,14 @@ window.formatUserStatus = formatUserStatus;
 window.formatUserDate = formatUserDate;
 window.formatAvatar = formatAvatar;
 
-console.log('Users management formatters loaded:', {
-    formatUserName: typeof formatUserName,
-    formatUserEmail: typeof formatUserEmail,
-    formatUserRole: typeof formatUserRole,
-    formatUserStatus: typeof formatUserStatus,
-    formatUserDate: typeof formatUserDate,
-    formatAvatar: typeof formatAvatar
-});
-
 // Apply formatters immediately after loading
 if (typeof TableUtils !== 'undefined' && TableUtils.applyCustomFormatters) {
-    console.log('Re-applying custom formatters after users-management.js loaded');
     TableUtils.applyCustomFormatters();
 }
 
 // Also apply formatters after a short delay to catch any timing issues
 setTimeout(() => {
     if (typeof TableUtils !== 'undefined' && TableUtils.applyCustomFormatters) {
-        console.log('Delayed formatter application');
         TableUtils.applyCustomFormatters();
     }
 }, 500);

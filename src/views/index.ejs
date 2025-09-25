@@ -513,11 +513,6 @@
     <script>
         // Download tracking function
         function trackDownload() {
-            // Track download event
-            console.log('APK download initiated');
-            
-            // You can add analytics tracking here
-            // Example: Google Analytics, Mixpanel, etc.
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'download', {
                     'event_category': 'APK',
@@ -561,16 +556,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            
-            console.log('Mobile menu button:', mobileMenuButton);
-            console.log('Mobile menu:', mobileMenu);
-            
             if (mobileMenuButton && mobileMenu) {
                 mobileMenuButton.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    
-                    console.log('Mobile menu button clicked');
                     
                     const isHidden = mobileMenu.classList.contains('hidden');
                     

@@ -57,8 +57,6 @@ class AdminController {
   // Get users data for AJAX requests
   async getUsersData(req, res) {
     try {
-      console.log('getUsersData called with query params:', req.query);
-      
       const page = parseInt(req.query.page) || 1;
       const limit = 10;
       const offset = (page - 1) * limit;
@@ -67,8 +65,6 @@ class AdminController {
       const role = req.query.role || req.query.roleFilter || '';
       const sort = req.query.sort || 'created_at';
       const order = req.query.order || 'desc';
-      
-      console.log('Processed params - page:', page, 'search:', search, 'status:', status, 'role:', role, 'sort:', sort, 'order:', order);
 
       // Build query with RBAC joins
       let query = `
@@ -144,9 +140,6 @@ class AdminController {
       const totalUsers = countResult[0].total;
       const totalPages = Math.ceil(totalUsers / limit);
 
-      console.log('Users data query result:', users);
-      console.log('Total users:', totalUsers, 'Total pages:', totalPages);
-
       res.json({
         success: true,
         data: users,
@@ -170,8 +163,6 @@ class AdminController {
   // Get users page
   async getUsers(req, res) {
     try {
-      console.log('getUsers called with query params:', req.query);
-      
       const page = parseInt(req.query.page) || 1;
       const limit = 10;
       const offset = (page - 1) * limit;
@@ -179,8 +170,6 @@ class AdminController {
       const status = req.query.status || req.query.statusFilter || '';
       const role = req.query.role || req.query.roleFilter || '';
       
-      console.log('Processed params - page:', page, 'limit:', limit, 'search:', search, 'status:', status, 'role:', role);
-
       // Build query with RBAC joins
       let query = `
         SELECT DISTINCT u.id, u.name, u.email, u.is_active, u.is_blocked, u.created_at, u.updated_at,
@@ -241,12 +230,8 @@ class AdminController {
       const totalUsers = countResult[0].total;
       const totalPages = Math.ceil(totalUsers / limit);
 
-      console.log('Users query result:', users);
-      console.log('Total users:', totalUsers, 'Total pages:', totalPages);
-
       // Get all roles for filter dropdown
       const roles = await Role.findAll({ is_active: 1 });
-      console.log('Available roles:', roles);
 
       // Generate pagination HTML
       const pagination = AdminController.generatePagination(page, totalPages, totalUsers, limit);
@@ -493,9 +478,6 @@ class AdminController {
   // Block user
   async blockUser(req, res) {
     try {
-      console.log('blockUser called with params:', req.params);
-      console.log('blockUser request body:', req.body);
-      
       const { id } = req.params;
       
       const [result] = await db.execute(
@@ -503,7 +485,6 @@ class AdminController {
         [id]
       );
       
-      console.log('Block user query result:', result);
       
       if (result.affectedRows === 0) {
         return res.status(404).json({
@@ -528,8 +509,6 @@ class AdminController {
   // Unblock user
   async unblockUser(req, res) {
     try {
-      console.log('unblockUser called with params:', req.params);
-      console.log('unblockUser request body:', req.body);
       
       const { id } = req.params;
       
@@ -538,7 +517,6 @@ class AdminController {
         [id]
       );
       
-      console.log('Unblock user query result:', result);
       
       if (result.affectedRows === 0) {
         return res.status(404).json({
@@ -585,11 +563,6 @@ class AdminController {
       const settingsType = req.headers['x-settings-type'] || 'general';
       const { logoUpload } = require('../config/multer');
       
-      console.log('Settings update request - Type:', settingsType);
-      console.log('Settings update request - Headers:', req.headers);
-      console.log('Settings update request - Body:', req.body);
-      console.log('Settings update request - Files:', req.files);
-      console.log('Settings update request - File:', req.file);
       
       // Handle different settings types
       if (settingsType === 'brand') {
@@ -607,36 +580,20 @@ class AdminController {
             const { site_name, site_tagline, primary_color } = req.body;
             let logoPath = null;
             
-            console.log('Brand settings update - req.file:', req.file);
-            console.log('Brand settings update - req.body:', req.body);
             
             // Handle logo upload to S3
             if (req.file) {
-              console.log('Logo file received:', {
-                originalname: req.file.originalname,
-                mimetype: req.file.mimetype,
-                size: req.file.size,
-                buffer: req.file.buffer ? 'Buffer exists' : 'No buffer',
-                fieldname: req.file.fieldname
-              });
+              
               
               // Upload logo to S3
-              console.log('Calling S3Service.uploadFile...');
               const uploadResult = await S3Service.uploadFile(req.file, 'logos');
               
               if (uploadResult.success) {
                 logoPath = uploadResult.url;
-                console.log('Logo uploaded to S3 successfully:', logoPath);
-                
                 // Delete old logo from S3 if exists
                 const [oldSettings] = await db.execute('SELECT logo_path FROM settings LIMIT 1');
                 if (oldSettings.length > 0 && oldSettings[0].logo_path) {
                   const deleteResult = await S3Service.deleteFile(oldSettings[0].logo_path);
-                  if (deleteResult.success) {
-                    console.log('Old logo deleted from S3:', oldSettings[0].logo_path);
-                  } else {
-                    console.log('Failed to delete old logo from S3:', deleteResult.error);
-                  }
                 }
               } else {
                 console.error('Failed to upload logo to S3:', uploadResult.error);
@@ -645,18 +602,12 @@ class AdminController {
                   message: 'Failed to upload logo to cloud storage'
                 });
               }
-            } else {
-              console.log('No logo file uploaded');
             }
             
             // Update or insert settings
             const [existingSettings] = await db.execute('SELECT id FROM settings LIMIT 1');
             
-            console.log('Database update - existingSettings:', existingSettings.length);
-            console.log('Database update - logoPath:', logoPath);
-            console.log('Database update - site_name:', site_name);
-            console.log('Database update - site_tagline:', site_tagline);
-            console.log('Database update - primary_color:', primary_color);
+            
             
             if (existingSettings.length > 0) {
               // Update existing settings
@@ -666,29 +617,28 @@ class AdminController {
               if (logoPath) {
                 updateFields.push('logo_path = ?');
                 updateValues.push(logoPath);
-                console.log('Adding logo_path to update:', logoPath);
+                
               }
               
               updateValues.push(existingSettings[0].id);
               
-              console.log('Update query:', `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
-              console.log('Update values:', updateValues);
+              
               
               await db.execute(
                 `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
                 updateValues
               );
               
-              console.log('Settings updated successfully');
+              
             } else {
               // Insert new settings
-              console.log('Inserting new settings with logoPath:', logoPath);
+              
               await db.execute(
                 'INSERT INTO settings (site_name, site_tagline, primary_color, logo_path, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
                 [site_name, site_tagline, primary_color, logoPath]
               );
               
-              console.log('Settings inserted successfully');
+              
             }
             
             res.json({
@@ -772,14 +722,6 @@ class AdminController {
         }
       }
       
-      // Debug logging to check user data
-      console.log('Profile page - User data:', {
-        id: userWithCompleteData?.id,
-        name: userWithCompleteData?.name,
-        profile_picture: userWithCompleteData?.profile_picture,
-        hasProfilePicture: !!userWithCompleteData?.profile_picture
-      });
-      
       res.render('admin/profile', {
         title: 'Profile',
         user: userWithCompleteData,
@@ -804,7 +746,7 @@ class AdminController {
       const userId = req.session.user.id;
       const { name, email, mobile } = req.body;
 
-      console.log('Profile update request:', { userId, name, email, mobile });
+      
 
       // Check if email is being changed and if it already exists
       if (email) {
@@ -853,12 +795,11 @@ class AdminController {
         WHERE id = ?
       `;
 
-      console.log('Update query:', updateQuery);
-      console.log('Update values:', updateValues);
+      
 
       const [result] = await db.execute(updateQuery, updateValues);
       
-      console.log('Database update result:', result);
+      
 
       if (result.affectedRows > 0) {
         // Update session data
@@ -885,7 +826,7 @@ class AdminController {
       const userId = req.session.user.id;
       const profilePictureFile = req.file;
 
-      console.log('Profile picture update request:', { userId, hasFile: !!profilePictureFile });
+      
 
       if (!profilePictureFile) {
         return res.status(400).json({
@@ -906,7 +847,7 @@ class AdminController {
       const fileExtension = profilePictureFile.originalname.split('.').pop();
       const fileName = `profile-pictures/${userId}-${Date.now()}.${fileExtension}`;
 
-      console.log('Uploading profile picture to S3:', fileName);
+      
 
       // Upload to S3
       const S3Service = require('../services/s3Service');
@@ -915,7 +856,7 @@ class AdminController {
         'profile-pictures'
       );
 
-      console.log('S3 upload result:', uploadResult);
+
 
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Failed to upload profile picture to S3');
@@ -927,7 +868,7 @@ class AdminController {
         [uploadResult.url, userId]
       );
 
-      console.log('Database update result:', result);
+      
 
       if (result.affectedRows > 0) {
         // Update session data
@@ -938,9 +879,7 @@ class AdminController {
           try {
             const oldFileName = currentProfilePicture.split('/').pop();
             await S3Service.deleteFile(`profile-pictures/${oldFileName}`);
-            console.log('Deleted old profile picture from S3');
           } catch (deleteError) {
-            console.warn('Failed to delete old profile picture from S3:', deleteError);
             // Don't fail the request if old file deletion fails
           }
         }

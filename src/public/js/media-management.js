@@ -203,17 +203,6 @@ window.formatMediaStatus = formatMediaStatus;
 window.formatMediaDate = formatMediaDate;
 window.formatUploadedBy = formatUploadedBy;
 
-console.log('Media formatters loaded in media-management.js:', {
-    formatMediaTitle: typeof window.formatMediaTitle,
-    formatMediaDescription: typeof window.formatMediaDescription,
-    formatScanningImage: typeof window.formatScanningImage,
-    formatMediaType: typeof window.formatMediaType,
-    formatFileSize: typeof window.formatFileSize,
-    formatMediaStatus: typeof window.formatMediaStatus,
-    formatMediaDate: typeof window.formatMediaDate,
-    formatUploadedBy: typeof window.formatUploadedBy
-});
-
 // Trigger formatter application immediately if DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
@@ -234,7 +223,6 @@ if (document.readyState === 'loading') {
 
 // Media management functions
 function viewMedia(mediaId) {
-    console.log('viewMedia called with mediaId:', mediaId);
     
     // Show loader
     if (typeof showAjaxLoader === 'function') {
@@ -337,13 +325,11 @@ function viewMedia(mediaId) {
 }
 
 function editMedia(mediaId) {
-    console.log('editMedia called with mediaId:', mediaId);
     // Redirect to dedicated edit page
     window.location.href = `/admin/media/edit/${mediaId}`;
 }
 
 function toggleMediaStatus(mediaId) {
-    console.log('toggleMediaStatus called with mediaId:', mediaId);
     
     if (typeof showConfirmModal === 'function') {
         showConfirmModal(
@@ -403,7 +389,6 @@ function performToggleMediaStatus(mediaId) {
 }
 
 function deleteMedia(mediaId) {
-    console.log('deleteMedia called with mediaId:', mediaId);
     
     if (typeof showDeleteModal === 'function') {
         showDeleteModal(
@@ -437,7 +422,6 @@ function performDeleteMedia(mediaId) {
         credentials: 'same-origin'
     })
         .then(response => {
-            console.log('Delete response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -466,7 +450,6 @@ function performDeleteMedia(mediaId) {
             if (typeof window.GlobalLoader !== 'undefined') {
                 window.GlobalLoader.hide();
             }
-            console.error('Delete media error:', error);
             
             // Better error message handling
             let errorMessage = 'Unknown error occurred';

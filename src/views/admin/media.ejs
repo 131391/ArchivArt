@@ -1,16 +1,3 @@
-<%
-// Debug: Log the data being passed to the view
-console.log('Media view data:', {
-    dataCount: typeof data !== 'undefined' ? data.length : 0,
-    data: data,
-    pagination: pagination,
-    dataType: typeof data,
-    isArray: Array.isArray(data),
-    firstItem: typeof data !== 'undefined' && data.length > 0 ? data[0] : null
-});
-%>
-
-<!-- Formatter functions are now loaded from media-management.js -->
 
 <%
 // Prepare header buttons
@@ -93,21 +80,6 @@ const tableFilters = [
     }
 ];
 %>
-
-<!-- Debug data before passing to table component -->
-<%
-console.log('Data being passed to table component:', {
-    title: title,
-    dataLength: data ? data.length : 0,
-    data: data,
-    columnsLength: columns ? columns.length : 0,
-    actionsLength: actions ? actions.length : 0,
-    pagination: pagination
-});
-%>
-
-<!-- Debug info removed -->
-
 <!-- Include Common Table Component -->
 <%- include('../components/table', {
     title: title,
@@ -228,34 +200,21 @@ console.log('Data being passed to table component:', {
 
 // Function to apply formatters to existing table rows
 function applyFormattersToExistingRows() {
-    console.log('Media formatters loaded, applying to existing rows...');
-    console.log('Available formatters:', Object.keys(window).filter(key => key.startsWith('formatMedia')));
-    
     // Check if there's any data in the table
     const tableBody = document.querySelector('#dataTable tbody');
     const tableRows = tableBody ? tableBody.querySelectorAll('tr') : [];
-    console.log('Table body found:', !!tableBody);
-    console.log('Number of table rows:', tableRows.length);
     
     if (tableRows.length === 0) {
-        console.log('No table rows found - checking if data exists...');
         // Check if there's an empty state message
         const emptyState = document.querySelector('[colspan="100%"]');
-        console.log('Empty state found:', !!emptyState);
-        if (emptyState) {
-            console.log('Empty state text:', emptyState.textContent);
-        }
     }
     
     // Apply formatters to any existing table rows
     const formatterElements = document.querySelectorAll('[data-formatter]');
-    console.log('Found', formatterElements.length, 'elements with data-formatter attribute');
     
     formatterElements.forEach((element, index) => {
         const formatterName = element.getAttribute('data-formatter');
         const itemData = JSON.parse(element.getAttribute('data-item') || '{}');
-        
-        console.log(`Element ${index}: formatter=${formatterName}, data=`, itemData);
         
         if (typeof window[formatterName] === 'function') {
             element.innerHTML = window[formatterName](itemData);
@@ -263,8 +222,6 @@ function applyFormattersToExistingRows() {
             console.warn('Formatter function not found:', formatterName);
         }
     });
-    
-    console.log('Applied formatters to', formatterElements.length, 'elements');
 }
 
 // Apply formatters on page load

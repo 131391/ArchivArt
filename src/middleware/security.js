@@ -343,13 +343,6 @@ const requestLogger = (req, res, next) => {
       userAgent: req.get('User-Agent'),
       timestamp: new Date().toISOString()
     };
-    
-    // Log suspicious activities
-    if (res.statusCode >= 400) {
-      console.warn('Suspicious request:', logData);
-    } else {
-      console.log('Request:', logData);
-    }
   });
   
   next();

@@ -89,7 +89,6 @@ class OCRService {
         try {
             // Convert relative path to absolute path
             const absolutePath = path.isAbsolute(imagePath) ? imagePath : path.resolve(imagePath);
-            console.log(`🔍 Extracting text from: ${imagePath} (absolute: ${absolutePath})`);
             
             const requestData = {
                 image_path: absolutePath,
@@ -106,7 +105,6 @@ class OCRService {
             });
 
             if (response.data.success) {
-                console.log(`✅ Text extracted successfully: ${response.data.character_count} characters, confidence: ${response.data.confidence.toFixed(1)}%`);
                 return {
                     success: true,
                     text: response.data.text,
@@ -118,7 +116,7 @@ class OCRService {
                     totalProcessingTime: response.data.total_processing_time
                 };
             } else {
-                console.error('❌ Text extraction failed:', response.data.error);
+               
                 return {
                     success: false,
                     error: response.data.error,
@@ -127,7 +125,7 @@ class OCRService {
                 };
             }
         } catch (error) {
-            console.error('❌ OCR service error:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -151,7 +149,7 @@ class OCRService {
         try {
             // Convert relative path to absolute path
             const absolutePath = path.isAbsolute(imagePath) ? imagePath : path.resolve(imagePath);
-            console.log(`🔍 Extracting text with boxes from: ${imagePath} (absolute: ${absolutePath})`);
+           
             
             const requestData = {
                 image_path: absolutePath,
@@ -168,7 +166,7 @@ class OCRService {
             });
 
             if (response.data.success) {
-                console.log(`✅ Text with boxes extracted successfully: ${response.data.boxes.length} text regions, ${response.data.character_count} characters`);
+               
                 return {
                     success: true,
                     text: response.data.text,
@@ -180,7 +178,7 @@ class OCRService {
                     totalProcessingTime: response.data.total_processing_time
                 };
             } else {
-                console.error('❌ Text extraction with boxes failed:', response.data.error);
+               
                 return {
                     success: false,
                     error: response.data.error,
@@ -189,7 +187,7 @@ class OCRService {
                 };
             }
         } catch (error) {
-            console.error('❌ OCR service error:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -207,7 +205,7 @@ class OCRService {
      */
     async extractTextFromMultiple(imagePaths, options = {}) {
         try {
-            console.log(`🔍 Extracting text from ${imagePaths.length} images`);
+           
             
             const results = await Promise.all(
                 imagePaths.map(async (imagePath) => {
@@ -220,11 +218,11 @@ class OCRService {
             );
 
             const successful = results.filter(r => r.success).length;
-            console.log(`✅ Text extraction completed: ${successful}/${imagePaths.length} successful`);
+           
 
             return results;
         } catch (error) {
-            console.error('❌ Multiple text extraction error:', error.message);
+           
             return imagePaths.map(imagePath => ({
                 imagePath,
                 success: false,
@@ -277,7 +275,7 @@ class OCRService {
                 confidence: ocrResult.confidence
             };
         } catch (error) {
-            console.error('❌ Text search error:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -299,7 +297,7 @@ class OCRService {
      */
     async extractTextFromUpload(imageFile, filename, options = {}) {
         try {
-            console.log(`🔍 Extracting text from uploaded file: ${filename}`);
+           
             
             const FormData = require('form-data');
             const form = new FormData();
@@ -338,7 +336,7 @@ class OCRService {
             });
 
             if (response.data.success) {
-                console.log(`✅ Text extracted from upload: ${response.data.character_count} characters, confidence: ${response.data.confidence.toFixed(1)}%`);
+               
                 return {
                     success: true,
                     text: response.data.text,
@@ -351,7 +349,7 @@ class OCRService {
                     originalFilename: response.data.original_filename
                 };
             } else {
-                console.error('❌ Text extraction from upload failed:', response.data.error);
+               
                 return {
                     success: false,
                     error: response.data.error,
@@ -360,7 +358,7 @@ class OCRService {
                 };
             }
         } catch (error) {
-            console.error('❌ OCR upload service error:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -382,7 +380,7 @@ class OCRService {
      */
     async extractTextWithBoxesFromUpload(imageFile, filename, options = {}) {
         try {
-            console.log(`🔍 Extracting text with boxes from uploaded file: ${filename}`);
+           
             
             const FormData = require('form-data');
             const form = new FormData();
@@ -421,7 +419,7 @@ class OCRService {
             });
 
             if (response.data.success) {
-                console.log(`✅ Text with boxes extracted from upload: ${response.data.boxes.length} text regions, ${response.data.character_count} characters`);
+               
                 return {
                     success: true,
                     text: response.data.text,
@@ -434,7 +432,7 @@ class OCRService {
                     originalFilename: response.data.original_filename
                 };
             } else {
-                console.error('❌ Text extraction with boxes from upload failed:', response.data.error);
+               
                 return {
                     success: false,
                     error: response.data.error,
@@ -443,7 +441,7 @@ class OCRService {
                 };
             }
         } catch (error) {
-            console.error('❌ OCR upload with boxes service error:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -493,7 +491,7 @@ class OCRService {
             const fs = require('fs').promises;
             await fs.writeFile(outputPath, ocrResult.text, 'utf8');
 
-            console.log(`✅ Text saved to: ${outputPath}`);
+           
             return {
                 success: true,
                 text: ocrResult.text,
@@ -502,7 +500,7 @@ class OCRService {
                 confidence: ocrResult.confidence
             };
         } catch (error) {
-            console.error('❌ Text save error:', error.message);
+           
             return {
                 success: false,
                 error: error.message

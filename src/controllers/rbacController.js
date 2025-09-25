@@ -58,8 +58,6 @@ class RBACController {
             const { page = 1, limit = 10, search = '', is_active = null } = req.query;
             const offset = (page - 1) * limit;
             
-            console.log('getRoles called with params:', { page, limit, search, is_active });
-            
             const roles = await Role.findAll({
                 search: search,
                 is_active: is_active !== null ? parseInt(is_active) : null,
@@ -93,8 +91,6 @@ class RBACController {
             const db = require('../config/database');
             const [countResult] = await db.execute(countQuery, countParams);
             const total = countResult[0].total;
-            
-            console.log('Roles found:', roles.length, 'Total:', total);
             
             res.json({
                 success: true,

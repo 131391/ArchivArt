@@ -1,12 +1,3 @@
-// RBAC Roles Management JavaScript Functions
-console.log('RBAC Roles JavaScript file loaded');
-
-// Simple test function to verify global scope
-window.testFunction = function() {
-    console.log('Test function called successfully');
-    return 'Test function works';
-};
-
 // Status formatter for table
 function formatStatus(item) {
     // Handle both direct value and item object
@@ -136,7 +127,6 @@ function formatPermissionCount(item) {
 
 // Role action functions
 function viewRole(roleId) {
-    console.log('viewRole function called with roleId:', roleId);
     // Show loader
     if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
         window.GlobalLoader.show({
@@ -268,7 +258,6 @@ function viewRole(roleId) {
             if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
                 window.GlobalLoader.hide();
             }
-            console.error('Error:', error);
             showErrorToast('Error loading role details');
         });
 }
@@ -321,7 +310,6 @@ function editRole(roleId) {
             if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
                 window.GlobalLoader.hide();
             }
-            console.error('Error:', error);
             showErrorToast('Error loading role details');
         });
 }
@@ -411,13 +399,9 @@ function createRole() {
 
 // Modal functions
 function closeViewModal() {
-    console.log('closeViewModal called'); // Debug log
-    
     try {
         const modal = document.getElementById('viewRoleModal');
         const modalContainer = document.getElementById('viewRoleModalContainer');
-        
-        console.log('Modal elements found:', { modal: !!modal, modalContainer: !!modalContainer }); // Debug log
         
         if (!modal) {
             console.error('viewRoleModal element not found');
@@ -428,8 +412,6 @@ function closeViewModal() {
             console.error('viewRoleModalContainer element not found');
             return;
         }
-        
-        console.log('Closing view modal'); // Debug log
         
         // Check if classList exists before using it
         if (modalContainer.classList) {
@@ -445,7 +427,6 @@ function closeViewModal() {
         }, 300);
         
     } catch (error) {
-        console.error('Error in closeViewModal:', error);
         // Fallback: just hide the modal without animation
         const modal = document.getElementById('viewRoleModal');
         if (modal) {
@@ -460,12 +441,10 @@ function closeEditModal() {
         const modalContainer = document.getElementById('editRoleModalContainer');
         
         if (!modal) {
-            console.error('editRoleModal element not found');
             return;
         }
         
         if (!modalContainer) {
-            console.error('editRoleModalContainer element not found');
             return;
         }
         
@@ -483,7 +462,6 @@ function closeEditModal() {
         }, 300);
         
     } catch (error) {
-        console.error('Error in closeEditModal:', error);
         // Fallback: just hide the modal without animation
         const modal = document.getElementById('editRoleModal');
         if (modal) {
@@ -498,12 +476,10 @@ function closeCreateModal() {
         const modalContainer = document.getElementById('createRoleModalContainer');
         
         if (!modal) {
-            console.error('createRoleModal element not found');
             return;
         }
         
         if (!modalContainer) {
-            console.error('createRoleModalContainer element not found');
             return;
         }
         
@@ -521,7 +497,6 @@ function closeCreateModal() {
         }, 300);
         
     } catch (error) {
-        console.error('Error in closeCreateModal:', error);
         // Fallback: just hide the modal without animation
         const modal = document.getElementById('createRoleModal');
         if (modal) {
@@ -532,7 +507,6 @@ function closeCreateModal() {
 
 // Click outside modal to close
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, setting up modal event listeners'); // Debug log
     
     // Wait a bit more to ensure all elements are ready
     setTimeout(() => {
@@ -542,7 +516,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 e.stopPropagation();
                 const modalId = e.target.closest('[data-modal-close]').getAttribute('data-modal-close');
-                console.log('Close button clicked for modal:', modalId); // Debug log
                 
                 // Add a small delay to ensure DOM is ready
                 setTimeout(() => {
@@ -666,7 +639,6 @@ window.formatPermissionCount = formatPermissionCount;
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
                 showErrorToast('Error updating role');
             });
         });
@@ -710,7 +682,6 @@ window.formatPermissionCount = formatPermissionCount;
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
                 showErrorToast('Error creating role');
             });
         });
@@ -753,6 +724,3 @@ window.createRole = createRole;
 window.closeViewModal = closeViewModal;
 window.closeEditModal = closeEditModal;
 window.closeCreateModal = closeCreateModal;
-
-console.log('RBAC Roles functions assigned to window object');
-console.log('window.viewRole available:', typeof window.viewRole !== 'undefined');

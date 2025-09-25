@@ -33,8 +33,6 @@ class OpenCVService {
         try {
             // Convert relative path to absolute path
             const absolutePath = path.isAbsolute(imagePath) ? imagePath : path.resolve(imagePath);
-            console.log(`🔍 Extracting features from: ${imagePath} (absolute: ${absolutePath})`);
-            
             const response = await axios.post(`${this.baseURL}/extract`, {
                 image_path: absolutePath
             }, {
@@ -42,21 +40,21 @@ class OpenCVService {
             });
 
             if (response.data.success) {
-                console.log(`✅ Features extracted successfully: ${response.data.feature_count} features`);
+               
                 return {
                     success: true,
                     descriptors: response.data.descriptors,
                     featureCount: response.data.feature_count
                 };
             } else {
-                console.error('❌ Feature extraction failed:', response.data.error);
+               
                 return {
                     success: false,
                     error: response.data.error
                 };
             }
         } catch (error) {
-            console.error('❌ OpenCV service error:', error.message);
+           
             return {
                 success: false,
                 error: error.message
@@ -94,7 +92,7 @@ class OpenCVService {
                 };
             }
         } catch (error) {
-            console.error('❌ Feature matching error:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -114,7 +112,7 @@ class OpenCVService {
         try {
             // Convert relative path to absolute path
             const absolutePath = path.isAbsolute(queryImagePath) ? queryImagePath : path.resolve(queryImagePath);
-            console.log(`🔍 Comparing image against ${storedDescriptors.length} stored descriptors (path: ${absolutePath})`);
+           
             
             // Convert match count threshold to similarity threshold
             // Python service expects similarity threshold (0.0-1.0)
@@ -137,22 +135,16 @@ class OpenCVService {
                     threshold: response.data.threshold
                 };
 
-                if (result.bestMatch) {
-                    console.log(`✅ Best match found: ${result.bestMatch.id} (score: ${result.bestMatch.similarity})`);
-                } else {
-                    console.log('❌ No match found below threshold');
-                }
-
                 return result;
             } else {
-                console.error('❌ Image comparison failed:', response.data.error);
+               
                 return {
                     success: false,
                     error: response.data.error
                 };
             }
         } catch (error) {
-            console.error('❌ Image comparison error:', error.message);
+           
             return {
                 success: false,
                 error: error.message
@@ -171,7 +163,7 @@ class OpenCVService {
         try {
             // Convert relative path to absolute path
             const absolutePath = path.isAbsolute(newImagePath) ? newImagePath : path.resolve(newImagePath);
-            console.log(`🔍 Checking for duplicates against ${existingMedia.length} existing images (path: ${absolutePath})`);
+           
             
             // Prepare stored descriptors for comparison
             const storedDescriptors = existingMedia
@@ -182,7 +174,7 @@ class OpenCVService {
                 }));
 
             if (storedDescriptors.length === 0) {
-                console.log('ℹ️ No existing descriptors found, skipping duplicate check');
+               
                 return {
                     success: true,
                     isDuplicate: false,
@@ -210,7 +202,7 @@ class OpenCVService {
                 };
             }
         } catch (error) {
-            console.error('❌ Duplicate check error:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -230,7 +222,7 @@ class OpenCVService {
         try {
             // Convert relative path to absolute path
             const absolutePath = path.isAbsolute(scannedImagePath) ? scannedImagePath : path.resolve(scannedImagePath);
-            console.log(`🔍 Finding matching media for scanned image against ${mediaList.length} media items (path: ${absolutePath})`);
+           
             
             // Prepare stored descriptors for comparison
             const storedDescriptors = mediaList
@@ -241,7 +233,7 @@ class OpenCVService {
                 }));
 
             if (storedDescriptors.length === 0) {
-                console.log('ℹ️ No media with descriptors found');
+               
                 return {
                     success: true,
                     matchedMedia: null,
@@ -268,7 +260,7 @@ class OpenCVService {
                 };
             }
         } catch (error) {
-            console.error('❌ Media matching error:', error.message);
+           
             return {
                 success: false,
                 error: error.message,

@@ -13,7 +13,7 @@
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to Media List
                     </a>
-                    <button onclick="editMedia(<%= media.id %>)" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    <button data-media-id="<%= media.id %>" class="edit-media-btn inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                         <i class="fas fa-edit mr-2"></i>
                         Edit Media
                     </button>
@@ -324,8 +324,8 @@
                 <div class="flex space-x-4">
                     <button 
                         id="toggleStatusBtn"
-                        onclick="toggleMediaStatus(<%= media.id %>)" 
-                        class="group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white transition-all duration-200 transform hover:scale-105 <%= media.is_active ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl' : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl' %>"
+                        data-media-id="<%= media.id %>"
+                        class="toggle-status-btn group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white transition-all duration-200 transform hover:scale-105 <%= media.is_active ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl' : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl' %>"
                         data-current-status="<%= media.is_active %>"
                     >
                         <div id="toggleStatusIcon" class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3 group-hover:bg-opacity-30 transition-all duration-200">
@@ -338,8 +338,8 @@
                     </button>
                     
                     <button 
-                        onclick="deleteMedia(<%= media.id %>)" 
-                        class="group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        data-media-id="<%= media.id %>"
+                        class="delete-media-btn group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
                     >
                         <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3 group-hover:bg-opacity-30 transition-all duration-200">
                             <i class="fas fa-trash text-sm"></i>
@@ -357,13 +357,39 @@
 
 
 <script>
-    // Media player controls
+    // Media player controls and event listeners
     document.addEventListener('DOMContentLoaded', function() {
         const player = document.getElementById('mediaPlayer');
         if (player) {
             // Add custom controls or event listeners if needed
             player.addEventListener('loadedmetadata', function() {
-                console.log('Media loaded:', player.duration);
+            });
+        }
+
+        // Edit media button event listener
+        const editMediaBtn = document.querySelector('.edit-media-btn');
+        if (editMediaBtn) {
+            editMediaBtn.addEventListener('click', function() {
+                const mediaId = this.getAttribute('data-media-id');
+                editMedia(mediaId);
+            });
+        }
+
+        // Toggle status button event listener
+        const toggleStatusBtn = document.querySelector('.toggle-status-btn');
+        if (toggleStatusBtn) {
+            toggleStatusBtn.addEventListener('click', function() {
+                const mediaId = this.getAttribute('data-media-id');
+                toggleMediaStatus(mediaId);
+            });
+        }
+
+        // Delete media button event listener
+        const deleteMediaBtn = document.querySelector('.delete-media-btn');
+        if (deleteMediaBtn) {
+            deleteMediaBtn.addEventListener('click', function() {
+                const mediaId = this.getAttribute('data-media-id');
+                deleteMedia(mediaId);
             });
         }
     });
@@ -374,8 +400,6 @@
 
     // Override the default toggleMediaStatus to update button without page reload
     function toggleMediaStatus(mediaId) {
-        console.log('toggleMediaStatus called with mediaId:', mediaId);
-        
         if (typeof showConfirmModal === 'function') {
             showConfirmModal(
                 'Toggle Media Status',

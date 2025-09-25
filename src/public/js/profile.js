@@ -1,9 +1,4 @@
-// Profile Picture Upload Functionality
-console.log('Profile.js script loaded - initializing immediately');
-
-// Initialize immediately since script is loaded at end of page
 (function() {
-    console.log('Profile.js initializing...');
     
     const fileInput = document.getElementById('profilePictureInput');
     const uploadButton = document.getElementById('uploadProfilePicture');
@@ -16,39 +11,13 @@ console.log('Profile.js script loaded - initializing immediately');
     
     let selectedFile = null;
 
-    // Debug logging
-    console.log('Profile picture elements found:', {
-        fileInput: !!fileInput,
-        uploadButton: !!uploadButton,
-        removeButton: !!removeButton,
-        currentProfileImage: !!currentProfileImage,
-        headerProfileImage: !!headerProfileImage
-    });
-
     if (!fileInput || !uploadButton || !removeButton || !currentProfileImage || !headerProfileImage) {
-        console.error('Some profile picture elements not found. Please check the HTML structure.');
-        console.log('Available elements:', {
-            fileInput: fileInput,
-            uploadButton: uploadButton,
-            removeButton: removeButton,
-            currentProfileImage: currentProfileImage,
-            headerProfileImage: headerProfileImage
-        });
         return;
     }
-
-    console.log('All profile picture elements found successfully');
-
+    
     fileInput.addEventListener('change', function(e) {
-        console.log('File input changed:', e.target.files);
         const file = e.target.files[0];
         if (file) {
-            console.log('Selected file:', {
-                name: file.name,
-                type: file.type,
-                size: file.size
-            });
-
             // Validate file type
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
             if (!allowedTypes.includes(file.type)) {
@@ -71,12 +40,10 @@ console.log('Profile.js script loaded - initializing immediately');
             // Show preview by updating current profile image temporarily
             const reader = new FileReader();
             reader.onload = function(e) {
-                console.log('FileReader loaded, showing preview');
                 // Update the current profile image temporarily for preview
                 currentProfileImage.src = e.target.result;
             };
             reader.onerror = function(error) {
-                console.error('FileReader error:', error);
                 showModal('Error', 'Failed to read the selected file.', 'error');
             };
             reader.readAsDataURL(file);
@@ -91,7 +58,6 @@ console.log('Profile.js script loaded - initializing immediately');
     uploadButton.addEventListener('click', async function() {
         if (!selectedFile) return;
 
-        console.log('Starting upload for file:', selectedFile.name);
         uploadButton.disabled = true;
         progressContainer.classList.remove('hidden');
         progressBar.style.width = '0%';
@@ -105,7 +71,6 @@ console.log('Profile.js script loaded - initializing immediately');
             progressBar.style.width = '30%';
             progressText.textContent = 'Uploading to cloud storage...';
 
-            console.log('Sending request to /admin/profile/picture');
             
             // Upload to server using proper file upload endpoint
             const response = await fetch('/admin/profile/picture', {
@@ -114,14 +79,12 @@ console.log('Profile.js script loaded - initializing immediately');
                 credentials: 'same-origin' // Include session cookies
             });
 
-            console.log('Response received:', response.status, response.statusText);
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
             const result = await response.json();
-            console.log('Upload result:', result);
 
             if (result.success) {
                 progressBar.style.width = '100%';
@@ -147,7 +110,6 @@ console.log('Profile.js script loaded - initializing immediately');
                 throw new Error(result.message || 'Failed to upload profile picture');
             }
         } catch (error) {
-            console.error('Upload error:', error);
             showModal('Error', error.message || 'Failed to upload profile picture. Please try again.', 'error');
             uploadButton.disabled = false;
             progressContainer.classList.add('hidden');
@@ -156,7 +118,6 @@ console.log('Profile.js script loaded - initializing immediately');
 
     // Remove button functionality
     removeButton.addEventListener('click', function() {
-        console.log('Remove button clicked');
         if (typeof showConfirmModal === 'function') {
             showConfirmModal(
                 'Are you sure you want to remove the selected image?',
@@ -180,10 +141,8 @@ console.log('Profile.js script loaded - initializing immediately');
         if (headerProfileImg) {
             headerProfileImg.src = profilePictureUrl;
             headerProfileImg.classList.add('object-cover');
-            console.log('Header profile picture updated');
         }
         
-        console.log('Header profile picture updated with:', profilePictureUrl);
     }
 
     // Function to reset the form

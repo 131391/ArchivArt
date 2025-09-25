@@ -52,23 +52,15 @@ const mediaUpload = multer(commonUploadConfig);
 const logoUpload = multer({
   storage: memoryStorage,
   fileFilter: function (req, file, cb) {
-    console.log('Logo upload - File filter - originalname:', file.originalname);
-    console.log('Logo upload - File filter - mimetype:', file.mimetype);
-    
     const allowedExtensions = /\.(jpeg|jpg|png|svg)$/i;
     const allowedMimeTypes = /^image\/(jpeg|jpg|png|svg\+xml)$/;
     
     const extname = allowedExtensions.test(file.originalname);
     const mimetype = allowedMimeTypes.test(file.mimetype);
     
-    console.log('Logo upload - File filter - extname check:', extname);
-    console.log('Logo upload - File filter - mimetype check:', mimetype);
-    
     if (mimetype && extname) {
-      console.log('Logo upload - File filter - accepted');
       return cb(null, true);
     } else {
-      console.log('Logo upload - File filter - rejected');
       cb(new Error('Only image files (JPEG, PNG, SVG) are allowed'));
     }
   },
@@ -81,21 +73,14 @@ const logoUpload = multer({
 const profileUpload = multer({
   storage: memoryStorage,
   fileFilter: function (req, file, cb) {
-    console.log('Profile picture upload - File filter - originalname:', file.originalname);
-    console.log('Profile picture upload - File filter - mimetype:', file.mimetype);
     
     const allowedTypes = /jpeg|jpg|png|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
     
-    console.log('Profile picture upload - File filter - extname check:', extname);
-    console.log('Profile picture upload - File filter - mimetype check:', mimetype);
-    
     if (mimetype && extname) {
-      console.log('Profile picture upload - File filter - accepted');
       return cb(null, true);
     } else {
-      console.log('Profile picture upload - File filter - rejected');
       cb(new Error('Only image files (JPEG, PNG, WebP) are allowed for profile pictures'));
     }
   },
@@ -130,9 +115,6 @@ const combinedUpload = multer({
     fileSize: 100 * 1024 * 1024 // 100MB limit for media files
   },
   fileFilter: function (req, file, cb) {
-    console.log('Combined upload - File filter - fieldname:', file.fieldname);
-    console.log('Combined upload - File filter - originalname:', file.originalname);
-    console.log('Combined upload - File filter - mimetype:', file.mimetype);
     
     if (file.fieldname === 'media_file') {
       // Media file validation
@@ -142,18 +124,9 @@ const combinedUpload = multer({
       const extname = allowedExtensions.test(file.originalname);
       const mimetype = allowedMimeTypes.test(file.mimetype);
       
-      console.log('Media file validation:', {
-        filename: file.originalname,
-        mimetype: file.mimetype,
-        extname: extname,
-        mimetypeValid: mimetype
-      });
-      
       if (mimetype && extname) {
-        console.log('Combined upload - Media file accepted');
         return cb(null, true);
       } else {
-        console.log('Combined upload - Media file rejected');
         cb(new Error('Only image, video, and audio files are allowed for media files'));
       }
     } else if (file.fieldname === 'scanning_image') {
@@ -164,22 +137,12 @@ const combinedUpload = multer({
       const extname = allowedExtensions.test(file.originalname);
       const mimetype = allowedMimeTypes.test(file.mimetype);
       
-      console.log('Scanning image validation:', {
-        filename: file.originalname,
-        mimetype: file.mimetype,
-        extname: extname,
-        mimetypeValid: mimetype
-      });
-      
       if (mimetype && extname) {
-        console.log('Combined upload - Scanning image accepted');
         return cb(null, true);
       } else {
-        console.log('Combined upload - Scanning image rejected');
         cb(new Error('Only image files (JPEG, PNG, GIF, WebP) are allowed for scanning images'));
       }
-    } else {
-      console.log('Combined upload - Unknown field name:', file.fieldname);
+    } else {  
       cb(new Error('Unexpected field: ' + file.fieldname));
     }
   }

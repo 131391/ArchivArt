@@ -1,12 +1,8 @@
-console.log('Media Edit Script loading...');
-console.log('Script loaded at:', new Date().toISOString());
-
 // Global variables
 let newScanningImageFile = null;
 
 // Initialize media edit functionality
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Media Edit DOM loaded');
     
     const form = document.getElementById('edit-media-form');
     const submitBtn = document.getElementById('edit-submit-button');
@@ -26,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check if all required elements exist
     if (!form || !submitBtn || !submitText || !cancelBtn || !mediaId) {
-        console.error('Required form elements not found');
         return;
     }
 
@@ -110,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('Form submit event triggered, using AJAX');
 
         const errors = validateEditForm();
         if (errors.length > 0) {
@@ -138,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('scanning_image', newScanningImageFile);
         }
 
-        console.log('Submitting form data via AJAX to:', `/admin/media/${mediaId}/text`);
 
         try {
             const response = await fetch(`/admin/media/${mediaId}/text`, {
@@ -150,17 +143,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Response error text:', errorText);
                 throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
 
             const data = await response.json();
-            console.log('Response data:', data);
             
             if (data.success) {
                 showSuccessToast('Media updated successfully!');
@@ -171,7 +160,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showErrorToast(data.message || 'Error updating media');
             }
         } catch (error) {
-            console.error('Error updating media:', error);
             showErrorToast(`Error updating media: ${error.message}`);
         } finally {
             submitBtn.disabled = false;
@@ -183,7 +171,6 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Submit button clicked, manually triggering form submission');
         
         // Manually trigger the form submission
         const submitEvent = new Event('submit', {
@@ -218,4 +205,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-console.log('Media Edit Script loaded successfully');

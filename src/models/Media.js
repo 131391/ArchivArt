@@ -242,7 +242,6 @@ class Media {
             `;
             
             const [rows] = await db.execute(query, queryParams);
-            console.log('Query executed successfully, rows count:', rows.length);
 
             return {
                 media: rows.map(row => new Media(row)),

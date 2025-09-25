@@ -20,9 +20,7 @@ class NodeOpenCVService {
             this.matcher = new cv.BFMatcher(cv.NORM_HAMMING, true);
             
             this.isAvailable = true;
-            console.log('✅ OpenCV initialized successfully with opencv4nodejs');
         } catch (error) {
-            console.warn('⚠️ opencv4nodejs not available, falling back to basic image processing');
             this.isAvailable = false;
         }
     }
@@ -44,11 +42,11 @@ class NodeOpenCVService {
             const cacheKey = imagePath;
             if (this.descriptorCache.has(cacheKey)) {
                 const cached = this.descriptorCache.get(cacheKey);
-                console.log(`📋 Using cached features for: ${path.basename(imagePath)}`);
+                
                 return cached;
             }
 
-            console.log(`🔍 Extracting features from: ${path.basename(imagePath)}`);
+           
             
             const cv = require('opencv4nodejs');
             
@@ -78,11 +76,11 @@ class NodeOpenCVService {
             // Cache the result
             this.descriptorCache.set(cacheKey, result);
             
-            console.log(`✅ Extracted ${result.featureCount} features from ${path.basename(imagePath)}`);
+            
             return result;
             
         } catch (error) {
-            console.error('❌ Error extracting features:', error.message);
+            
             return {
                 success: false,
                 error: error.message
@@ -123,7 +121,7 @@ class NodeOpenCVService {
             };
             
         } catch (error) {
-            console.error('❌ Error matching features:', error.message);
+            
             return {
                 success: false,
                 error: error.message,
@@ -134,7 +132,7 @@ class NodeOpenCVService {
 
     async checkForDuplicates(newImagePath, existingMedia, threshold = 50) {
         try {
-            console.log(`🔍 Checking for duplicates against ${existingMedia.length} existing images`);
+           
             
             // Extract features from new image
             const newFeatures = await this.extractFeatures(newImagePath);
@@ -147,7 +145,7 @@ class NodeOpenCVService {
             }
 
             if (newFeatures.featureCount === 0) {
-                console.log('⚠️ No features extracted from new image');
+                
                 return {
                     success: true,
                     isDuplicate: false,
@@ -171,18 +169,13 @@ class NodeOpenCVService {
                         bestMatch = media;
                     }
                 } catch (matchError) {
-                    console.warn(`⚠️ Error matching with media ${media.id}:`, matchError.message);
+                    
                     continue;
                 }
             }
 
             const isDuplicate = bestMatch && bestScore <= threshold;
             
-            if (isDuplicate) {
-                console.log(`🚫 Duplicate detected: ${bestMatch.title} (score: ${bestScore.toFixed(2)})`);
-            } else {
-                console.log(`✅ No duplicate found (best score: ${bestScore.toFixed(2)})`);
-            }
 
             return {
                 success: true,
@@ -193,7 +186,7 @@ class NodeOpenCVService {
             };
             
         } catch (error) {
-            console.error('❌ Error checking for duplicates:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -204,7 +197,7 @@ class NodeOpenCVService {
 
     async findMatchingMedia(scannedImagePath, mediaList, threshold = 50) {
         try {
-            console.log(`🔍 Finding matching media for scanned image against ${mediaList.length} media items`);
+           
             
             // Extract features from scanned image
             const scannedFeatures = await this.extractFeatures(scannedImagePath);
@@ -240,13 +233,13 @@ class NodeOpenCVService {
                         bestMatch = media;
                     }
                 } catch (matchError) {
-                    console.warn(`⚠️ Error matching with media ${media.id}:`, matchError.message);
+                   
                     continue;
                 }
             }
 
             if (bestMatch && bestScore <= threshold) {
-                console.log(`✅ Match found: ${bestMatch.title} (score: ${bestScore.toFixed(2)})`);
+               
                 return {
                     success: true,
                     matchedMedia: bestMatch,
@@ -254,7 +247,7 @@ class NodeOpenCVService {
                     matchCount: 'N/A'
                 };
             } else {
-                console.log(`❌ No match found (best score: ${bestScore.toFixed(2)})`);
+               
                 return {
                     success: true,
                     matchedMedia: null,
@@ -263,7 +256,7 @@ class NodeOpenCVService {
             }
             
         } catch (error) {
-            console.error('❌ Error finding matching media:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
@@ -275,7 +268,7 @@ class NodeOpenCVService {
     // Clear cache to free memory
     clearCache() {
         this.descriptorCache.clear();
-        console.log('🧹 Descriptor cache cleared');
+       
     }
 
     // Get cache statistics

@@ -89,9 +89,7 @@ class PerceptualHash {
             // Ensure the path is relative to uploads directory
             const fullPath = path.join(process.cwd(), 'src', 'public', 'uploads', 'media', scanningImagePath);
             
-            console.log('Generating perceptual hash for:', fullPath);
             const hash = await this.generateHash(fullPath, 16, true);
-            console.log('Generated perceptual hash:', hash);
             
             return hash;
         } catch (error) {

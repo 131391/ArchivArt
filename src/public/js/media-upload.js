@@ -1,6 +1,3 @@
-console.log('Media Upload Script loading...');
-console.log('Script loaded at:', new Date().toISOString());
-
 // Global variables
 let currentMediaType = 'video';
 let selectedFile = null;
@@ -8,11 +5,9 @@ let selectedScanningImage = null;
 
 // Immediately make function available
 function switchMediaType(mediaType) {
-    console.log('switchMediaType called with:', mediaType);
     try {
         // Remove active from all tabs
-        const allTabs = document.querySelectorAll('.media-tab');
-        console.log('Found tabs:', allTabs.length);
+        const allTabs = document.querySelectorAll('.media-tab');    
         allTabs.forEach(tab => {
             tab.classList.remove('active');
             tab.style.setProperty('background-color', '#f9fafb', 'important');
@@ -37,7 +32,6 @@ function switchMediaType(mediaType) {
         
         // Update current media type
         currentMediaType = mediaType;
-        console.log('Updated currentMediaType to:', currentMediaType);
         
         // Clear form data on tab change
         clearFormData();
@@ -46,7 +40,6 @@ function switchMediaType(mediaType) {
         updateContentForMediaType(mediaType);
         updateFormPlaceholders(mediaType);
     } catch (error) {
-        console.error('Error in switchMediaType:', error);
     }
 }
 
@@ -78,9 +71,7 @@ function clearFormData() {
         selectedFile = null;
         selectedScanningImage = null;
         
-        console.log('Form data cleared on tab change');
     } catch (error) {
-        console.error('Error clearing form data:', error);
     }
 }
 
@@ -140,7 +131,6 @@ function updateContentForMediaType(mediaType) {
         if (detailsSubtitle) detailsSubtitle.textContent = config.detailsSubtitle;
         if (submitText) submitText.textContent = config.submitText;
     } catch (error) {
-        console.error('Error in updateContentForMediaType:', error);
     }
 }
 
@@ -166,7 +156,6 @@ function updateFormPlaceholders(mediaType) {
                 break;
         }
     } catch (error) {
-        console.error('Error in updateFormPlaceholders:', error);
     }
 }
 
@@ -175,18 +164,10 @@ window.switchMediaType = switchMediaType;
 window.updateContentForMediaType = updateContentForMediaType;
 window.updateFormPlaceholders = updateFormPlaceholders;
 window.saveMedia = saveMedia;
-console.log('switchMediaType function loaded and available globally');
-console.log('Functions available:', {
-    switchMediaType: typeof window.switchMediaType,
-    updateContentForMediaType: typeof window.updateContentForMediaType,
-    updateFormPlaceholders: typeof window.updateFormPlaceholders,
-    saveMedia: typeof window.saveMedia
-});
 
 // Save Media Function
 function saveMedia(event) {
     event.preventDefault();
-    console.log('=== SAVE MEDIA FUNCTION CALLED ===');
     
     // Get form data
     const form = document.getElementById('media-form');
@@ -202,107 +183,54 @@ function saveMedia(event) {
     const mainFile = document.getElementById('file-input').files[0];
     const scanningImage = document.getElementById('scanning-image-input').files[0];
     
-    console.log('Form Data:', {
-        mediaType: mediaType,
-        title: title,
-        description: description,
-        mainFile: mainFile ? {
-            name: mainFile.name,
-            size: mainFile.size,
-            type: mainFile.type
-        } : null,
-        scanningImage: scanningImage ? {
-            name: scanningImage.name,
-            size: scanningImage.size,
-            type: scanningImage.type
-        } : null
-    });
+    
     
     // Validation
     if (!title.trim()) {
-        console.error('❌ Title is required');
         showErrorToast('Please enter a title for your media');
         return;
     }
     
     if (!mainFile) {
-        console.error('❌ Main file is required');
         showErrorToast('Please select a file to upload');
         return;
     }
     
     if (!scanningImage) {
-        console.error('❌ Scanning image is required');
         showErrorToast('Please select a scanning image');
         return;
     }
-    
-    console.log('✅ All validation passed');
-    console.log('📤 Starting media upload process...');
-    
-    // Here you would typically send the data to your server
-    // For now, we'll just log the success
-    console.log('🎉 Media saved successfully!');
-    console.log('📊 Upload Summary:', {
-        mediaType: mediaType,
-        title: title,
-        description: description,
-        mainFileSize: (mainFile.size / 1024 / 1024).toFixed(2) + ' MB',
-        scanningImageSize: (scanningImage.size / 1024 / 1024).toFixed(2) + ' MB'
-    });
-    
-    // Success message removed - no alert should appear after save media
 }
 
-// Test function to verify global scope
-window.testFunction = function() {
-    console.log('Global function test successful!');
-};
-
-
-
-
-
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== UPLOAD MEDIA SYSTEM INITIALIZED ===');
-    console.log('DOM Content Loaded at:', new Date().toISOString());
+
     
     // Add a visual indicator that JavaScript is working
     const pageTitle = document.querySelector('h1');
     if (pageTitle) {
         pageTitle.style.borderLeft = '4px solid #7c3aed';
         pageTitle.style.paddingLeft = '12px';
-        console.log('Page title found and styled');
     } else {
-        console.log('Page title not found');
     }
     
     // Get elements first
     const mediaTabs = document.querySelectorAll('.media-tab');
     
     // Test if JavaScript is working
-    console.log('JavaScript is running!');
-    console.log('Found tabs:', mediaTabs.length);
-    console.log('Tab elements:', mediaTabs);
     
     // Check if we're on the media upload page
     if (mediaTabs.length === 0) {
-        console.log('Media tabs not found - not on media upload page');
         return;
     }
     
     // Add event listeners to tabs
     mediaTabs.forEach((tab, index) => {
-        console.log(`Adding event listener to tab ${index}:`, tab);
         tab.addEventListener('click', function(e) {
             e.preventDefault();
             const mediaType = this.getAttribute('data-type');
-            console.log('Tab clicked:', mediaType);
-            console.log('Calling switchMediaType with:', mediaType);
             if (typeof switchMediaType === 'function') {
                 switchMediaType(mediaType);
             } else {
-                console.error('switchMediaType is not a function!');
             }
         });
     });
@@ -312,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if we're on the media upload page
     if (!dropZone || !fileInput) {
-        console.log('Media upload elements not found - not on media upload page');
         return;
     }
 
@@ -358,27 +285,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const mediaType = activeTab.getAttribute('data-type');
         currentMediaType = mediaType;
         
-        console.log('Switching to tab:', mediaType);
-        console.log('Active tab element:', activeTab);
         
         // Update tab appearance - remove active class from all tabs
         mediaTabs.forEach(tab => {
             tab.classList.remove('active');
-            console.log('Removed active from tab:', tab.getAttribute('data-type'));
         });
         
         // Add active class to clicked tab
         activeTab.classList.add('active');
-        console.log('Added active to tab:', mediaType);
-        console.log('Active tab classes after:', activeTab.className);
         
         // Update content based on media type
         updateContentForMediaType(mediaType);
         
         // Update form placeholders based on media type
         updateFormPlaceholders(mediaType);
-        
-        console.log('Switched to tab:', mediaType);
     }
 
     // Update form placeholders based on media type
@@ -452,7 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add click event listeners to tabs - Simplified approach
     mediaTabs.forEach((tab, index) => {
-        console.log(`Adding click listener to tab ${index}:`, tab);
         
         // Remove any existing event listeners
         tab.onclick = null;
@@ -461,7 +380,6 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Tab clicked:', this.getAttribute('data-type'));
             
             // Simple tab switching
             const mediaType = this.getAttribute('data-type');
@@ -476,7 +394,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateContentForMediaType(mediaType);
             updateFormPlaceholders(mediaType);
             
-            console.log('Tab switched to:', mediaType);
         };
     });
 
@@ -497,11 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update form placeholders
             updateFormPlaceholders('video');
             
-            console.log('Video tab set as active:', videoTab.classList.contains('active'));
-            console.log('Video tab classes:', videoTab.className);
-            console.log('Current media type:', currentMediaType);
         } else {
-            console.error('Video tab not found!');
         }
     }, 200);
 
@@ -558,14 +471,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle file selection
     function handleFileSelection(file) {
-        console.log('handleFileSelection called with file:', file.name, 'type:', file.type);
-        console.log('currentMediaType is:', currentMediaType);
         
         // Validate file type
         const config = mediaConfigs[currentMediaType];
         const isValidType = file.type.startsWith(currentMediaType + '/');
         
-        console.log('File type check:', file.type, 'startsWith', currentMediaType + '/', '=', isValidType);
         
         if (!isValidType) {
             showErrorToast(`Please select a valid ${currentMediaType} file.`);
@@ -750,12 +660,6 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('scanning_image', selectedScanningImage);
         
         try {
-            console.log('Sending FormData to /admin/media/upload');
-            console.log('FormData contents:');
-            for (let [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
-            
             const response = await fetch('/admin/media/upload', {
                 method: 'POST',
                 body: formData,
@@ -787,7 +691,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showErrorToast('Error: ' + errorMessage);
             }
         } catch (error) {
-            console.error('Upload error:', error);
             
             // Hide loader on error
             if (typeof hideLoader === 'function') {
@@ -816,5 +719,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission is already handled above at line 714
     // No need for duplicate handlers
 
-    console.log('=== UPLOAD MEDIA SYSTEM READY ===');
 });

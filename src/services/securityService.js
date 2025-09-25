@@ -315,8 +315,6 @@ class SecurityService {
       
       // Clean up old failed login attempts (older than 7 days)
       await db.execute('DELETE FROM failed_login_attempts WHERE last_attempt < DATE_SUB(NOW(), INTERVAL 7 DAY)');
-
-      console.log('Security data cleanup completed');
     } catch (error) {
       console.error('Error during security data cleanup:', error);
     }

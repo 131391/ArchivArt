@@ -18,7 +18,6 @@ class SmartImageService {
             
             if (isPythonOpenCVHealthy) {
                 this.currentService = this.primaryService;
-                console.log('🐍 Using Python OpenCV service for image processing');
                 return;
             }
             
@@ -27,16 +26,16 @@ class SmartImageService {
             
             if (isNodeOpenCVHealthy) {
                 this.currentService = this.secondaryService;
-                console.log('🟢 Using Node.js OpenCV service for image processing');
+               
                 return;
             }
             
             // Fall back to basic image service
             this.currentService = this.fallbackService;
-            console.log('⚠️ OpenCV services not available, using fallback image service');
+           
             
         } catch (error) {
-            console.warn('⚠️ Error initializing OpenCV services, using fallback:', error.message);
+           
             this.currentService = this.fallbackService;
         }
     }
@@ -166,27 +165,27 @@ class SmartImageService {
 
     // Force switch to fallback service
     async switchToFallback() {
-        console.log('🔄 Switching to fallback image service');
+       
         this.currentService = this.fallbackService;
     }
 
     // Try to reinitialize OpenCV service
     async tryReinitializeOpenCV() {
         try {
-            console.log('🔄 Attempting to reinitialize OpenCV service...');
+           
             await this.primaryService.initializeOpenCV();
             
             const isHealthy = await this.primaryService.isHealthy();
             if (isHealthy) {
                 this.currentService = this.primaryService;
-                console.log('✅ Successfully switched back to OpenCV service');
+               
                 return true;
             } else {
-                console.log('❌ OpenCV service still not available');
+               
                 return false;
             }
         } catch (error) {
-            console.error('❌ Error reinitializing OpenCV service:', error.message);
+           
             return false;
         }
     }

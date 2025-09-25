@@ -317,8 +317,6 @@ router.get('/rbac/roles/data', addUserPermissions, hasModuleActionPermissionWeb(
     const sort = req.query.sort || 'display_name';
     const order = req.query.order || 'asc';
     
-    console.log('RBAC roles data endpoint called with params:', { page, limit, search, status, sort, order });
-    
     const Role = require('../models/Role');
     
     // Use the Role model with search and sorting functionality
@@ -359,8 +357,6 @@ router.get('/rbac/roles/data', addUserPermissions, hasModuleActionPermissionWeb(
     const [countResult] = await db.execute(countQuery, countParams);
     const totalRoles = countResult[0].total;
     const totalPages = Math.ceil(totalRoles / limit);
-    
-    console.log('Roles found:', roles.length, 'Total:', totalRoles);
     
     res.json({
       success: true,
@@ -480,9 +476,6 @@ router.get('/rbac/permissions/data', addUserPermissions, hasModuleActionPermissi
     const module = req.query.module || req.query.moduleFilter || '';
     const sort = req.query.sort || 'display_name';
     const order = req.query.order || 'asc';
-    
-    console.log('RBAC permissions data endpoint called with params:', { page, limit, search, module, sort, order });
-    
     const Permission = require('../models/Permission');
     
     // Use the Permission model with search and sorting functionality
@@ -502,9 +495,7 @@ router.get('/rbac/permissions/data', addUserPermissions, hasModuleActionPermissi
     });
     
     const totalPages = Math.ceil(totalPermissions / limit);
-    
-    console.log('Permissions found:', permissions.length, 'Total:', totalPermissions);
-    
+
     res.json({
       success: true,
       data: permissions,
@@ -650,9 +641,6 @@ router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWe
     const search = req.query.search || '';
     const sort = req.query.sort || 'order_index';
     const order = req.query.order || 'asc';
-    
-    console.log('RBAC modules data endpoint called with params:', { page, limit, search, sort, order });
-    
     const Module = require('../models/Module');
     
     // Use the Module model with search and sorting functionality
@@ -680,7 +668,6 @@ router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWe
     const totalModules = countResult[0].total;
     const totalPages = Math.ceil(totalModules / limit);
     
-    console.log('Modules found:', modules.length, 'Total:', totalModules);
     
     res.json({
       success: true,
@@ -694,7 +681,6 @@ router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWe
       }
     });
   } catch (error) {
-    console.error('Error getting modules data:', error);
     res.status(500).json({
       success: false,
       message: 'Error loading modules data'

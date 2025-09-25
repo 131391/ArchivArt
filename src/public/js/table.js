@@ -1,5 +1,3 @@
-// Common Table JavaScript Functions - AJAX Based
-
 let currentSort = { column: 'created_at', direction: 'desc' };
 let currentPage = 1;
 let currentSearch = '';
@@ -40,13 +38,6 @@ function initTable(options = {}) {
     if (roleFilter) currentFilters.role = roleFilter;
     if (moduleFilter) currentFilters.module = moduleFilter;
 
-    console.log('Table initialized with:', {
-        currentSort,
-        currentPage,
-        currentSearch,
-        currentFilters
-    });
-
     // Set up event listeners
     setupEventListeners();
     
@@ -65,29 +56,23 @@ function setupEventListeners() {
     // Search input with debouncing
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        console.log('Table.js: Search input found, setting up event listeners');
         
         // Debounced search function
         const debouncedSearch = debounce(function(value) {
-            console.log('Table.js: Debounced search triggered with value:', value);
             currentSearch = value;
             currentPage = 1;
-            console.log('Table.js: About to call loadTableData');
             loadTableData();
         }, 500); // 500ms delay
         
         // Input event listener
         searchInput.addEventListener('input', function(e) {
             const value = e.target.value.trim();
-            console.log('Table.js: Search input changed:', value);
             
             // Show loading indicator
             const loadingIndicator = document.getElementById('searchLoading');
             if (loadingIndicator) {
-                console.log('Table.js: Showing search loading indicator');
                 loadingIndicator.classList.remove('hidden');
             } else {
-                console.log('Table.js: Search loading indicator not found');
             }
             
             // Debounced search
@@ -97,7 +82,6 @@ function setupEventListeners() {
         // Clear search on escape
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                console.log('Table.js: Escape key pressed, clearing search');
                 this.value = '';
                 currentSearch = '';
                 currentPage = 1;
@@ -105,18 +89,14 @@ function setupEventListeners() {
             }
         });
     } else {
-        console.log('Table.js: Search input not found');
     }
 
     // Filter dropdowns
     const filters = document.querySelectorAll('select[id$="Filter"]');
-    console.log('Table.js: Found filter elements:', filters.length);
     
     filters.forEach(filter => {
-        console.log('Table.js: Setting up filter listener for:', filter.id);
         filter.addEventListener('change', function() {
             const filterName = this.id.replace('Filter', '');
-            console.log('Table.js: Filter changed:', filterName, '=', this.value);
             
             // Map filter names to backend parameter names
             if (filterName === 'status') {
@@ -130,7 +110,6 @@ function setupEventListeners() {
             }
             
             currentPage = 1; // Reset to first page
-            console.log('Table.js: Updated filters:', currentFilters);
             loadTableData();
         });
     });
@@ -285,24 +264,19 @@ async function loadTableData() {
         // Hide search loading indicator
         const searchLoadingIndicator = document.getElementById('searchLoading');
         if (searchLoadingIndicator) {
-            console.log('Table.js: Hiding search loading indicator');
             searchLoadingIndicator.classList.add('hidden');
         } else {
-            console.log('Table.js: Search loading indicator not found for hiding');
         }
     }
 }
 
 // Update table content with new data
 function updateTableContent(data) {
-    console.log('updateTableContent called with data:', data);
-    
     // Update table body
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
         // Check if we have data in the response
         if (data.success && data.data && Array.isArray(data.data) && data.data.length > 0) {
-            console.log('Rendering table rows for', data.data.length, 'items');
             // Generate table rows from the data
             tbody.innerHTML = generateTableRows(data.data);
             
@@ -356,7 +330,6 @@ function updateTableContent(data) {
                 emptyMessage = 'No users match your current filter criteria.';
             }
             
-            console.log('Showing empty state:', emptyTitle);
             tbody.innerHTML = `
                 <tr>
                     <td colspan="100%" class="px-6 py-12 text-center">
@@ -379,10 +352,9 @@ function updateTableContent(data) {
     if (!paginationContainer) {
         paginationContainer = document.querySelector('.border-t.border-gray-200');
     }
-    console.log('Pagination container found:', !!paginationContainer);
+
     if (paginationContainer) {
         if (data.pagination) {
-            console.log('Pagination data:', data.pagination);
             if (typeof data.pagination === 'string' && data.pagination.trim() !== '') {
                 // Handle pre-rendered HTML pagination
                 paginationContainer.innerHTML = data.pagination;
@@ -395,7 +367,6 @@ function updateTableContent(data) {
                 const hasNext = pagination.hasNext || false;
                 const hasPrev = pagination.hasPrev || false;
                 
-                console.log('Pagination values:', { currentPage, totalPages, totalItems, hasNext, hasPrev });
                 
                 // Update global currentPage variable to match the response
                 window.currentPage = currentPage;
@@ -526,13 +497,11 @@ function hideLoadingState() {
 
 // Set current filter values on page load
 function setFilterValues() {
-    console.log('Table.js: Setting filter values:', currentFilters);
     
     // Set search value
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.value = currentSearch;
-        console.log('Table.js: Set search input value to:', currentSearch);
     }
     
     // Set filter values
@@ -540,9 +509,6 @@ function setFilterValues() {
         const filterElement = document.getElementById(filterName + 'Filter');
         if (filterElement) {
             filterElement.value = currentFilters[filterName];
-            console.log('Table.js: Set filter', filterName, 'to value:', currentFilters[filterName]);
-        } else {
-            console.log('Table.js: Filter element not found:', filterName + 'Filter');
         }
     });
 }
@@ -854,14 +820,11 @@ function waitForFormatters(formatterNames, callback, maxWait = 2000) {
     const checkFormatters = () => {
         const availableFormatters = formatterNames.filter(name => typeof window[name] === 'function');
         
-        if (availableFormatters.length === formatterNames.length) {
-            console.log('All formatters are now available:', availableFormatters);
+        if (availableFormatters.length === formatterNames.length) { 
             callback();
         } else if (Date.now() - startTime < maxWait) {
-            console.log('Waiting for formatters. Available:', availableFormatters, 'Missing:', formatterNames.filter(name => !availableFormatters.includes(name)));
             setTimeout(checkFormatters, 100);
         } else {
-            console.log('Timeout waiting for formatters. Proceeding with available ones.');
             callback();
         }
     };
@@ -871,19 +834,14 @@ function waitForFormatters(formatterNames, callback, maxWait = 2000) {
 
 // Apply custom formatters
 function applyCustomFormatters() {
-    console.log('applyCustomFormatters called');
     const customElements = document.querySelectorAll('[data-formatter]');
-    console.log('Found custom elements:', customElements.length);
-    
+
     if (customElements.length === 0) {
-        console.log('No custom elements found, skipping formatter application');
         return;
     }
-    
     // Get unique formatter names that are needed
     const neededFormatters = [...new Set(Array.from(customElements).map(el => el.getAttribute('data-formatter')))];
-    console.log('Needed formatters:', neededFormatters);
-    
+
     // Wait for formatters to be available before applying them
     waitForFormatters(neededFormatters, () => {
         applyFormattersToElements(customElements);
@@ -897,13 +855,9 @@ function applyFormattersToElements(customElements) {
         const formatterName = element.getAttribute('data-formatter');
         const itemData = JSON.parse(element.getAttribute('data-item'));
         
-        console.log('Processing element with formatter:', formatterName, 'data:', itemData);
-        
         if (typeof window[formatterName] === 'function') {
-            console.log('Calling formatter function:', formatterName);
             element.innerHTML = window[formatterName](itemData);
         } else {
-            console.log('Formatter function not found:', formatterName, 'available functions:', Object.keys(window).filter(k => k.startsWith('format')));
             // Fallback: show raw data immediately
             const fallbackValue = itemData[formatterName.replace('format', '').toLowerCase()] || 
                                itemData[formatterName.replace('format', '')] || 
@@ -925,14 +879,9 @@ window.TableUtils = {
 
 // Initialize table when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Table.js: DOM loaded, initializing table');
-    
     // Check if we're on a page that uses the table component
     const tableElement = document.getElementById('dataTable');
     if (tableElement) {
-        console.log('Table.js: Table element found, initializing');
         initTable();
-    } else {
-        console.log('Table.js: No table element found, skipping initialization');
     }
 });

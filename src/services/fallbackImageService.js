@@ -13,8 +13,6 @@ class FallbackImageService {
 
     async extractFeatures(imagePath) {
         try {
-            console.log(`🔍 Fallback: Processing image ${path.basename(imagePath)}`);
-            
             // Read image file and generate a simple hash-based descriptor
             const imageBuffer = await fs.readFile(imagePath);
             const hash = crypto.createHash('sha256').update(imageBuffer).digest('hex');
@@ -33,8 +31,6 @@ class FallbackImageService {
                 robustDescriptor.push([value, value, value, value, value, value, value, value]); // 8-byte descriptor
             }
             
-            console.log(`✅ Fallback: Generated ${robustDescriptor.length} descriptor points`);
-            
             return {
                 success: true,
                 descriptors: robustDescriptor,
@@ -43,7 +39,6 @@ class FallbackImageService {
             };
             
         } catch (error) {
-            console.error('❌ Fallback: Error processing image:', error.message);
             return {
                 success: false,
                 error: error.message
@@ -94,8 +89,6 @@ class FallbackImageService {
 
     async checkForDuplicates(newImagePath, existingMedia, threshold = 100) {
         try {
-            console.log(`🔍 Fallback: Checking for duplicates against ${existingMedia.length} existing images`);
-            
             // Extract features from new image
             const newFeatures = await this.extractFeatures(newImagePath);
             if (!newFeatures.success) {
@@ -128,12 +121,6 @@ class FallbackImageService {
             }
 
             const isDuplicate = bestMatch && bestScore <= threshold;
-            
-            if (isDuplicate) {
-                console.log(`🚫 Fallback: Duplicate detected: ${bestMatch.title} (score: ${bestScore.toFixed(2)})`);
-            } else {
-                console.log(`✅ Fallback: No duplicate found (best score: ${bestScore.toFixed(2)})`);
-            }
 
             return {
                 success: true,
@@ -144,7 +131,6 @@ class FallbackImageService {
             };
             
         } catch (error) {
-            console.error('❌ Fallback: Error checking for duplicates:', error.message);
             return {
                 success: false,
                 error: error.message,
@@ -155,8 +141,6 @@ class FallbackImageService {
 
     async findMatchingMedia(scannedImagePath, mediaList, threshold = 100) {
         try {
-            console.log(`🔍 Fallback: Finding matching media for scanned image against ${mediaList.length} media items`);
-            
             // Extract features from scanned image
             const scannedFeatures = await this.extractFeatures(scannedImagePath);
             if (!scannedFeatures.success) {
@@ -189,7 +173,7 @@ class FallbackImageService {
             }
 
             if (bestMatch && bestScore <= threshold) {
-                console.log(`✅ Fallback: Match found: ${bestMatch.title} (score: ${bestScore.toFixed(2)})`);
+               
                 return {
                     success: true,
                     matchedMedia: bestMatch,
@@ -197,7 +181,7 @@ class FallbackImageService {
                     matchCount: 'N/A'
                 };
             } else {
-                console.log(`❌ Fallback: No match found (best score: ${bestScore.toFixed(2)})`);
+               
                 return {
                     success: true,
                     matchedMedia: null,
@@ -206,18 +190,13 @@ class FallbackImageService {
             }
             
         } catch (error) {
-            console.error('❌ Fallback: Error finding matching media:', error.message);
+           
             return {
                 success: false,
                 error: error.message,
                 matchedMedia: null
             };
         }
-    }
-
-    clearCache() {
-        // No cache in fallback mode
-        console.log('🧹 Fallback: No cache to clear');
     }
 
     getCacheStats() {

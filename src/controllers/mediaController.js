@@ -44,7 +44,6 @@ class MediaController {
             
             // Write the buffer to a temporary file
             await fs.writeFile(tempPath, req.file.buffer);
-            console.log(`📱 Mobile app uploaded image: ${req.file.originalname} at ${tempPath}`);
             
             try {
 
@@ -162,17 +161,7 @@ class MediaController {
 
             const result = await Media.findAll(options);
             const stats = await Media.getStats();
-
-            console.log('Media list data:', {
-                mediaCount: result.media ? result.media.length : 0,
-                media: result.media,
-                pagination: {
-                    currentPage: result.page,
-                    totalPages: result.totalPages,
-                    totalItems: result.total
-                }
-            });
-
+            
             // Convert Media objects to plain objects for EJS template (excluding descriptors)
             const plainMedia = result.media.map(media => ({
                 id: media.id,
@@ -224,7 +213,6 @@ class MediaController {
     // Get media data for AJAX
     static async getMediaData(req, res) {
         try {
-            console.log('getMediaData called with query:', req.query);
             
             const {
                 page = 1,
@@ -308,9 +296,6 @@ class MediaController {
     static async uploadMedia(req, res) {
         try {
             // Files are already processed by combinedUpload middleware in route
-            console.log('Upload request received');
-            console.log('Request body:', req.body);
-            console.log('Request files:', req.files);
             
             const { title, description, media_type } = req.body;
             const mediaFile = req.files.media_file ? req.files.media_file[0] : null;
@@ -327,7 +312,6 @@ class MediaController {
                     // Check if image processing service is available
                     const isServiceHealthy = await smartImageService.isHealthy();
                     if (!isServiceHealthy) {
-                        console.error('Image processing service is not available');
                         
                         return res.status(500).json({
                             success: false,
@@ -375,7 +359,6 @@ class MediaController {
                         const featureResult = await smartImageService.extractFeatures(tempScanningPath);
                         if (featureResult.success) {
                             descriptors = featureResult.descriptors;
-                            console.log(`Extracted ${featureResult.featureCount} features from scanning image using ${featureResult.service} service`);
                         } else {
                             throw new Error(featureResult.error);
                         }
@@ -384,7 +367,6 @@ class MediaController {
                         try {
                             imageHash = ImageHash.generateHashFromBuffer(scanningImageFile.buffer);
                             perceptualHash = await PerceptualHash.generateHash(tempScanningPath, 8, true);
-                            console.log(`Generated hashes - Image: ${imageHash ? imageHash.substring(0, 16) + '...' : 'null'}, Perceptual: ${perceptualHash ? perceptualHash.substring(0, 16) + '...' : 'null'}`);
                         } catch (hashError) {
                             console.error('Error generating hashes:', hashError);
                             // Continue without hashes - they're optional for duplicate detection
@@ -394,7 +376,6 @@ class MediaController {
                         if (perceptualHash) {
                             const identicalMedia = await Media.findIdenticalByImageHash(perceptualHash);
                             if (identicalMedia) {
-                                console.log(`Identical image detected by perceptual hash: ${identicalMedia.title}`);
                                 
                                 // Clean up temporary file before returning error
                                 await fs.unlink(tempScanningPath).catch(() => {});
@@ -415,7 +396,6 @@ class MediaController {
                             const similarMedia = await Media.findSimilarByImageHash(perceptualHash, 2);
                             if (similarMedia.length > 0) {
                                 const bestMatch = similarMedia[0];
-                                console.log(`Very similar image detected by perceptual hash: ${bestMatch.title} (distance: 2)`);
                                 
                                 // Clean up temporary file before returning error
                                 await fs.unlink(tempScanningPath).catch(() => {});
@@ -442,7 +422,6 @@ class MediaController {
                         );
 
                         if (duplicateCheck.success && duplicateCheck.isDuplicate) {
-                            console.log(`Duplicate image detected: ${duplicateCheck.duplicateMedia?.title || 'Unknown'} using ${duplicateCheck.service} service`);
                             
                             // Clean up temporary file before returning error
                             await fs.unlink(tempScanningPath).catch(() => {});
@@ -462,7 +441,6 @@ class MediaController {
                             });
                         }
                         
-                        console.log('✅ No duplicate images found, proceeding with upload');
                         
                     } catch (featureError) {
                         console.error('Error processing scanning image:', featureError);
@@ -498,7 +476,6 @@ class MediaController {
                     if (!imageHash) {
                         try {
                             imageHash = ImageHash.generateHashFromBuffer(scanningImageFile.buffer);
-                            console.log(`Generated fallback image hash: ${imageHash ? imageHash.substring(0, 16) + '...' : 'null'}`);
                         } catch (hashError) {
                             console.error('Error generating fallback image hash:', hashError);
                             imageHash = null;
@@ -507,8 +484,7 @@ class MediaController {
                     
                     if (!perceptualHash && tempScanningPath) {
                         try {
-                            perceptualHash = await PerceptualHash.generateHash(tempScanningPath, 8, true);
-                            console.log(`Generated fallback perceptual hash: ${perceptualHash ? perceptualHash.substring(0, 16) + '...' : 'null'}`);
+                            perceptualHash = await PerceptualHash.generateHash(tempScanningPath, 8, true);  
                         } catch (hashError) {
                             console.error('Error generating fallback perceptual hash:', hashError);
                             perceptualHash = null;
@@ -558,12 +534,7 @@ class MediaController {
                 return res.redirect('/admin/media');
             }
 
-            console.log('Media view - RBAC data:', {
-                user: req.session.user,
-                userPermissions: req.userPermissions,
-                userPrimaryRole: req.userPrimaryRole,
-                layout: res.locals.layout
-            });
+
 
             res.render('admin/media-view', {
                 title: `Media: ${media.title}`,
@@ -693,8 +664,6 @@ class MediaController {
       const { id } = req.params;
             const { title, description, media_type, is_active } = req.body;
             
-            console.log('Update media request:', { id, title, description, media_type, is_active });
-            console.log('File uploaded:', req.file ? req.file.filename : 'No file');
 
             // Check if any files were uploaded
             if (req.file || (req.files && (req.files.media_file || req.files.scanning_image))) {
@@ -707,7 +676,6 @@ class MediaController {
 
             const media = await Media.findById(id);
             if (!media) {
-                console.log('Media not found for ID:', id);
                 return res.status(404).json({
                     success: false,
                     message: 'Media not found'
@@ -723,8 +691,6 @@ class MediaController {
             };
 
             const updatedMedia = await media.update(updateData);
-            
-            console.log('Media updated successfully:', updatedMedia);
 
             res.json({
                 success: true,
@@ -746,11 +712,9 @@ class MediaController {
             const { id } = req.params;
             const { title, description, media_type, is_active } = req.body;
             
-            console.log('Update media text request:', { id, title, description, is_active });
 
             const media = await Media.findById(id);
             if (!media) {
-                console.log('Media not found for ID:', id);
                 return res.status(404).json({
                     success: false,
                     message: 'Media not found'
@@ -767,7 +731,6 @@ class MediaController {
 
             const updatedMedia = await media.update(updateData);
             
-            console.log('Media text updated successfully:', updatedMedia);
 
             res.json({
                 success: true,
@@ -816,51 +779,34 @@ class MediaController {
     static async deleteMedia(req, res) {
     try {
       const { id } = req.params;
-            console.log(`🗑️ Attempting to delete media with ID: ${id}`);
             
             const media = await Media.findById(id);
 
             if (!media) {
-                console.log(`❌ Media not found with ID: ${id}`);
                 return res.status(404).json({
                     success: false,
                     message: 'Media not found'
                 });
             }
             
-            console.log(`✅ Found media: ${media.title} (${media.file_path})`);
 
             // Delete files from S3
             try {
                 // Delete the main media file from S3
                 if (media.file_path) {
                     const deleteResult = await S3Service.deleteFile(media.file_path);
-                    if (deleteResult.success) {
-                        console.log(`Deleted media file from S3: ${media.file_path}`);
-                    } else {
-                        console.log(`Failed to delete media file from S3: ${deleteResult.error}`);
-                    }
                 }
 
                 // Delete the scanning image file from S3
                 if (media.scanning_image) {
                     const deleteResult = await S3Service.deleteFile(media.scanning_image);
-                    if (deleteResult.success) {
-                        console.log(`Deleted scanning image from S3: ${media.scanning_image}`);
-                    } else {
-                        console.log(`Failed to delete scanning image from S3: ${deleteResult.error}`);
-                    }
                 }
             } catch (fileError) {
                 console.warn('Error deleting files from S3 (continuing with database deletion):', fileError.message);
                 // Continue with database deletion even if S3 deletion fails
             }
 
-      // Delete from database
-            console.log(`🗃️ Deleting media from database...`);
             await media.delete();
-            console.log(`✅ Media deleted from database successfully`);
-
             res.json({
                 success: true,
                 message: 'Media deleted successfully'
