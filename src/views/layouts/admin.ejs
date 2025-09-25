@@ -665,11 +665,14 @@
             }
             
             // Apply highlighting if any condition matches
+            // Check RBAC sub-menu items first (they take precedence)
             if (
-              (linkHref === "/admin/rbac" && currentPath.startsWith("/admin/rbac")) ||
               (linkHref === "/admin/rbac/modules" && currentPath.startsWith("/admin/rbac/modules")) ||
               (linkHref === "/admin/rbac/roles" && currentPath.startsWith("/admin/rbac/roles")) ||
               (linkHref === "/admin/rbac/permissions" && currentPath.startsWith("/admin/rbac/permissions")) ||
+              // Only highlight RBAC Dashboard if we're on the exact RBAC dashboard page, not sub-pages
+              (linkHref === "/admin/rbac" && currentPath === "/admin/rbac") ||
+              // For non-RBAC links, use the original logic
               (linkHref !== "/admin/rbac" && linkHref !== "/admin/rbac/modules" && linkHref !== "/admin/rbac/roles" && linkHref !== "/admin/rbac/permissions" && 
                (linkHref === currentPath || currentPath.startsWith(linkHref + "/")))
             ) {
