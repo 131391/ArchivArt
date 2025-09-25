@@ -371,10 +371,18 @@ function updateTableContent(data) {
         }
     }
 
-    // Update pagination
-    const paginationContainer = document.querySelector('.bg-white.px-4.py-3');
+    // Update pagination - try multiple selectors to find the pagination container
+    let paginationContainer = document.querySelector('.bg-gradient-to-r.from-gray-50.to-gray-100.px-6.py-4');
+    if (!paginationContainer) {
+        paginationContainer = document.querySelector('[class*="bg-gradient-to-r"][class*="px-6"][class*="py-4"]');
+    }
+    if (!paginationContainer) {
+        paginationContainer = document.querySelector('.border-t.border-gray-200');
+    }
+    console.log('Pagination container found:', !!paginationContainer);
     if (paginationContainer) {
         if (data.pagination) {
+            console.log('Pagination data:', data.pagination);
             if (typeof data.pagination === 'string' && data.pagination.trim() !== '') {
                 // Handle pre-rendered HTML pagination
                 paginationContainer.innerHTML = data.pagination;
@@ -387,52 +395,76 @@ function updateTableContent(data) {
                 const hasNext = pagination.hasNext || false;
                 const hasPrev = pagination.hasPrev || false;
                 
+                console.log('Pagination values:', { currentPage, totalPages, totalItems, hasNext, hasPrev });
+                
+                // Update global currentPage variable to match the response
+                window.currentPage = currentPage;
+                
                 const startItem = ((currentPage - 1) * 10) + 1;
                 const endItem = Math.min(currentPage * 10, totalItems);
-                
-                let paginationHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1 flex justify-between sm:hidden">
-                            ${hasPrev ? `<button onclick="goToPage(${currentPage - 1})" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</button>` : ''}
-                            ${hasNext ? `<button onclick="goToPage(${currentPage + 1})" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</button>` : ''}
-                        </div>
-                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm text-gray-700">
-                                    Showing <span class="font-medium">${startItem}</span> to <span class="font-medium">${endItem}</span> of <span class="font-medium">${totalItems}</span> results
-                                </p>
-                            </div>
-                            <div>
-                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                    ${hasPrev ? `<button onclick="goToPage(${currentPage - 1})" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                        <span class="sr-only">Previous</span>
-                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>` : ''}
-                `;
                 
                 // Generate page numbers
                 const startPage = Math.max(1, currentPage - 2);
                 const endPage = Math.min(totalPages, currentPage + 2);
                 
+                let paginationHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                        <!-- Results Info -->
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-info-circle text-gray-400"></i>
+                            <p class="text-sm text-gray-700">
+                                Showing
+                                <span class="font-semibold text-gray-900">${startItem}</span>
+                                to
+                                <span class="font-semibold text-gray-900">${endItem}</span>
+                                of
+                                <span class="font-semibold text-gray-900">${totalItems}</span>
+                                results
+                            </p>
+                        </div>
+                        
+                        <!-- Pagination Controls -->
+                        <div class="flex items-center space-x-2">
+                            <!-- Mobile Pagination -->
+                            <div class="flex sm:hidden space-x-2">
+                                ${hasPrev ? `<button onclick="goToPage(${currentPage - 1})" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
+                                    <i class="fas fa-chevron-left mr-1"></i>
+                                    Previous
+                                </button>` : ''}
+                                ${hasNext ? `<button onclick="goToPage(${currentPage + 1})" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
+                                    Next
+                                    <i class="fas fa-chevron-right ml-1"></i>
+                                </button>` : ''}
+                            </div>
+                            
+                            <!-- Desktop Pagination -->
+                            <div class="hidden sm:flex items-center space-x-1">
+                                ${hasPrev ? `<button onclick="goToPage(${currentPage - 1})" class="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
+                                    <i class="fas fa-chevron-left text-sm"></i>
+                                </button>` : ''}
+                `;
+                
                 for (let i = startPage; i <= endPage; i++) {
                     const isActive = i === currentPage;
-                    paginationHTML += `
-                        <button onclick="goToPage(${i})" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isActive ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}">
-                            ${i}
-                        </button>
-                    `;
+                    if (isActive) {
+                        paginationHTML += `
+                            <span class="inline-flex items-center justify-center w-10 h-10 border border-indigo-500 bg-indigo-500 text-white text-sm font-semibold rounded-lg">
+                                ${i}
+                            </span>
+                        `;
+                    } else {
+                        paginationHTML += `
+                            <button onclick="goToPage(${i})" class="inline-flex items-center justify-center w-10 h-10 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200 rounded-lg">
+                                ${i}
+                            </button>
+                        `;
+                    }
                 }
                 
                 paginationHTML += `
-                                    ${hasNext ? `<button onclick="goToPage(${currentPage + 1})" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                        <span class="sr-only">Next</span>
-                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>` : ''}
-                                </nav>
+                                ${hasNext ? `<button onclick="goToPage(${currentPage + 1})" class="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
+                                    <i class="fas fa-chevron-right text-sm"></i>
+                                </button>` : ''}
                             </div>
                         </div>
                     </div>
