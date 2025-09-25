@@ -77,10 +77,10 @@ button.bg-gray-500:empty::after, button.bg-gray-600:empty::after {
     emptyMessage: 'This module has no actions yet. Create your first action to get started.',
     columns: [
         { key: 'id', label: 'ID', sortable: true },
-        { key: 'name', label: 'Action Name', sortable: true },
-        { key: 'display_name', label: 'Display Name', sortable: true },
-        { key: 'description', label: 'Description', sortable: false },
-        { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatStatus' }
+        { key: 'name', label: 'Action Name', sortable: true, type: 'custom', formatter: 'formatActionName' },
+        { key: 'display_name', label: 'Display Name', sortable: true, type: 'custom', formatter: 'formatActionDisplayName' },
+        { key: 'description', label: 'Description', sortable: false, type: 'custom', formatter: 'formatActionDescription' },
+        { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatActionStatus' }
     ],
     actions: [
         { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', onclick: (item) => `viewModuleAction(${item.id})` },

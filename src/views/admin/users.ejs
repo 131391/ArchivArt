@@ -15,11 +15,11 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
 
 // Prepare columns
 const columns = [
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
-    { key: 'role_display_name', label: 'Role', sortable: true, type: 'custom', formatter: 'formatRole' },
-    { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatStatus' },
-    { key: 'created_at', label: 'Created', sortable: true, type: 'custom', formatter: 'formatDate' }
+    { key: 'name', label: 'Name', sortable: true, type: 'custom', formatter: 'formatUserName' },
+    { key: 'email', label: 'Email', sortable: true, type: 'custom', formatter: 'formatUserEmail' },
+    { key: 'role_display_name', label: 'Role', sortable: true, type: 'custom', formatter: 'formatUserRole' },
+    { key: 'is_active', label: 'Status', sortable: true, type: 'custom', formatter: 'formatUserStatus' },
+    { key: 'created_at', label: 'Created', sortable: true, type: 'custom', formatter: 'formatUserDate' }
 ];
 %>
 
@@ -42,10 +42,10 @@ const columns = [
 }) %>
 
 <!-- Enhanced User View Modal -->
-<div id="viewUserModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 backdrop-blur-sm">
-    <div class="relative top-20 mx-auto p-0 border-0 max-w-lg w-full mx-4 shadow-2xl rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="viewUserModalContainer">
+<div id="viewUserModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 modal-backdrop">
+    <div class="relative top-20 mx-auto p-0 border-0 max-w-2xl w-full mx-4 modal-container rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="viewUserModalContainer">
         <!-- Modal Header with Gradient -->
-        <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-t-2xl p-6 text-white">
+        <div class="modal-header-gradient rounded-t-2xl p-6 text-white" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 mr-4">
@@ -60,7 +60,7 @@ const columns = [
         </div>
         
         <!-- Modal Body -->
-        <div class="p-6">
+        <div class="p-8">
             <div id="userDetails">
                 <!-- User details will be loaded here -->
             </div>
@@ -69,10 +69,10 @@ const columns = [
 </div>
 
 <!-- Enhanced User Edit Modal -->
-<div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 backdrop-blur-sm">
-    <div class="relative top-20 mx-auto p-0 border-0 max-w-lg w-full mx-4 shadow-2xl rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="editUserModalContainer">
+<div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 modal-backdrop">
+    <div class="relative top-20 mx-auto p-0 border-0 max-w-2xl w-full mx-4 modal-container rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="editUserModalContainer">
         <!-- Modal Header with Gradient -->
-        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-2xl p-6 text-white">
+        <div class="modal-header-gradient rounded-t-2xl p-6 text-white" style="background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 mr-4">
@@ -87,7 +87,7 @@ const columns = [
         </div>
         
         <!-- Modal Body -->
-        <div class="p-6">
+        <div class="p-8">
             <form id="editUserForm" data-ajax="true">
                 <input type="hidden" id="editUserId" name="id">
                 
@@ -136,48 +136,163 @@ const columns = [
 </div>
 
 <script>
-// Formatter functions for custom columns
+// Enhanced formatter functions for custom columns
 
-function formatRole(roleDisplayName) {
+function formatUserName(item) {
+    const name = typeof item === 'object' ? item.name : item;
+    const email = typeof item === 'object' ? item.email : '';
+    
+    if (!name) return '<span class="text-gray-400 italic">No name</span>';
+    
+    // Get user initials
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    
+    return `
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-semibold text-sm">${initials}</span>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 truncate">${name}</p>
+                <p class="text-xs text-gray-500 truncate">${email}</p>
+            </div>
+        </div>
+    `;
+}
+
+function formatUserEmail(item) {
+    const email = typeof item === 'object' ? item.email : item;
+    if (!email) return '<span class="text-gray-400 italic">No email</span>';
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded font-mono">${email}</p>
+        </div>
+    `;
+}
+
+function formatUserRole(item) {
+    const roleDisplayName = typeof item === 'object' ? item.role_display_name : item;
+    const roleKey = typeof item === 'object' ? item.role : '';
+    
     if (!roleDisplayName || roleDisplayName === 'null') {
-        return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
-            <div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>
-            No Role
-        </span>`;
+        return `
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user-slash text-gray-600 text-xs"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700">No Role</span>
+            </div>
+        `;
     }
-    return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-        <div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>
-        ${roleDisplayName}
-    </span>`;
+    
+    // Get appropriate icon based on role
+    let iconClass = 'fas fa-user';
+    let iconColor = 'text-blue-600';
+    let bgColor = 'bg-blue-100';
+    
+    if (roleKey) {
+        switch (roleKey.toLowerCase()) {
+            case 'admin':
+            case 'administrator':
+            case 'super administrator':
+                iconClass = 'fas fa-crown';
+                iconColor = 'text-purple-600';
+                bgColor = 'bg-purple-100';
+                break;
+            case 'moderator':
+                iconClass = 'fas fa-shield-alt';
+                iconColor = 'text-orange-600';
+                bgColor = 'bg-orange-100';
+                break;
+            case 'editor':
+            case 'content editor':
+                iconClass = 'fas fa-edit';
+                iconColor = 'text-green-600';
+                bgColor = 'bg-green-100';
+                break;
+            case 'viewer':
+                iconClass = 'fas fa-eye';
+                iconColor = 'text-indigo-600';
+                bgColor = 'bg-indigo-100';
+                break;
+            case 'user':
+            case 'regular user':
+                iconClass = 'fas fa-user';
+                iconColor = 'text-gray-600';
+                bgColor = 'bg-gray-100';
+                break;
+            default:
+                iconClass = 'fas fa-user-tag';
+                iconColor = 'text-blue-600';
+                bgColor = 'bg-blue-100';
+        }
+    }
+    
+    return `
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 ${bgColor} rounded-lg flex items-center justify-center">
+                <i class="${iconClass} ${iconColor} text-xs"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">${roleDisplayName}</span>
+        </div>
+    `;
 }
 
-function formatStatus(isActive) {
-    if (isActive === 1 || isActive === true) {
-        return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-            <div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>
-            Active
-        </span>`;
+function formatUserStatus(item) {
+    const isActive = typeof item === 'object' ? item.is_active : item;
+    const isBlocked = typeof item === 'object' ? item.is_blocked : false;
+    
+    if (isBlocked) {
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                    <i class="fas fa-ban mr-1"></i>
+                    Blocked
+                </span>
+            </div>
+        `;
+    } else if (isActive === 1 || isActive === true) {
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    Active
+                </span>
+            </div>
+        `;
     } else {
-        return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
-            <div class="w-2 h-2 rounded-full mr-2 bg-current opacity-75"></div>
-            Inactive
-        </span>`;
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                    <i class="fas fa-pause-circle mr-1"></i>
+                    Inactive
+                </span>
+            </div>
+        `;
     }
 }
 
-function formatDate(dateString) {
-    if (!dateString) return '-';
+function formatUserDate(item) {
+    const dateString = typeof item === 'object' ? item.created_at : item;
+    if (!dateString) return '<span class="text-gray-400 italic">N/A</span>';
+    
     const date = new Date(dateString);
-    // Format as d/m/Y (day/month/year)
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     const formattedDate = `${day}/${month}/${year}`;
     
-    return `<div class="flex items-center space-x-2">
-        <i class="fas fa-calendar text-gray-400 text-xs"></i>
-        <span class="text-sm text-gray-900">${formattedDate}</span>
-    </div>`;
+    return `
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-calendar text-blue-600 text-xs"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">${formattedDate}</span>
+        </div>
+    `;
 }
 
 // User action functions
@@ -188,35 +303,40 @@ function viewUser(userId) {
         .then(data => {
             if (data.success) {
                 const user = data.user;
+                // Get user initials
+                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                
                 document.getElementById('userDetails').innerHTML = `
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-4">
-                            <div class="flex-shrink-0 h-16 w-16">
-                                <div class="h-16 w-16 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
-                                    <span class="text-xl font-medium text-white">${user.name.charAt(0).toUpperCase()}</span>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-lg font-semibold text-gray-900">${user.name}</h4>
-                                <p class="text-sm text-gray-500">${user.email}</p>
+                    <div class="space-y-6">
+                        <!-- User Avatar and Title -->
+                        <div class="flex items-center justify-center">
+                            <div class="h-20 w-20 rounded-full module-icon-container flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.3);">
+                                <span class="text-white font-bold text-2xl">${initials}</span>
                             </div>
                         </div>
+                        
+                        <div class="text-center">
+                            <h4 class="text-2xl font-bold text-gray-900 mb-2">${user.name}</h4>
+                            <p class="text-sm text-gray-500 font-mono bg-gray-100 px-3 py-1 rounded-full inline-block">${user.email}</p>
+                        </div>
+                        
+                        <!-- User Details Grid -->
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Role</label>
-                                <p class="mt-1 text-sm text-gray-900">${user.role_display_name || 'No role assigned'}</p>
+                            <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <label class="block text-sm font-semibold text-gray-600 mb-2">Role</label>
+                                <p class="text-lg font-bold text-gray-900">${user.role_display_name || 'No role assigned'}</p>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Status</label>
-                                <p class="mt-1 text-sm text-gray-900">${user.is_active ? 'Active' : 'Inactive'}</p>
+                            <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <label class="block text-sm font-semibold text-gray-600 mb-2">Status</label>
+                                <p class="text-lg font-bold ${user.is_active ? 'text-green-600' : 'text-red-600'}">${user.is_active ? 'Active' : 'Inactive'}</p>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Created</label>
-                                <p class="mt-1 text-sm text-gray-900">${new Date(user.created_at).toLocaleDateString()}</p>
+                            <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <label class="block text-sm font-semibold text-gray-600 mb-2">Created</label>
+                                <p class="text-lg font-bold text-gray-900">${new Date(user.created_at).toLocaleDateString()}</p>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Last Updated</label>
-                                <p class="mt-1 text-sm text-gray-900">${new Date(user.updated_at).toLocaleDateString()}</p>
+                            <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <label class="block text-sm font-semibold text-gray-600 mb-2">Last Updated</label>
+                                <p class="text-lg font-bold text-gray-900">${new Date(user.updated_at).toLocaleDateString()}</p>
                             </div>
                         </div>
                     </div>
@@ -392,5 +512,12 @@ function showErrorToast(message) {
         toast.remove();
     }, 3000);
 }
+
+// Make sure all formatters are available globally
+window.formatUserName = formatUserName;
+window.formatUserEmail = formatUserEmail;
+window.formatUserRole = formatUserRole;
+window.formatUserStatus = formatUserStatus;
+window.formatUserDate = formatUserDate;
 
 </script>

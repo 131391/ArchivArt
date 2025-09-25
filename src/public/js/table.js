@@ -53,8 +53,10 @@ function initTable(options = {}) {
     // Set current filter values on page load
     setFilterValues();
     
-    // Apply custom formatters
-    applyCustomFormatters();
+    // Apply custom formatters with delay to ensure they're loaded
+    setTimeout(() => {
+        applyCustomFormatters();
+    }, 1000);
 }
 
 // Set up all event listeners
@@ -306,7 +308,7 @@ function updateTableContent(data) {
             // Apply custom formatters after rendering
             setTimeout(() => {
                 applyCustomFormatters();
-            }, 100);
+            }, 1000);
         } else if (data.tableRows && typeof data.tableRows === 'string' && data.tableRows.trim() !== '') {
             // Fallback for pre-rendered HTML (if any endpoints still use this)
             tbody.innerHTML = data.tableRows;
@@ -540,15 +542,19 @@ function generateTableRows(data) {
 function generateUserTableRows(users) {
     return users.map(user => `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.email || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatRole" data-item='${JSON.stringify(user)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserName" data-item='${JSON.stringify(user)}'>
+                <!-- User name will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserEmail" data-item='${JSON.stringify(user)}'>
+                <!-- User email will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserRole" data-item='${JSON.stringify(user)}'>
                 <!-- Role will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatStatus" data-item='${JSON.stringify(user)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserStatus" data-item='${JSON.stringify(user)}'>
                 <!-- Status will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatDate" data-item='${JSON.stringify(user)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserDate" data-item='${JSON.stringify(user)}'>
                 <!-- Date will be formatted by JavaScript -->
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -575,31 +581,27 @@ function generateUserTableRows(users) {
 function generateMediaTableRows(media) {
     return media.map(item => `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 h-12 w-12">
-                        ${item.media_type === 'image' ? 
-                            `<img class="h-12 w-12 rounded-lg object-cover" src="/uploads/media/${item.file_path}" alt="${item.title}">` :
-                            `<div class="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                                <i class="fas fa-${item.media_type === 'video' ? 'video' : 'music'} text-gray-500"></i>
-                            </div>`
-                        }
-                    </div>
-                    <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">${item.title || ''}</div>
-                        <div class="text-sm text-gray-500">${item.media_type || ''}</div>
-                    </div>
-                </div>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaTitle" data-item='${JSON.stringify(item)}'>
+                <!-- Media title will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.description || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.scanning_image || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                    ${item.is_active ? 'Active' : 'Inactive'}
-                </span>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatScanningImage" data-item='${JSON.stringify(item)}'>
+                <!-- Scanning image will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(item.created_at).toLocaleDateString()}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.uploaded_by_name || ''}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaType" data-item='${JSON.stringify(item)}'>
+                <!-- Media type will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatFileSize" data-item='${JSON.stringify(item)}'>
+                <!-- File size will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaStatus" data-item='${JSON.stringify(item)}'>
+                <!-- Status will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaDate" data-item='${JSON.stringify(item)}'>
+                <!-- Date will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUploadedBy" data-item='${JSON.stringify(item)}'>
+                <!-- Uploaded by will be formatted by JavaScript -->
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
                     <button onclick="window.location.href='/admin/media/view/${item.id}'" class="text-indigo-600 hover:text-indigo-900" title="View">
@@ -622,10 +624,18 @@ function generateRoleTableRows(roles) {
     return roles.map(role => `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${role.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${role.display_name || role.name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${role.description || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${role.user_count || 0}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${role.permission_count || 0}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatRole" data-item='${JSON.stringify(role)}'>
+                <!-- Role will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatDescription" data-item='${JSON.stringify(role)}'>
+                <!-- Description will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserCount" data-item='${JSON.stringify(role)}'>
+                <!-- User count will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermissionCount" data-item='${JSON.stringify(role)}'>
+                <!-- Permission count will be formatted by JavaScript -->
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatStatus" data-item='${JSON.stringify(role)}'>
                 <!-- Status will be formatted by JavaScript -->
             </td>
@@ -654,12 +664,24 @@ function generatePermissionTableRows(permissions) {
     return permissions.map(permission => `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.display_name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.module || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.action || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.resource || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.description || ''}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermission" data-item='${JSON.stringify(permission)}'>
+                <!-- Permission will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermissionName" data-item='${JSON.stringify(permission)}'>
+                <!-- Permission name will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModule" data-item='${JSON.stringify(permission)}'>
+                <!-- Module will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatAction" data-item='${JSON.stringify(permission)}'>
+                <!-- Action will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatResource" data-item='${JSON.stringify(permission)}'>
+                <!-- Resource will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatDescription" data-item='${JSON.stringify(permission)}'>
+                <!-- Description will be formatted by JavaScript -->
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
                     <button onclick="viewPermission(${permission.id})" class="text-blue-600 hover:text-blue-900" title="View">
@@ -716,21 +738,25 @@ function generateModuleTableRows(modules) {
     return modules.map(module => `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.display_name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatIcon" data-item='${JSON.stringify(module)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModule" data-item='${JSON.stringify(module)}'>
+                <!-- Module will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleName" data-item='${JSON.stringify(module)}'>
+                <!-- Module name will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleIcon" data-item='${JSON.stringify(module)}'>
                 <!-- Icon will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatRoute" data-item='${JSON.stringify(module)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleRoute" data-item='${JSON.stringify(module)}'>
                 <!-- Route will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatOrderIndex" data-item='${JSON.stringify(module)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleOrder" data-item='${JSON.stringify(module)}'>
                 <!-- Order will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionCount" data-item='${JSON.stringify(module)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleActions" data-item='${JSON.stringify(module)}'>
                 <!-- Action count will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermissionCount" data-item='${JSON.stringify(module)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModulePermissions" data-item='${JSON.stringify(module)}'>
                 <!-- Permission count will be formatted by JavaScript -->
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -758,10 +784,16 @@ function generateModuleActionTableRows(actions) {
     return actions.map(action => `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.display_name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.description || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatStatus" data-item='${JSON.stringify(action)}'>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionName" data-item='${JSON.stringify(action)}'>
+                <!-- Action name will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionDisplayName" data-item='${JSON.stringify(action)}'>
+                <!-- Display name will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionDescription" data-item='${JSON.stringify(action)}'>
+                <!-- Description will be formatted by JavaScript -->
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionStatus" data-item='${JSON.stringify(action)}'>
                 <!-- Status will be formatted by JavaScript -->
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -781,11 +813,51 @@ function generateModuleActionTableRows(actions) {
     `).join('');
 }
 
+// Wait for formatters to be available
+function waitForFormatters(formatterNames, callback, maxWait = 5000) {
+    const startTime = Date.now();
+    
+    const checkFormatters = () => {
+        const availableFormatters = formatterNames.filter(name => typeof window[name] === 'function');
+        
+        if (availableFormatters.length === formatterNames.length) {
+            console.log('All formatters are now available:', availableFormatters);
+            callback();
+        } else if (Date.now() - startTime < maxWait) {
+            console.log('Waiting for formatters. Available:', availableFormatters, 'Missing:', formatterNames.filter(name => !availableFormatters.includes(name)));
+            setTimeout(checkFormatters, 200);
+        } else {
+            console.log('Timeout waiting for formatters. Proceeding with available ones.');
+            callback();
+        }
+    };
+    
+    checkFormatters();
+}
+
 // Apply custom formatters
 function applyCustomFormatters() {
     console.log('applyCustomFormatters called');
     const customElements = document.querySelectorAll('[data-formatter]');
     console.log('Found custom elements:', customElements.length);
+    
+    if (customElements.length === 0) {
+        console.log('No custom elements found, skipping formatter application');
+        return;
+    }
+    
+    // Get unique formatter names that are needed
+    const neededFormatters = [...new Set(Array.from(customElements).map(el => el.getAttribute('data-formatter')))];
+    console.log('Needed formatters:', neededFormatters);
+    
+    // Wait for formatters to be available before applying them
+    waitForFormatters(neededFormatters, () => {
+        applyFormattersToElements(customElements);
+    });
+}
+
+// Apply formatters to elements (separated for reusability)
+function applyFormattersToElements(customElements) {
     
     customElements.forEach(element => {
         const formatterName = element.getAttribute('data-formatter');
@@ -798,19 +870,11 @@ function applyCustomFormatters() {
             element.innerHTML = window[formatterName](itemData);
         } else {
             console.log('Formatter function not found:', formatterName, 'available functions:', Object.keys(window).filter(k => k.startsWith('format')));
-            // If formatter is not available, try again in 100ms
-            if (window.location.pathname.includes('/users') && formatterName.startsWith('format')) {
-                setTimeout(() => {
-                    if (typeof window[formatterName] === 'function') {
-                        console.log('Retrying formatter:', formatterName);
-                        element.innerHTML = window[formatterName](itemData);
-                    } else {
-                        element.innerHTML = itemData[formatterName] || '';
-                    }
-                }, 100);
-            } else {
-                element.innerHTML = itemData[formatterName] || '';
-            }
+            // Fallback: show raw data
+            const fallbackValue = itemData[formatterName.replace('format', '').toLowerCase()] || 
+                               itemData[formatterName.replace('format', '')] || 
+                               'N/A';
+            element.innerHTML = `<span class="text-gray-500">${fallbackValue}</span>`;
         }
     });
 }

@@ -66,6 +66,10 @@
         showCustomModal('confirm', title, message, callback);
     }
 
+    function showDeleteModal(message, title = 'Confirm Delete', callback = null) {
+        showCustomModal('delete', title, message, callback);
+    }
+
     function showCustomModal(type, title, message, callback = null) {
         const modal = document.getElementById('customModal');
         const modalContainer = document.getElementById('modalContainer');
@@ -84,6 +88,7 @@
         let iconHtml = '';
         let headerGradient = '';
         let confirmBtnClass = '';
+        let confirmBtnText = 'Confirm';
         
         switch(type) {
             case 'success':
@@ -111,18 +116,44 @@
                 headerGradient = 'bg-gradient-to-r from-indigo-500 to-purple-600';
                 confirmBtnClass = 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700';
                 break;
+            case 'delete':
+                iconHtml = '<i class="fas fa-exclamation-triangle text-white text-3xl animate-pulse"></i>';
+                headerGradient = 'bg-gradient-to-r from-red-500 to-red-600';
+                confirmBtnClass = 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700';
+                confirmBtnText = 'Delete';
+                break;
         }
 
-        // Update header gradient
+        // Update header gradient and add special classes for delete modal
         const header = modalContainer.querySelector('.bg-gradient-to-r');
         if (header) {
             header.className = header.className.replace(/bg-gradient-to-r from-\w+-\d+ to-\w+-\d+/, headerGradient);
+            
+            // Add danger styling for delete modals
+            if (type === 'delete') {
+                header.classList.add('modal-header-danger');
+                modalContainer.classList.add('modal-delete-danger');
+            } else {
+                header.classList.remove('modal-header-danger');
+                modalContainer.classList.remove('modal-delete-danger');
+            }
         }
 
         modalIcon.innerHTML = iconHtml;
+        
+        // Update confirm button text and styling
+        modalConfirmBtn.textContent = confirmBtnText;
+        modalConfirmBtn.className = modalConfirmBtn.className.replace(/bg-gradient-to-r from-\w+-\d+ to-\w+-\d+ hover:from-\w+-\d+ hover:to-\w+-\d+/, confirmBtnClass);
+        
+        // Add danger button class for delete modals
+        if (type === 'delete') {
+            modalConfirmBtn.classList.add('btn-delete-danger');
+        } else {
+            modalConfirmBtn.classList.remove('btn-delete-danger');
+        }
 
         // Show/hide buttons based on type
-        if (type === 'confirm') {
+        if (type === 'confirm' || type === 'delete') {
             modalCancelBtn.classList.remove('hidden');
             modalConfirmBtn.classList.remove('hidden');
             modalOkBtn.classList.add('hidden');

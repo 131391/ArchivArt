@@ -190,6 +190,19 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
+                        <script>
+                            console.log('Table component data:', {
+                                hasData: typeof data !== 'undefined',
+                                dataLength: typeof data !== 'undefined' ? data.length : 0,
+                                data: data,
+                                firstItem: typeof data !== 'undefined' && data.length > 0 ? data[0] : null,
+                                dataType: typeof data,
+                                isArray: Array.isArray(data),
+                                columns: typeof columns !== 'undefined' ? columns.length : 0
+                            });
+                        </script>
+                        
+                        <!-- Debug info removed -->
                         <% if (data && data.length > 0) { %>
                             <% data.forEach((item, index) => { %>
                             <tr class="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200 border-b border-gray-100">
@@ -251,14 +264,23 @@
                                                 <!-- Custom formatter will be applied by JavaScript -->
                                             </div>
                                             <script>
-                                                // Apply formatter immediately if available
+                                                // Apply formatter after page loads
                                                 (function() {
                                                     const formatterName = '<%= column.formatter %>';
                                                     const itemData = <%- JSON.stringify(item) %>;
-                                                    if (typeof window[formatterName] === 'function') {
-                                                        const element = document.currentScript.previousElementSibling;
-                                                        element.innerHTML = window[formatterName](itemData);
+                                                    const element = document.currentScript.previousElementSibling;
+                                                    
+                                                    function applyFormatter() {
+                                                        if (typeof window[formatterName] === 'function') {
+                                                            element.innerHTML = window[formatterName](itemData);
+                                                        } else {
+                                                            // Retry after a short delay
+                                                            setTimeout(applyFormatter, 100);
+                                                        }
                                                     }
+                                                    
+                                                    // Try immediately, then retry if needed
+                                                    applyFormatter();
                                                 })();
                                             </script>
                                         <% } %>
@@ -292,6 +314,15 @@
                             </tr>
                             <% }); %>
                         <% } else { %>
+                            <script>
+                                console.log('No data found - showing empty state', {
+                                    hasData: typeof data !== 'undefined',
+                                    dataLength: typeof data !== 'undefined' ? data.length : 0,
+                                    data: data,
+                                    dataType: typeof data,
+                                    isArray: Array.isArray(data)
+                                });
+                            </script>
                             <tr>
                                 <td colspan="100%" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center justify-center py-16">

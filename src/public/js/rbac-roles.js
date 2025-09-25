@@ -18,6 +18,122 @@ function formatStatus(item) {
     }
 }
 
+// Role formatter with icon
+function formatRole(item) {
+    const roleName = typeof item === 'object' ? item.display_name : item;
+    const roleKey = typeof item === 'object' ? item.name : '';
+    
+    // Get appropriate icon based on role name/key
+    let iconClass = 'fas fa-user';
+    let iconColor = 'text-blue-600';
+    let bgColor = 'bg-blue-100';
+    
+    if (roleKey) {
+        switch (roleKey.toLowerCase()) {
+            case 'admin':
+            case 'administrator':
+            case 'super administrator':
+                iconClass = 'fas fa-crown';
+                iconColor = 'text-purple-600';
+                bgColor = 'bg-purple-100';
+                break;
+            case 'moderator':
+                iconClass = 'fas fa-shield-alt';
+                iconColor = 'text-orange-600';
+                bgColor = 'bg-orange-100';
+                break;
+            case 'editor':
+            case 'content editor':
+                iconClass = 'fas fa-edit';
+                iconColor = 'text-green-600';
+                bgColor = 'bg-green-100';
+                break;
+            case 'viewer':
+                iconClass = 'fas fa-eye';
+                iconColor = 'text-indigo-600';
+                bgColor = 'bg-indigo-100';
+                break;
+            case 'user':
+            case 'regular user':
+                iconClass = 'fas fa-user';
+                iconColor = 'text-gray-600';
+                bgColor = 'bg-gray-100';
+                break;
+            default:
+                iconClass = 'fas fa-user-tag';
+                iconColor = 'text-blue-600';
+                bgColor = 'bg-blue-100';
+        }
+    }
+    
+    return `
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 ${bgColor} rounded-lg flex items-center justify-center">
+                    <i class="${iconClass} ${iconColor} text-sm"></i>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 truncate">${roleName}</p>
+                <p class="text-xs text-gray-500 font-mono">${roleKey}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Description formatter
+function formatDescription(item) {
+    const description = typeof item === 'object' ? item.description : item;
+    if (!description || description.trim() === '') {
+        return '<span class="text-gray-400 italic">No description</span>';
+    }
+    
+    // Truncate long descriptions
+    const truncated = description.length > 50 ? description.substring(0, 50) + '...' : description;
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm text-gray-700" title="${description}">${truncated}</p>
+        </div>
+    `;
+}
+
+// User count formatter
+function formatUserCount(item) {
+    const count = typeof item === 'object' ? item.user_count : item;
+    if (!count || count === 0) {
+        return '<span class="text-gray-400 italic">No users</span>';
+    }
+    
+    const userText = count === 1 ? '1 User' : `${count} Users`;
+    return `
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                <i class="fas fa-users mr-1"></i>
+                ${userText}
+            </span>
+        </div>
+    `;
+}
+
+// Permission count formatter
+function formatPermissionCount(item) {
+    const count = typeof item === 'object' ? item.permission_count : item;
+    if (!count || count === 0) {
+        return '<span class="text-gray-400 italic">No permissions</span>';
+    }
+    
+    const permissionText = count === 1 ? '1 Permission' : `${count} Permissions`;
+    return `
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                <i class="fas fa-key mr-1"></i>
+                ${permissionText}
+            </span>
+        </div>
+    `;
+}
+
 // Role action functions
 function viewRole(roleId) {
     console.log('viewRole function called with roleId:', roleId);
@@ -211,8 +327,8 @@ function editRole(roleId) {
 }
 
 function deleteRole(roleId) {
-    if (typeof showConfirmModal === 'function') {
-        showConfirmModal(
+    if (typeof showDeleteModal === 'function') {
+        showDeleteModal(
             'Are you sure you want to delete this role? This action cannot be undone.',
             'Confirm Delete',
             function() {
@@ -501,6 +617,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 100);
 });
+
+// Make sure all formatters are available globally
+window.formatStatus = formatStatus;
+window.formatRole = formatRole;
+window.formatDescription = formatDescription;
+window.formatUserCount = formatUserCount;
+window.formatPermissionCount = formatPermissionCount;
 
     // Form submission handlers
     setTimeout(() => {

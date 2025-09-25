@@ -11,6 +11,203 @@ function formatStatus(item) {
     }
 }
 
+// Enhanced formatter functions for module table
+
+function formatModule(item) {
+    const moduleName = typeof item === 'object' ? item.display_name : item;
+    const moduleKey = typeof item === 'object' ? item.name : '';
+    const moduleIcon = typeof item === 'object' ? item.icon : '';
+    
+    if (!moduleName) return '<span class="text-gray-400 italic">No module</span>';
+    
+    // Get appropriate icon based on module type
+    let iconClass = 'fas fa-puzzle-piece';
+    let iconColor = 'text-indigo-600';
+    let bgColor = 'bg-indigo-100';
+    
+    if (moduleIcon) {
+        iconClass = moduleIcon;
+    } else if (moduleKey) {
+        switch (moduleKey.toLowerCase()) {
+            case 'dashboard':
+                iconClass = 'fas fa-tachometer-alt';
+                iconColor = 'text-blue-600';
+                bgColor = 'bg-blue-100';
+                break;
+            case 'users':
+                iconClass = 'fas fa-users';
+                iconColor = 'text-green-600';
+                bgColor = 'bg-green-100';
+                break;
+            case 'media':
+                iconClass = 'fas fa-images';
+                iconColor = 'text-purple-600';
+                bgColor = 'bg-purple-100';
+                break;
+            case 'rbac':
+                iconClass = 'fas fa-shield-alt';
+                iconColor = 'text-orange-600';
+                bgColor = 'bg-orange-100';
+                break;
+            case 'settings':
+                iconClass = 'fas fa-cog';
+                iconColor = 'text-gray-600';
+                bgColor = 'bg-gray-100';
+                break;
+            case 'modules':
+                iconClass = 'fas fa-cubes';
+                iconColor = 'text-indigo-600';
+                bgColor = 'bg-indigo-100';
+                break;
+            default:
+                iconClass = 'fas fa-puzzle-piece';
+                iconColor = 'text-indigo-600';
+                bgColor = 'bg-indigo-100';
+        }
+    }
+    
+    return `
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 ${bgColor} rounded-lg flex items-center justify-center">
+                    <i class="${iconClass} ${iconColor} text-sm"></i>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 truncate">${moduleName}</p>
+                <p class="text-xs text-gray-500 font-mono">${moduleKey}</p>
+            </div>
+        </div>
+    `;
+}
+
+function formatModuleName(item) {
+    const name = typeof item === 'object' ? item.name : item;
+    if (!name) return '<span class="text-gray-400 italic">No name</span>';
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">${name}</p>
+        </div>
+    `;
+}
+
+function formatModuleIcon(item) {
+    const icon = typeof item === 'object' ? item.icon : item;
+    if (!icon) return '<span class="text-gray-400 italic">No icon</span>';
+    
+    return `
+        <div class="flex items-center justify-center">
+            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <i class="${icon} text-indigo-600 text-sm"></i>
+            </div>
+        </div>
+    `;
+}
+
+function formatModuleRoute(item) {
+    const route = typeof item === 'object' ? item.route : item;
+    if (!route) return '<span class="text-gray-400 italic">No route</span>';
+    
+    return `
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-link text-blue-600 text-xs"></i>
+            </div>
+            <span class="text-sm font-mono text-gray-700">${route}</span>
+        </div>
+    `;
+}
+
+function formatModuleOrder(item) {
+    const order = typeof item === 'object' ? item.order_index : item;
+    if (order === null || order === undefined) return '<span class="text-gray-400 italic">No order</span>';
+    
+    // Get position text
+    let positionText = '';
+    switch (order) {
+        case 1:
+            positionText = 'First';
+            break;
+        case 2:
+            positionText = 'Second';
+            break;
+        case 3:
+            positionText = 'Third';
+            break;
+        case 4:
+            positionText = 'Fourth';
+            break;
+        case 5:
+            positionText = 'Fifth';
+            break;
+        default:
+            positionText = `Position ${order}`;
+    }
+    
+    return `
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-sort-numeric-up text-yellow-600 text-xs"></i>
+            </div>
+            <div class="text-sm">
+                <p class="font-medium text-gray-700">${positionText}</p>
+                <p class="text-xs text-gray-500">(${order})</p>
+            </div>
+        </div>
+    `;
+}
+
+function formatModuleActions(item) {
+    const actionCount = typeof item === 'object' ? item.action_count : item;
+    const count = actionCount || 0;
+    
+    if (count === 0) {
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                    <i class="fas fa-ban mr-1"></i>
+                    No actions
+                </span>
+            </div>
+        `;
+    }
+    
+    return `
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                <i class="fas fa-cogs mr-1"></i>
+                ${count} Action${count !== 1 ? 's' : ''}
+            </span>
+        </div>
+    `;
+}
+
+function formatModulePermissions(item) {
+    const permissionCount = typeof item === 'object' ? item.permission_count : item;
+    const count = permissionCount || 0;
+    
+    if (count === 0) {
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                    <i class="fas fa-ban mr-1"></i>
+                    No permissions
+                </span>
+            </div>
+        `;
+    }
+    
+    return `
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                <i class="fas fa-key mr-1"></i>
+                ${count} Permission${count !== 1 ? 's' : ''}
+            </span>
+        </div>
+    `;
+}
+
 // Module action functions
 function viewModule(moduleId) {
     // Show loader
@@ -34,39 +231,49 @@ function viewModule(moduleId) {
                 const moduleDetailsEl = document.getElementById('moduleDetails');
                 if (moduleDetailsEl) {
                     moduleDetailsEl.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="flex items-center space-x-4">
-                                <div class="flex-shrink-0 h-16 w-16">
-                                    <div class="h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
-                                        <i class="${module.icon || 'fas fa-puzzle-piece'} text-white text-2xl"></i>
+                        <div class="space-y-6">
+                            <!-- Module Icon and Title Section -->
+                            <div class="flex items-center space-x-6">
+                                <div class="flex-shrink-0">
+                                    <div class="h-20 w-20 rounded-full module-icon-container flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.3);">
+                                        <i class="${module.icon || 'fas fa-tachometer-alt'} text-white text-3xl"></i>
                                     </div>
                                 </div>
-                                <div>
-                                    <h4 class="text-lg font-semibold text-gray-900">${module.display_name}</h4>
-                                    <p class="text-sm text-gray-500">${module.name}</p>
+                                <div class="flex-1">
+                                    <h4 class="text-2xl font-bold text-gray-900 mb-1">${module.display_name}</h4>
+                                    <p class="text-sm text-gray-500 font-medium">${module.name}</p>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Actions</label>
-                                    <p class="mt-1 text-sm text-gray-900">${module.action_count || 0}</p>
+                            
+                            <!-- Module Details Grid -->
+                            <div class="grid grid-cols-2 gap-8">
+                                <!-- Left Column -->
+                                <div class="space-y-4">
+                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                        <label class="block text-sm font-semibold text-gray-600 mb-2">Actions</label>
+                                        <p class="text-2xl font-bold text-gray-900">${module.action_count || 0}</p>
+                                    </div>
+                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                        <label class="block text-sm font-semibold text-gray-600 mb-2">Route</label>
+                                        <p class="text-sm font-mono text-gray-700">${module.route || 'N/A'}</p>
+                                    </div>
+                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                        <label class="block text-sm font-semibold text-gray-600 mb-2">Description</label>
+                                        <p class="text-sm text-gray-700">${module.description || 'No description provided'}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Permissions</label>
-                                    <p class="mt-1 text-sm text-gray-900">${module.permission_count || 0}</p>
+                                
+                                <!-- Right Column -->
+                                <div class="space-y-4">
+                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                        <label class="block text-sm font-semibold text-gray-600 mb-2">Permissions</label>
+                                        <p class="text-2xl font-bold text-gray-900">${module.permission_count || 0}</p>
+                                    </div>
+                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                        <label class="block text-sm font-semibold text-gray-600 mb-2">Order</label>
+                                        <p class="text-2xl font-bold text-gray-900">${module.order_index || 0}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Route</label>
-                                    <p class="mt-1 text-sm text-gray-900">${module.route || 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Order</label>
-                                    <p class="mt-1 text-sm text-gray-900">${module.order_index || 0}</p>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Description</label>
-                                <p class="mt-1 text-sm text-gray-900">${module.description || 'No description provided'}</p>
                             </div>
                         </div>
                     `;
@@ -163,8 +370,8 @@ function deleteModule(moduleId) {
                 }
             }
             
-            if (typeof showConfirmModal === 'function') {
-                showConfirmModal(
+            if (typeof showDeleteModal === 'function') {
+                showDeleteModal(
                     message,
                     'Confirm Delete',
                     function() {
@@ -201,8 +408,12 @@ function deleteModule(moduleId) {
 
 function performDeleteModule(moduleId) {
     // Show loader
-    if (typeof showLoader === 'function') {
-        showLoader({ message: 'Deleting module...' });
+    if (typeof window.GlobalLoader !== 'undefined') {
+        window.GlobalLoader.show({
+            title: 'Deleting Module...',
+            message: 'Please wait while we delete the module',
+            showProgress: false
+        });
     }
     
     fetch(`/admin/api/rbac/modules/${moduleId}`, {
@@ -212,8 +423,8 @@ function performDeleteModule(moduleId) {
         .then(response => response.json())
         .then(data => {
             // Hide loader
-            if (typeof hideLoader === 'function') {
-                hideLoader();
+            if (typeof window.GlobalLoader !== 'undefined') {
+                window.GlobalLoader.hide();
             }
             
             if (data.success) {
@@ -234,8 +445,8 @@ function performDeleteModule(moduleId) {
         })
         .catch(error => {
             // Hide loader on error
-            if (typeof hideLoader === 'function') {
-                hideLoader();
+            if (typeof window.GlobalLoader !== 'undefined') {
+                window.GlobalLoader.hide();
             }
             console.error('Error:', error);
             showErrorToast('Error deleting module');
@@ -530,8 +741,10 @@ function formatPermissionCount(item) {
 
 // Make sure all formatters are available globally
 window.formatStatus = formatStatus;
-window.formatIcon = formatIcon;
-window.formatRoute = formatRoute;
-window.formatOrderIndex = formatOrderIndex;
-window.formatActionCount = formatActionCount;
-window.formatPermissionCount = formatPermissionCount;
+window.formatModule = formatModule;
+window.formatModuleName = formatModuleName;
+window.formatModuleIcon = formatModuleIcon;
+window.formatModuleRoute = formatModuleRoute;
+window.formatModuleOrder = formatModuleOrder;
+window.formatModuleActions = formatModuleActions;
+window.formatModulePermissions = formatModulePermissions;

@@ -11,6 +11,224 @@ function formatStatus(item) {
     }
 }
 
+// Permission formatter with icon
+function formatPermission(item) {
+    const permissionName = typeof item === 'object' ? item.display_name : item;
+    const permissionKey = typeof item === 'object' ? item.name : '';
+    
+    // Get appropriate icon based on action type
+    let iconClass = 'fas fa-key';
+    let iconColor = 'text-purple-600';
+    let bgColor = 'bg-purple-100';
+    
+    if (permissionKey) {
+        const action = permissionKey.split('.').pop() || '';
+        switch (action.toLowerCase()) {
+            case 'view':
+            case 'read':
+                iconClass = 'fas fa-eye';
+                iconColor = 'text-blue-600';
+                bgColor = 'bg-blue-100';
+                break;
+            case 'create':
+            case 'add':
+                iconClass = 'fas fa-plus';
+                iconColor = 'text-green-600';
+                bgColor = 'bg-green-100';
+                break;
+            case 'update':
+            case 'edit':
+                iconClass = 'fas fa-edit';
+                iconColor = 'text-yellow-600';
+                bgColor = 'bg-yellow-100';
+                break;
+            case 'delete':
+            case 'remove':
+                iconClass = 'fas fa-trash';
+                iconColor = 'text-red-600';
+                bgColor = 'bg-red-100';
+                break;
+            case 'manage':
+                iconClass = 'fas fa-cogs';
+                iconColor = 'text-indigo-600';
+                bgColor = 'bg-indigo-100';
+                break;
+            default:
+                iconClass = 'fas fa-key';
+                iconColor = 'text-purple-600';
+                bgColor = 'bg-purple-100';
+        }
+    }
+    
+    return `
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 ${bgColor} rounded-lg flex items-center justify-center">
+                    <i class="${iconClass} ${iconColor} text-sm"></i>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 truncate">${permissionName}</p>
+                <p class="text-xs text-gray-500 font-mono">${permissionKey}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Permission name formatter
+function formatPermissionName(item) {
+    const name = typeof item === 'object' ? item.name : item;
+    if (!name) return '<span class="text-gray-400 italic">No name</span>';
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">${name}</p>
+        </div>
+    `;
+}
+
+// Module formatter
+function formatModule(item) {
+    const module = typeof item === 'object' ? item.module : item;
+    if (!module) return '<span class="text-gray-400 italic">No module</span>';
+    
+    // Get module icon based on module name
+    let iconClass = 'fas fa-puzzle-piece';
+    let iconColor = 'text-indigo-600';
+    let bgColor = 'bg-indigo-100';
+    
+    switch (module.toLowerCase()) {
+        case 'dashboard':
+            iconClass = 'fas fa-tachometer-alt';
+            iconColor = 'text-blue-600';
+            bgColor = 'bg-blue-100';
+            break;
+        case 'users':
+            iconClass = 'fas fa-users';
+            iconColor = 'text-green-600';
+            bgColor = 'bg-green-100';
+            break;
+        case 'media':
+            iconClass = 'fas fa-images';
+            iconColor = 'text-purple-600';
+            bgColor = 'bg-purple-100';
+            break;
+        case 'rbac':
+            iconClass = 'fas fa-shield-alt';
+            iconColor = 'text-orange-600';
+            bgColor = 'bg-orange-100';
+            break;
+        case 'settings':
+            iconClass = 'fas fa-cog';
+            iconColor = 'text-gray-600';
+            bgColor = 'bg-gray-100';
+            break;
+        case 'modules':
+            iconClass = 'fas fa-cubes';
+            iconColor = 'text-indigo-600';
+            bgColor = 'bg-indigo-100';
+            break;
+        default:
+            iconClass = 'fas fa-puzzle-piece';
+            iconColor = 'text-indigo-600';
+            bgColor = 'bg-indigo-100';
+    }
+    
+    return `
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 ${bgColor} rounded-lg flex items-center justify-center">
+                <i class="${iconClass} ${iconColor} text-xs"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700 capitalize">${module}</span>
+        </div>
+    `;
+}
+
+// Action formatter
+function formatAction(item) {
+    const action = typeof item === 'object' ? item.action : item;
+    if (!action) return '<span class="text-gray-400 italic">No action</span>';
+    
+    // Get action icon and color
+    let iconClass = 'fas fa-circle';
+    let iconColor = 'text-gray-600';
+    let bgColor = 'bg-gray-100';
+    
+    switch (action.toLowerCase()) {
+        case 'view':
+        case 'read':
+            iconClass = 'fas fa-eye';
+            iconColor = 'text-blue-600';
+            bgColor = 'bg-blue-100';
+            break;
+        case 'create':
+        case 'add':
+            iconClass = 'fas fa-plus';
+            iconColor = 'text-green-600';
+            bgColor = 'bg-green-100';
+            break;
+        case 'update':
+        case 'edit':
+            iconClass = 'fas fa-edit';
+            iconColor = 'text-yellow-600';
+            bgColor = 'bg-yellow-100';
+            break;
+        case 'delete':
+        case 'remove':
+            iconClass = 'fas fa-trash';
+            iconColor = 'text-red-600';
+            bgColor = 'bg-red-100';
+            break;
+        case 'manage':
+            iconClass = 'fas fa-cogs';
+            iconColor = 'text-indigo-600';
+            bgColor = 'bg-indigo-100';
+            break;
+        default:
+            iconClass = 'fas fa-circle';
+            iconColor = 'text-gray-600';
+            bgColor = 'bg-gray-100';
+    }
+    
+    return `
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${bgColor} ${iconColor}">
+                <i class="${iconClass} mr-1"></i>
+                ${action.charAt(0).toUpperCase() + action.slice(1)}
+            </span>
+        </div>
+    `;
+}
+
+// Resource formatter
+function formatResource(item) {
+    const resource = typeof item === 'object' ? item.resource : item;
+    if (!resource) return '<span class="text-gray-400 italic">No resource</span>';
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded font-mono">${resource}</p>
+        </div>
+    `;
+}
+
+// Description formatter
+function formatDescription(item) {
+    const description = typeof item === 'object' ? item.description : item;
+    if (!description || description.trim() === '') {
+        return '<span class="text-gray-400 italic">No description</span>';
+    }
+    
+    // Truncate long descriptions
+    const truncated = description.length > 40 ? description.substring(0, 40) + '...' : description;
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm text-gray-700" title="${description}">${truncated}</p>
+        </div>
+    `;
+}
+
 // Global variables for modules and actions
 let availableModules = [];
 let availableActions = [];
@@ -297,40 +515,73 @@ function viewPermission(permissionId) {
                 const permission = data.data;
                 const permissionDetailsEl = document.getElementById('permissionDetails');
                 if (permissionDetailsEl) {
+                    // Get appropriate icon based on action type
+                    let iconClass = 'fas fa-key';
+                    if (permission.name) {
+                        const action = permission.name.split('.').pop() || '';
+                        switch (action.toLowerCase()) {
+                            case 'view':
+                            case 'read':
+                                iconClass = 'fas fa-eye';
+                                break;
+                            case 'create':
+                            case 'add':
+                                iconClass = 'fas fa-plus';
+                                break;
+                            case 'update':
+                            case 'edit':
+                                iconClass = 'fas fa-edit';
+                                break;
+                            case 'delete':
+                            case 'remove':
+                                iconClass = 'fas fa-trash';
+                                break;
+                            case 'manage':
+                                iconClass = 'fas fa-cogs';
+                                break;
+                            default:
+                                iconClass = 'fas fa-key';
+                        }
+                    }
+
                     permissionDetailsEl.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="flex items-center space-x-4">
-                                <div class="flex-shrink-0 h-16 w-16">
-                                    <div class="h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
-                                        <span class="text-xl font-medium text-white">${permission.display_name.charAt(0).toUpperCase()}</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="text-lg font-semibold text-gray-900">${permission.display_name}</h4>
-                                    <p class="text-sm text-gray-500">${permission.name}</p>
+                        <div class="space-y-6">
+                            <!-- Permission Icon and Title -->
+                            <div class="flex items-center justify-center">
+                                <div class="h-20 w-20 rounded-full module-icon-container flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.3);">
+                                    <i class="${iconClass} text-white text-3xl"></i>
                                 </div>
                             </div>
+                            
+                            <div class="text-center">
+                                <h4 class="text-2xl font-bold text-gray-900 mb-2">${permission.display_name}</h4>
+                                <p class="text-sm text-gray-500 font-mono bg-gray-100 px-3 py-1 rounded-full inline-block">${permission.name}</p>
+                            </div>
+                            
+                            <!-- Permission Details Grid -->
                             <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Module</label>
-                                    <p class="mt-1 text-sm text-gray-900">${permission.module || 'N/A'}</p>
+                                <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Module</label>
+                                    <p class="text-lg font-bold text-gray-900">${permission.module || 'N/A'}</p>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Action</label>
-                                    <p class="mt-1 text-sm text-gray-900">${permission.action || 'N/A'}</p>
+                                <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Action</label>
+                                    <p class="text-lg font-bold text-gray-900">${permission.action || 'N/A'}</p>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Resource</label>
-                                    <p class="mt-1 text-sm text-gray-900">${permission.resource || 'N/A'}</p>
+                                <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Resource</label>
+                                    <p class="text-lg font-bold text-gray-900">${permission.resource || 'N/A'}</p>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Created</label>
-                                    <p class="mt-1 text-sm text-gray-900">${new Date(permission.created_at).toLocaleDateString()}</p>
+                                <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Created</label>
+                                    <p class="text-lg font-bold text-gray-900">${new Date(permission.created_at).toLocaleDateString()}</p>
                                 </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Description</label>
-                                <p class="mt-1 text-sm text-gray-900">${permission.description || 'No description provided'}</p>
+                            
+                            <!-- Description -->
+                            <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <label class="block text-sm font-semibold text-gray-600 mb-2">Description</label>
+                                <p class="text-sm text-gray-700 leading-relaxed">${permission.description || 'No description provided'}</p>
                             </div>
                         </div>
                     `;
@@ -425,8 +676,8 @@ function editPermission(permissionId) {
 }
 
 function deletePermission(permissionId) {
-    if (typeof showConfirmModal === 'function') {
-        showConfirmModal(
+    if (typeof showDeleteModal === 'function') {
+        showDeleteModal(
             'Are you sure you want to delete this permission? This action cannot be undone.',
             'Confirm Delete',
             function() {
@@ -440,8 +691,12 @@ function deletePermission(permissionId) {
 
 function performDeletePermission(permissionId) {
     // Show loader
-    if (typeof showLoader === 'function') {
-        showLoader({ message: 'Deleting permission...' });
+    if (typeof window.GlobalLoader !== 'undefined') {
+        window.GlobalLoader.show({
+            title: 'Deleting Permission...',
+            message: 'Please wait while we delete the permission',
+            showProgress: false
+        });
     }
     
     fetch(`/admin/api/rbac/permissions/${permissionId}`, {
@@ -451,8 +706,8 @@ function performDeletePermission(permissionId) {
     .then(response => response.json())
     .then(data => {
         // Hide loader
-        if (typeof hideLoader === 'function') {
-            hideLoader();
+        if (typeof window.GlobalLoader !== 'undefined') {
+            window.GlobalLoader.hide();
         }
         
         if (data.success) {
@@ -471,8 +726,8 @@ function performDeletePermission(permissionId) {
     })
     .catch(error => {
         // Hide loader on error
-        if (typeof hideLoader === 'function') {
-            hideLoader();
+        if (typeof window.GlobalLoader !== 'undefined') {
+            window.GlobalLoader.hide();
         }
         console.error('Error:', error);
         showErrorToast('Error deleting permission');
@@ -732,5 +987,11 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Make sure formatters are available globally
+// Make sure all formatters are available globally
 window.formatStatus = formatStatus;
+window.formatPermission = formatPermission;
+window.formatPermissionName = formatPermissionName;
+window.formatModule = formatModule;
+window.formatAction = formatAction;
+window.formatResource = formatResource;
+window.formatDescription = formatDescription;

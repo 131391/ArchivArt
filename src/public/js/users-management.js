@@ -3,42 +3,163 @@ console.log('Users management script loaded');
 console.log('Current page path:', window.location.pathname);
 console.log('Current page title:', document.title);
 
-// Custom formatters for table display
-function formatStatus(item) {
-    console.log('formatStatus called with item:', item);
+// Enhanced formatter functions for custom columns
+
+function formatUserName(item) {
+    const name = typeof item === 'object' ? item.name : item;
+    const email = typeof item === 'object' ? item.email : '';
     
-    if (item && item.is_blocked) {
-        return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Blocked</span>';
-    } else if (item && item.is_active) {
-        return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>';
+    if (!name) return '<span class="text-gray-400 italic">No name</span>';
+    
+    // Get user initials
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    
+    return `
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-semibold text-sm">${initials}</span>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 truncate">${name}</p>
+                <p class="text-xs text-gray-500 truncate">${email}</p>
+            </div>
+        </div>
+    `;
+}
+
+function formatUserEmail(item) {
+    const email = typeof item === 'object' ? item.email : item;
+    if (!email) return '<span class="text-gray-400 italic">No email</span>';
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded font-mono">${email}</p>
+        </div>
+    `;
+}
+
+function formatUserRole(item) {
+    const roleDisplayName = typeof item === 'object' ? item.role_display_name : item;
+    const roleKey = typeof item === 'object' ? item.role : '';
+    
+    if (!roleDisplayName || roleDisplayName === 'null') {
+        return `
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user-slash text-gray-600 text-xs"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700">No Role</span>
+            </div>
+        `;
+    }
+    
+    // Get appropriate icon based on role
+    let iconClass = 'fas fa-user';
+    let iconColor = 'text-blue-600';
+    let bgColor = 'bg-blue-100';
+    
+    if (roleKey) {
+        switch (roleKey.toLowerCase()) {
+            case 'admin':
+            case 'administrator':
+            case 'super administrator':
+                iconClass = 'fas fa-crown';
+                iconColor = 'text-purple-600';
+                bgColor = 'bg-purple-100';
+                break;
+            case 'moderator':
+                iconClass = 'fas fa-shield-alt';
+                iconColor = 'text-orange-600';
+                bgColor = 'bg-orange-100';
+                break;
+            case 'editor':
+            case 'content editor':
+                iconClass = 'fas fa-edit';
+                iconColor = 'text-green-600';
+                bgColor = 'bg-green-100';
+                break;
+            case 'viewer':
+                iconClass = 'fas fa-eye';
+                iconColor = 'text-indigo-600';
+                bgColor = 'bg-indigo-100';
+                break;
+            case 'user':
+            case 'regular user':
+                iconClass = 'fas fa-user';
+                iconColor = 'text-gray-600';
+                bgColor = 'bg-gray-100';
+                break;
+            default:
+                iconClass = 'fas fa-user-tag';
+                iconColor = 'text-blue-600';
+                bgColor = 'bg-blue-100';
+        }
+    }
+    
+    return `
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 ${bgColor} rounded-lg flex items-center justify-center">
+                <i class="${iconClass} ${iconColor} text-xs"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">${roleDisplayName}</span>
+        </div>
+    `;
+}
+
+function formatUserStatus(item) {
+    const isActive = typeof item === 'object' ? item.is_active : item;
+    const isBlocked = typeof item === 'object' ? item.is_blocked : false;
+    
+    if (isBlocked) {
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                    <i class="fas fa-ban mr-1"></i>
+                    Blocked
+                </span>
+            </div>
+        `;
+    } else if (isActive === 1 || isActive === true) {
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    Active
+                </span>
+            </div>
+        `;
     } else {
-        return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Inactive</span>';
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                    <i class="fas fa-pause-circle mr-1"></i>
+                    Inactive
+                </span>
+            </div>
+        `;
     }
 }
 
-function formatRole(item) {
-    console.log('formatRole called with item:', item);
+function formatUserDate(item) {
+    const dateString = typeof item === 'object' ? item.created_at : item;
+    if (!dateString) return '<span class="text-gray-400 italic">N/A</span>';
     
-    if (item && item.role_display_name) {
-        return `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">${item.role_display_name}</span>`;
-    } else if (item && item.role) {
-        return `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">${item.role}</span>`;
-    } else {
-        return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">No Role</span>';
-    }
-}
-
-function formatDate(item) {
-    console.log('formatDate called with item:', item);
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const formattedDate = `${day}/${month}/${year}`;
     
-    if (item && item.created_at) {
-        const date = new Date(item.created_at);
-        return `<div class="flex items-center space-x-2">
-            <i class="fas fa-calendar text-gray-400 text-xs"></i>
-            <span class="text-sm text-gray-900">${date.toLocaleDateString()}</span>
-        </div>`;
-    }
-    return '<span class="text-sm text-gray-500">N/A</span>';
+    return `
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-calendar text-blue-600 text-xs"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">${formattedDate}</span>
+        </div>
+    `;
 }
 
 function formatAvatar(item) {
@@ -470,8 +591,8 @@ function performToggleUserStatus(userId, action, actionText) {
 function deleteUser(userId) {
     console.log('deleteUser called with userId:', userId);
     
-    if (typeof showConfirmModal === 'function') {
-        showConfirmModal(
+    if (typeof showDeleteModal === 'function') {
+        showDeleteModal(
             'Are you sure you want to delete this user? This action cannot be undone.',
             'Confirm Delete',
             function() {
@@ -484,6 +605,15 @@ function deleteUser(userId) {
 }
 
 function performDeleteUser(userId) {
+    // Show loader
+    if (typeof window.GlobalLoader !== 'undefined') {
+        window.GlobalLoader.show({
+            title: 'Deleting User...',
+            message: 'Please wait while we delete the user',
+            showProgress: false
+        });
+    }
+    
     fetch(`/admin/users/${userId}`, {
         method: 'DELETE',
         credentials: 'same-origin',
@@ -500,6 +630,11 @@ function performDeleteUser(userId) {
         return response.json();
     })
     .then(data => {
+        // Hide loader
+        if (typeof window.GlobalLoader !== 'undefined') {
+            window.GlobalLoader.hide();
+        }
+        
         console.log('Delete response data:', data);
         if (data.success) {
             showSuccessToast('User deleted successfully');
@@ -509,6 +644,10 @@ function performDeleteUser(userId) {
         }
     })
     .catch(error => {
+        // Hide loader on error
+        if (typeof window.GlobalLoader !== 'undefined') {
+            window.GlobalLoader.hide();
+        }
         console.error('Delete error:', error);
         showErrorToast(`Error deleting user: ${error.message}`);
     });
@@ -541,16 +680,20 @@ if (typeof showErrorToast === 'undefined') {
     };
 }
 
-// Make sure formatters are available globally
-window.formatStatus = formatStatus;
-window.formatRole = formatRole;
-window.formatDate = formatDate;
+// Make sure all formatters are available globally
+window.formatUserName = formatUserName;
+window.formatUserEmail = formatUserEmail;
+window.formatUserRole = formatUserRole;
+window.formatUserStatus = formatUserStatus;
+window.formatUserDate = formatUserDate;
 window.formatAvatar = formatAvatar;
 
 console.log('Users management formatters loaded:', {
-    formatStatus: typeof formatStatus,
-    formatRole: typeof formatRole,
-    formatDate: typeof formatDate,
+    formatUserName: typeof formatUserName,
+    formatUserEmail: typeof formatUserEmail,
+    formatUserRole: typeof formatUserRole,
+    formatUserStatus: typeof formatUserStatus,
+    formatUserDate: typeof formatUserDate,
     formatAvatar: typeof formatAvatar
 });
 

@@ -163,9 +163,38 @@ class MediaController {
             const result = await Media.findAll(options);
             const stats = await Media.getStats();
 
+            console.log('Media list data:', {
+                mediaCount: result.media ? result.media.length : 0,
+                media: result.media,
+                pagination: {
+                    currentPage: result.page,
+                    totalPages: result.totalPages,
+                    totalItems: result.total
+                }
+            });
+
+            // Convert Media objects to plain objects for EJS template (excluding descriptors)
+            const plainMedia = result.media.map(media => ({
+                id: media.id,
+                title: media.title,
+                description: media.description,
+                scanning_image: media.scanning_image,
+                media_type: media.media_type,
+                file_path: media.file_path,
+                file_size: media.file_size,
+                mime_type: media.mime_type,
+                uploaded_by: media.uploaded_by,
+                uploaded_by_name: media.uploaded_by_name,
+                uploaded_by_email: media.uploaded_by_email,
+                is_active: media.is_active,
+                created_at: media.created_at,
+                updated_at: media.updated_at
+                // Note: descriptors excluded from response
+            }));
+
             res.render('admin/media', {
                 title: 'Media Management',
-                media: result.media,
+                data: plainMedia, // Changed from 'media' to 'data' to match user controller
                 pagination: {
                     currentPage: result.page,
                     totalPages: result.totalPages,
@@ -185,7 +214,7 @@ class MediaController {
                 userPermissions: req.userPermissions || [],
                 userPrimaryRole: req.userPrimaryRole || null
             });
-    } catch (error) {
+        } catch (error) {
             console.error('Error getting media list:', error);
             req.flash('error', 'Error loading media list');
             res.redirect('/admin/dashboard');
@@ -218,102 +247,28 @@ class MediaController {
             };
             const result = await Media.findAll(options);
 
-            // Generate table rows HTML
-            const tableRows = result.media.map(media => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 table-cell-wrap max-w-sm">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-12 w-12">
-                                ${media.media_type === 'image' ? 
-                                    `<img class=\"h-12 w-12 rounded-lg object-cover\" src=\"${typeof mediaUrl === 'function' ? '${mediaUrl("' + media.file_path + '")}' : '/uploads/media/' + media.file_path}\" alt=\"${media.title}\">` :
-                                    `<div class="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                                        <i class="fas fa-${media.media_type === 'video' ? 'video' : 'music'} text-gray-500"></i>
-                                    </div>`
-                                }
-                            </div>
-                            <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">${media.title}</div>
-                                <div class="text-sm text-gray-500">${media.media_type}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 table-cell-wrap max-w-md">
-                        <div class="text-sm text-gray-900">${media.description || 'No description'}</div>
-                    </td>
-                    <td class="px-6 py-4 table-cell-nowrap">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-12 w-12">
-                                <img class="h-12 w-12 rounded-lg object-cover border border-gray-200" 
-                                     src="${media.scanning_image ? (media.scanning_image.startsWith('http') ? media.scanning_image : '/uploads/media/' + media.scanning_image) : '/images/placeholder-image.png'}" 
-                                     alt="Scanning Image" 
-                                     onerror="this.src='/images/placeholder-image.png'; this.alt='Image not found'">
-                            </div>
-                            <div class="ml-3">
-                                <div class="text-xs text-gray-500 truncate max-w-32">
-                                    ${media.scanning_image ? media.scanning_image.split('/').pop() : 'No image'}
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 table-cell-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            media.media_type === 'image' ? 'bg-blue-100 text-blue-800' :
-                            media.media_type === 'video' ? 'bg-purple-100 text-purple-800' :
-                            media.media_type === 'audio' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                        }">
-                            ${media.media_type === 'image' ? 'Image' :
-                              media.media_type === 'video' ? 'Video' :
-                              media.media_type === 'audio' ? 'Audio' :
-                              media.media_type || 'Unknown'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 table-cell-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${media.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            ${media.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 table-cell-nowrap">
-                        <div class="text-sm text-gray-900">
-                            ${(() => {
-                                if (!media.created_at) return 'N/A';
-                                const date = new Date(media.created_at);
-                                if (isNaN(date.getTime())) return 'Invalid Date';
-                                const day = date.getDate().toString().padStart(2, '0');
-                                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                                const year = date.getFullYear();
-                                return `${day}/${month}/${year}`;
-                            })()}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 table-cell-nowrap">
-                        <div class="text-sm text-gray-900">
-                            ${media.uploaded_by_name || 'Unknown'}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div class="flex space-x-2">
-                            <button onclick="window.location.href='/admin/media/view/${media.id}'" class="text-indigo-600 hover:text-indigo-900" title="View">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="editMedia(${media.id})" class="text-blue-600 hover:text-blue-900" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="toggleMediaStatus(${media.id})" class="text-${media.is_active ? 'yellow' : 'green'}-600 hover:text-${media.is_active ? 'yellow' : 'green'}-900" title="${media.is_active ? 'Deactivate' : 'Activate'}">
-                                <i class="fas fa-${media.is_active ? 'pause' : 'play'}"></i>
-                            </button>
-                            <button onclick="deleteMedia(${media.id})" class="text-red-600 hover:text-red-900" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            // Convert Media objects to plain objects for AJAX response (excluding descriptors)
+            const plainMedia = result.media.map(media => ({
+                id: media.id,
+                title: media.title,
+                description: media.description,
+                scanning_image: media.scanning_image,
+                media_type: media.media_type,
+                file_path: media.file_path,
+                file_size: media.file_size,
+                mime_type: media.mime_type,
+                uploaded_by: media.uploaded_by,
+                uploaded_by_name: media.uploaded_by_name,
+                uploaded_by_email: media.uploaded_by_email,
+                is_active: media.is_active,
+                created_at: media.created_at,
+                updated_at: media.updated_at
+                // Note: descriptors excluded from response
+            }));
 
             res.json({
                 success: true,
-                media: result.media,
-                tableRows,
+                data: plainMedia,
                 pagination: {
                     currentPage: result.page,
                     totalPages: result.totalPages,
@@ -603,9 +558,23 @@ class MediaController {
                 return res.redirect('/admin/media');
             }
 
-            res.render('admin/media-view', {
-                title: `Media: ${media.title}`,
-                media: media
+            console.log('Media view - RBAC data:', {
+                user: req.session.user,
+                userPermissions: req.userPermissions,
+                userPrimaryRole: req.userPrimaryRole,
+                layout: res.locals.layout
+            });
+
+            // Test: render users page instead to see if RBAC works
+            res.render('admin/users', {
+                title: 'Test - Users Page',
+                data: [],
+                pagination: { currentPage: 1, totalPages: 1, totalItems: 0 },
+                search: '',
+                filters: {},
+                user: req.session.user,
+                userPermissions: req.userPermissions || [],
+                userPrimaryRole: req.userPrimaryRole || null
             });
         } catch (error) {
             console.error('Error loading media view:', error);
@@ -627,7 +596,10 @@ class MediaController {
 
             res.render('admin/media-edit', {
                 title: `Edit Media: ${media.title}`,
-                media: media
+                media: media,
+                user: req.session.user,
+                userPermissions: req.userPermissions || [],
+                userPrimaryRole: req.userPrimaryRole || null
             });
         } catch (error) {
             console.error('Error loading media edit form:', error);

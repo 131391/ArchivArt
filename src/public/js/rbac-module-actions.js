@@ -7,6 +7,129 @@ function formatStatus(item) {
         '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>';
 }
 
+// Enhanced formatter functions for module action table
+
+function formatActionName(item) {
+    const actionName = typeof item === 'object' ? item.name : item;
+    if (!actionName) return '<span class="text-gray-400 italic">No name</span>';
+    
+    // Get appropriate icon based on action type
+    let iconClass = 'fas fa-cog';
+    let iconColor = 'text-blue-600';
+    let bgColor = 'bg-blue-100';
+    
+    if (actionName) {
+        switch (actionName.toLowerCase()) {
+            case 'view':
+            case 'read':
+                iconClass = 'fas fa-eye';
+                iconColor = 'text-blue-600';
+                bgColor = 'bg-blue-100';
+                break;
+            case 'create':
+            case 'add':
+                iconClass = 'fas fa-plus';
+                iconColor = 'text-green-600';
+                bgColor = 'bg-green-100';
+                break;
+            case 'update':
+            case 'edit':
+                iconClass = 'fas fa-edit';
+                iconColor = 'text-yellow-600';
+                bgColor = 'bg-yellow-100';
+                break;
+            case 'delete':
+            case 'remove':
+                iconClass = 'fas fa-trash';
+                iconColor = 'text-red-600';
+                bgColor = 'bg-red-100';
+                break;
+            case 'manage':
+                iconClass = 'fas fa-cogs';
+                iconColor = 'text-indigo-600';
+                bgColor = 'bg-indigo-100';
+                break;
+            case 'upload':
+                iconClass = 'fas fa-upload';
+                iconColor = 'text-purple-600';
+                bgColor = 'bg-purple-100';
+                break;
+            case 'download':
+                iconClass = 'fas fa-download';
+                iconColor = 'text-orange-600';
+                bgColor = 'bg-orange-100';
+                break;
+            default:
+                iconClass = 'fas fa-cog';
+                iconColor = 'text-blue-600';
+                bgColor = 'bg-blue-100';
+        }
+    }
+    
+    return `
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 ${bgColor} rounded-lg flex items-center justify-center">
+                    <i class="${iconClass} ${iconColor} text-sm"></i>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 truncate">${actionName}</p>
+                <p class="text-xs text-gray-500 font-mono">${actionName}</p>
+            </div>
+        </div>
+    `;
+}
+
+function formatActionDisplayName(item) {
+    const displayName = typeof item === 'object' ? item.display_name : item;
+    if (!displayName) return '<span class="text-gray-400 italic">No display name</span>';
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm font-medium text-gray-700 bg-gray-50 px-2 py-1 rounded">${displayName}</p>
+        </div>
+    `;
+}
+
+function formatActionDescription(item) {
+    const description = typeof item === 'object' ? item.description : item;
+    if (!description) return '<span class="text-gray-400 italic">No description</span>';
+    
+    // Truncate long descriptions
+    const truncatedDesc = description.length > 50 ? description.substring(0, 50) + '...' : description;
+    
+    return `
+        <div class="max-w-xs">
+            <p class="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded" title="${description}">${truncatedDesc}</p>
+        </div>
+    `;
+}
+
+function formatActionStatus(item) {
+    const isActive = typeof item === 'object' ? item.is_active : item;
+    
+    if (isActive === 1 || isActive === true) {
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    Active
+                </span>
+            </div>
+        `;
+    } else {
+        return `
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                    <i class="fas fa-times-circle mr-1"></i>
+                    Inactive
+                </span>
+            </div>
+        `;
+    }
+}
+
 // Module action functions
 function viewModuleAction(actionId) {
     // Show loader while fetching data
@@ -194,8 +317,8 @@ function editModuleAction(actionId) {
 
 function deleteModuleAction(actionId) {
     // Show custom warning modal instead of browser confirm
-    if (typeof showConfirmModal !== 'undefined') {
-        showConfirmModal(
+    if (typeof showDeleteModal !== 'undefined') {
+        showDeleteModal(
             'Are you sure you want to delete this module action? This action cannot be undone.',
             'Delete Module Action',
             function() {
@@ -543,3 +666,10 @@ function restoreModuleAction(actionId) {
         }
     });
 }
+
+// Make sure all formatters are available globally
+window.formatStatus = formatStatus;
+window.formatActionName = formatActionName;
+window.formatActionDisplayName = formatActionDisplayName;
+window.formatActionDescription = formatActionDescription;
+window.formatActionStatus = formatActionStatus;
