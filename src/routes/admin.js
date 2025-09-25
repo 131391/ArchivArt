@@ -314,15 +314,19 @@ router.get('/rbac/roles/data', addUserPermissions, hasModuleActionPermissionWeb(
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
     const status = req.query.status || req.query.statusFilter || '';
+    const sort = req.query.sort || 'display_name';
+    const order = req.query.order || 'asc';
     
-    console.log('RBAC roles data endpoint called with params:', { page, limit, search, status });
+    console.log('RBAC roles data endpoint called with params:', { page, limit, search, status, sort, order });
     
     const Role = require('../models/Role');
     
-    // Use the Role model with search functionality
+    // Use the Role model with search and sorting functionality
     const roles = await Role.findAll({
       search: search,
       is_active: status === 'active' ? 1 : status === 'inactive' ? 0 : null,
+      sort: sort,
+      order: order,
       limit: parseInt(limit),
       offset: parseInt(offset)
     });
@@ -474,15 +478,19 @@ router.get('/rbac/permissions/data', addUserPermissions, hasModuleActionPermissi
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
     const module = req.query.module || req.query.moduleFilter || '';
+    const sort = req.query.sort || 'display_name';
+    const order = req.query.order || 'asc';
     
-    console.log('RBAC permissions data endpoint called with params:', { page, limit, search, module });
+    console.log('RBAC permissions data endpoint called with params:', { page, limit, search, module, sort, order });
     
     const Permission = require('../models/Permission');
     
-    // Use the Permission model with search functionality
+    // Use the Permission model with search and sorting functionality
     const permissions = await Permission.findAll({
       search: search,
       module: module !== 'all' ? module : null,
+      sort: sort,
+      order: order,
       limit: parseInt(limit),
       offset: parseInt(offset)
     });
@@ -640,14 +648,18 @@ router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWe
     const limit = 10;
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
+    const sort = req.query.sort || 'order_index';
+    const order = req.query.order || 'asc';
     
-    console.log('RBAC modules data endpoint called with params:', { page, limit, search });
+    console.log('RBAC modules data endpoint called with params:', { page, limit, search, sort, order });
     
     const Module = require('../models/Module');
     
-    // Use the Module model with search functionality
+    // Use the Module model with search and sorting functionality
     const modules = await Module.findAll({
       search: search,
+      sort: sort,
+      order: order,
       limit: parseInt(limit),
       offset: parseInt(offset)
     });

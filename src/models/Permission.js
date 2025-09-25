@@ -34,8 +34,8 @@ class Permission {
             module = null, 
             is_active = null,
             search = '',
-            sort = 'created_at',
-            order = 'desc',
+            sort = 'display_name',
+            order = 'asc',
             limit = 100, 
             offset = 0 
         } = options;
@@ -68,8 +68,8 @@ class Permission {
         }
         
         // Add sorting
-        const validSortColumns = ['name', 'display_name', 'module', 'action', 'created_at', 'updated_at'];
-        const sortColumn = validSortColumns.includes(sort) ? sort : 'created_at';
+        const validSortColumns = ['id', 'name', 'display_name', 'description', 'module', 'action', 'resource', 'created_at', 'updated_at'];
+        const sortColumn = validSortColumns.includes(sort) ? sort : 'display_name';
         const sortOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
         query += ` ORDER BY ${sortColumn} ${sortOrder}`;
         

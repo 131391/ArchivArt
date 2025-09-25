@@ -53,10 +53,11 @@ function initTable(options = {}) {
     // Set current filter values on page load
     setFilterValues();
     
-    // Apply custom formatters with delay to ensure they're loaded
+    // Apply custom formatters immediately and with delay
+    applyCustomFormatters();
     setTimeout(() => {
         applyCustomFormatters();
-    }, 1000);
+    }, 500);
 }
 
 // Set up all event listeners
@@ -306,9 +307,10 @@ function updateTableContent(data) {
             tbody.innerHTML = generateTableRows(data.data);
             
             // Apply custom formatters after rendering
+            applyCustomFormatters();
             setTimeout(() => {
                 applyCustomFormatters();
-            }, 1000);
+            }, 300);
         } else if (data.tableRows && typeof data.tableRows === 'string' && data.tableRows.trim() !== '') {
             // Fallback for pre-rendered HTML (if any endpoints still use this)
             tbody.innerHTML = data.tableRows;
@@ -814,7 +816,7 @@ function generateModuleActionTableRows(actions) {
 }
 
 // Wait for formatters to be available
-function waitForFormatters(formatterNames, callback, maxWait = 5000) {
+function waitForFormatters(formatterNames, callback, maxWait = 2000) {
     const startTime = Date.now();
     
     const checkFormatters = () => {
@@ -825,7 +827,7 @@ function waitForFormatters(formatterNames, callback, maxWait = 5000) {
             callback();
         } else if (Date.now() - startTime < maxWait) {
             console.log('Waiting for formatters. Available:', availableFormatters, 'Missing:', formatterNames.filter(name => !availableFormatters.includes(name)));
-            setTimeout(checkFormatters, 200);
+            setTimeout(checkFormatters, 100);
         } else {
             console.log('Timeout waiting for formatters. Proceeding with available ones.');
             callback();
@@ -870,11 +872,12 @@ function applyFormattersToElements(customElements) {
             element.innerHTML = window[formatterName](itemData);
         } else {
             console.log('Formatter function not found:', formatterName, 'available functions:', Object.keys(window).filter(k => k.startsWith('format')));
-            // Fallback: show raw data
+            // Fallback: show raw data immediately
             const fallbackValue = itemData[formatterName.replace('format', '').toLowerCase()] || 
                                itemData[formatterName.replace('format', '')] || 
+                               itemData[formatterName.replace('format', '').replace(/([A-Z])/g, '_$1').toLowerCase()] ||
                                'N/A';
-            element.innerHTML = `<span class="text-gray-500">${fallbackValue}</span>`;
+            element.innerHTML = `<span class="text-gray-900">${fallbackValue}</span>`;
         }
     });
 }

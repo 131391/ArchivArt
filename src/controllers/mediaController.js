@@ -565,13 +565,9 @@ class MediaController {
                 layout: res.locals.layout
             });
 
-            // Test: render users page instead to see if RBAC works
-            res.render('admin/users', {
-                title: 'Test - Users Page',
-                data: [],
-                pagination: { currentPage: 1, totalPages: 1, totalItems: 0 },
-                search: '',
-                filters: {},
+            res.render('admin/media-view', {
+                title: `Media: ${media.title}`,
+                media: media,
                 user: req.session.user,
                 userPermissions: req.userPermissions || [],
                 userPrimaryRole: req.userPrimaryRole || null

@@ -28,7 +28,7 @@ class Role {
 
     // Get all roles
     static async findAll(options = {}) {
-        const { is_active = null, search = '', limit = 100, offset = 0 } = options;
+        const { is_active = null, search = '', sort = 'display_name', order = 'asc', limit = 100, offset = 0 } = options;
         
         let query = `
             SELECT 
@@ -66,7 +66,27 @@ class Role {
             query += ' WHERE ' + whereConditions.join(' AND ');
         }
         
-        query += ' GROUP BY r.id ORDER BY r.created_at DESC';
+        // Validate sort column to prevent SQL injection
+        const allowedSortColumns = ['id', 'name', 'display_name', 'description', 'is_active', 'created_at', 'updated_at', 'user_count', 'permission_count'];
+        const sortColumn = allowedSortColumns.includes(sort) ? sort : 'display_name';
+        const sortOrder = order.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+        
+        // Handle calculated fields differently
+        let orderByClause;
+        if (sortColumn === 'user_count') {
+            orderByClause = `COUNT(DISTINCT ur.user_id) ${sortOrder}`;
+        } else if (sortColumn === 'permission_count') {
+            orderByClause = `COUNT(DISTINCT rp.permission_id) ${sortOrder}`;
+        } else {
+            orderByClause = `r.${sortColumn} ${sortOrder}`;
+        }
+        
+        query += ` GROUP BY r.id ORDER BY ${orderByClause}`;
+        
+        // Add secondary sort for consistent results
+        if (sortColumn !== 'display_name') {
+            query += ', r.display_name ASC';
+        }
         
         if (limit && limit > 0) {
             query += ` LIMIT ${parseInt(limit)}`;

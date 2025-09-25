@@ -214,6 +214,24 @@ console.log('Media formatters loaded in media-management.js:', {
     formatUploadedBy: typeof window.formatUploadedBy
 });
 
+// Trigger formatter application immediately if DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.TableUtils !== 'undefined' && typeof window.TableUtils.applyCustomFormatters === 'function') {
+            setTimeout(() => {
+                window.TableUtils.applyCustomFormatters();
+            }, 100);
+        }
+    });
+} else {
+    // DOM is already ready
+    if (typeof window.TableUtils !== 'undefined' && typeof window.TableUtils.applyCustomFormatters === 'function') {
+        setTimeout(() => {
+            window.TableUtils.applyCustomFormatters();
+        }, 100);
+    }
+}
+
 // Media management functions
 function viewMedia(mediaId) {
     console.log('viewMedia called with mediaId:', mediaId);

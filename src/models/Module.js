@@ -16,7 +16,7 @@ class Module {
 
     // Get all modules
     static async findAll(options = {}) {
-        const { search = '', limit = 100, offset = 0 } = options;
+        const { search = '', sort = 'order_index', order = 'asc', limit = 100, offset = 0 } = options;
         
         let query = `
             SELECT m.*, 
@@ -36,7 +36,27 @@ class Module {
             params.push(searchTerm, searchTerm, searchTerm);
         }
         
-        query += ' GROUP BY m.id ORDER BY m.order_index ASC, m.display_name ASC';
+        // Validate sort column to prevent SQL injection
+        const allowedSortColumns = ['id', 'name', 'display_name', 'description', 'icon', 'route', 'order_index', 'created_at', 'updated_at', 'action_count', 'permission_count'];
+        const sortColumn = allowedSortColumns.includes(sort) ? sort : 'order_index';
+        const sortOrder = order.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+        
+        // Handle calculated fields differently
+        let orderByClause;
+        if (sortColumn === 'action_count') {
+            orderByClause = `COUNT(DISTINCT ma.id) ${sortOrder}`;
+        } else if (sortColumn === 'permission_count') {
+            orderByClause = `COUNT(DISTINCT p.id) ${sortOrder}`;
+        } else {
+            orderByClause = `m.${sortColumn} ${sortOrder}`;
+        }
+        
+        query += ` GROUP BY m.id ORDER BY ${orderByClause}`;
+        
+        // Add secondary sort for consistent results
+        if (sortColumn !== 'display_name') {
+            query += ', m.display_name ASC';
+        }
         
         if (limit && limit > 0) {
             query += ` LIMIT ${parseInt(limit)}`;
