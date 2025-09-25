@@ -907,6 +907,74 @@ class AdminController {
     }
   }
 
+  // Change password
+  async changePassword(req, res) {
+    try {
+      const userId = req.session.user.id;
+      const { current_password, new_password, confirm_password } = req.body;
+
+      // Validate input
+      if (!current_password || !new_password || !confirm_password) {
+        req.flash('error_msg', 'All password fields are required');
+        return res.redirect('/admin/profile');
+      }
+
+      if (new_password !== confirm_password) {
+        req.flash('error_msg', 'New password and confirmation do not match');
+        return res.redirect('/admin/profile');
+      }
+
+      if (new_password.length < 8) {
+        req.flash('error_msg', 'New password must be at least 8 characters long');
+        return res.redirect('/admin/profile');
+      }
+
+      // Get current user data
+      const [userData] = await db.execute(
+        'SELECT password FROM users WHERE id = ?',
+        [userId]
+      );
+
+      if (userData.length === 0) {
+        req.flash('error_msg', 'User not found');
+        return res.redirect('/admin/profile');
+      }
+
+      // Verify current password
+      const bcrypt = require('bcrypt');
+      const isCurrentPasswordValid = await bcrypt.compare(current_password, userData[0].password);
+      
+      if (!isCurrentPasswordValid) {
+        req.flash('error_msg', 'Current password is incorrect');
+        return res.redirect('/admin/profile');
+      }
+
+      // Hash new password
+      const saltRounds = 12;
+      const hashedNewPassword = await bcrypt.hash(new_password, saltRounds);
+
+      // Update password in database
+      await db.execute(
+        'UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?',
+        [hashedNewPassword, userId]
+      );
+
+      // Log security event
+      const SecurityService = require('../services/securityService');
+      await SecurityService.logSecurityEvent('password_changed', req, { 
+        user_id: userId,
+        user_email: req.session.user.email 
+      });
+
+      req.flash('success_msg', 'Password changed successfully');
+      res.redirect('/admin/profile');
+    } catch (error) {
+      console.error('Error changing password:', error);
+      req.flash('error_msg', 'Error changing password: ' + error.message);
+      res.redirect('/admin/profile');
+    }
+  }
+
   // Run RBAC migration
   async runRBACMigration(req, res) {
     try {

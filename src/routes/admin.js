@@ -160,6 +160,21 @@ router.post('/profile/picture', [
   profileUpload
 ], adminController.updateProfilePicture);
 
+// Change password route
+router.post('/change-password', [
+  requireAdminWeb,
+  preventSQLInjection,
+  body('current_password').notEmpty().withMessage('Current password is required'),
+  body('new_password').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
+  body('confirm_password').custom((value, { req }) => {
+    if (value !== req.body.new_password) {
+      throw new Error('Password confirmation does not match new password');
+    }
+    return true;
+  }),
+  validateInput
+], adminController.changePassword);
+
 // Security Dashboard
 router.get('/security', [
   requireAdminWeb, 
