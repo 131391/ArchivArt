@@ -699,6 +699,134 @@ class OCRService:
         """Get list of supported languages"""
         return self.supported_languages.copy()
     
+    def detect_language(self, image_path: str, preprocess: bool = True, auto_rotate: bool = True,
+                       improve_readability: bool = False) -> str:
+        """
+        Automatically detect the language of text in an image by trying all supported languages
+        and selecting the one with the best confidence score.
+        
+        Args:
+            image_path: Path to the image file
+            preprocess: Whether to preprocess image for better results
+            auto_rotate: Whether to automatically detect and correct text rotation
+            improve_readability: Whether to apply advanced readability enhancements
+            
+        Returns:
+            Best detected language code
+        """
+        try:
+            logger.info(f"Auto-detecting language for {os.path.basename(image_path)}")
+            
+            # Preprocess image once if requested
+            if preprocess:
+                processed_img = self.preprocess_image(image_path, auto_rotate=auto_rotate, 
+                                                    improve_readability=improve_readability)
+                if processed_img is None:
+                    logger.warning("Failed to preprocess image for language detection, using original")
+                    pil_image = Image.open(image_path)
+                else:
+                    pil_image = Image.fromarray(processed_img)
+            else:
+                pil_image = Image.open(image_path)
+            
+            best_language = self.default_language
+            best_confidence = 0
+            best_text_length = 0
+            
+            # Try each supported language
+            for language in self.supported_languages:
+                try:
+                    # Use a simple configuration for language detection
+                    config = '--oem 3 --psm 6'
+                    
+                    # Extract text with confidence scores
+                    data = pytesseract.image_to_data(pil_image, lang=language, config=config, 
+                                                   output_type=pytesseract.Output.DICT)
+                    
+                    # Calculate average confidence and text length
+                    confidences = [int(conf) for conf in data['conf'] if int(conf) > 0]
+                    avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
+                    
+                    # Extract text to check length
+                    text = pytesseract.image_to_string(pil_image, lang=language, config=config)
+                    text_length = len(text.strip())
+                    
+                    # Score based on confidence and text length
+                    # Prefer languages that produce more text with good confidence
+                    score = avg_confidence * (1 + text_length / 100)  # Boost score for longer text
+                    
+                    logger.debug(f"Language '{language}': confidence={avg_confidence:.1f}%, "
+                               f"text_length={text_length}, score={score:.1f}")
+                    
+                    # Update best language if this one is better
+                    if score > best_confidence and text_length > 0:
+                        best_confidence = score
+                        best_language = language
+                        best_text_length = text_length
+                        
+                except Exception as e:
+                    logger.debug(f"Language detection failed for '{language}': {str(e)}")
+                    continue
+            
+            logger.info(f"Auto-detected language: '{best_language}' (confidence score: {best_confidence:.1f}, "
+                       f"text length: {best_text_length})")
+            
+            return best_language
+            
+        except Exception as e:
+            logger.warning(f"Language auto-detection failed: {str(e)}, using default language")
+            return self.default_language
+
+    def extract_text_auto_language(self, image_path: str, preprocess: bool = True, 
+                                  auto_rotate: bool = True, improve_readability: bool = False, 
+                                  post_process: bool = True) -> Dict[str, Any]:
+        """
+        Extract text from image with automatic language detection
+        
+        Args:
+            image_path: Path to the image file
+            preprocess: Whether to preprocess image for better results
+            auto_rotate: Whether to automatically detect and correct text rotation
+            improve_readability: Whether to apply advanced readability enhancements
+            post_process: Whether to post-process extracted text for better readability
+            
+        Returns:
+            Dictionary with extracted text, detected language, and metadata
+        """
+        start_time = time.time()
+        
+        try:
+            # Auto-detect language
+            detected_language = self.detect_language(image_path, preprocess, auto_rotate, improve_readability)
+            
+            # Extract text using the detected language
+            result = self.extract_text(image_path, language=detected_language, preprocess=preprocess,
+                                     auto_rotate=auto_rotate, improve_readability=improve_readability,
+                                     post_process=post_process)
+            
+            # Add detected language info to result
+            if result.get("success", False):
+                result["detected_language"] = detected_language
+                result["language_auto_detected"] = True
+                logger.info(f"Text extracted using auto-detected language '{detected_language}': "
+                           f"{result.get('character_count', 0)} characters, "
+                           f"confidence: {result.get('confidence', 0):.1f}%")
+            
+            return result
+            
+        except Exception as e:
+            processing_time = time.time() - start_time
+            logger.error(f"Auto-language OCR error for {image_path}: {str(e)}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "text": "",
+                "confidence": 0.0,
+                "processing_time": processing_time,
+                "detected_language": self.default_language,
+                "language_auto_detected": False
+            }
+
     def get_tesseract_info(self) -> Dict[str, Any]:
         """Get Tesseract version and configuration info"""
         try:

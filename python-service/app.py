@@ -653,6 +653,114 @@ def ocr_upload_extract_with_boxes():
         if metrics:
             metrics.increment_requests(success)
 
+@app.route('/ocr/extract-auto', methods=['POST'])
+def ocr_extract_auto():
+    """Extract text from image with automatic language detection"""
+    start_time = time.time()
+    success = False
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No JSON data provided"}), 400
+        
+        image_path = data.get('image_path')
+        if not image_path:
+            return jsonify({"success": False, "error": "image_path is required"}), 400
+        
+        # Get parameters with defaults
+        preprocess = data.get('preprocess', True)
+        auto_rotate = data.get('auto_rotate', True)
+        improve_readability = data.get('improve_readability', False)
+        post_process = data.get('post_process', True)
+        
+        logger.info(f"OCR auto language extraction request for: {os.path.basename(image_path)} (preprocess: {preprocess}, auto_rotate: {auto_rotate}, readability: {improve_readability})")
+        
+        # Process with auto language detection
+        result = ocr_service.extract_text_auto_language(
+            image_path, preprocess, auto_rotate, improve_readability, post_process
+        )
+        success = result.get('success', False)
+        
+        if success:
+            logger.info(f"OCR auto extraction completed: {result.get('character_count', 0)} characters, confidence: {result.get('confidence', 0):.1f}%, detected language: {result.get('detected_language', 'unknown')}")
+        else:
+            logger.error(f"OCR auto extraction failed: {result.get('error', 'Unknown error')}")
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"OCR extract-auto endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        if metrics:
+            metrics.increment_requests(success)
+
+@app.route('/ocr/upload-extract-auto', methods=['POST'])
+def ocr_upload_extract_auto():
+    """Extract text from uploaded image with automatic language detection"""
+    start_time = time.time()
+    success = False
+    
+    try:
+        # Check if file was uploaded
+        if 'image' not in request.files:
+            return jsonify({"success": False, "error": "No image file provided"}), 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No image file selected"}), 400
+        
+        # Get parameters
+        preprocess = request.form.get('preprocess', 'true').lower() == 'true'
+        auto_rotate = request.form.get('auto_rotate', 'true').lower() == 'true'
+        improve_readability = request.form.get('improve_readability', 'false').lower() == 'true'
+        post_process = request.form.get('post_process', 'true').lower() == 'true'
+        
+        # Validate file type
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        if file_ext not in allowed_extensions:
+            return jsonify({"success": False, "error": f"Invalid file type. Allowed: {', '.join(allowed_extensions)}"}), 400
+        
+        # Create temporary file
+        temp_dir = tempfile.gettempdir()
+        temp_filename = f"ocr_auto_{uuid.uuid4()}{file_ext}"
+        temp_path = os.path.join(temp_dir, temp_filename)
+        
+        try:
+            # Save uploaded file to temporary location
+            file.save(temp_path)
+            logger.info(f"OCR upload extract-auto request for: {file.filename} (preprocess: {preprocess}, auto_rotate: {auto_rotate}, readability: {improve_readability})")
+            
+            # Process with auto language detection
+            result = ocr_service.extract_text_auto_language(
+                temp_path, preprocess, auto_rotate, improve_readability, post_process
+            )
+            success = result.get('success', False)
+            
+            # Add original filename to result
+            result['original_filename'] = file.filename
+            
+            if success:
+                logger.info(f"OCR upload extract-auto completed: {result.get('character_count', 0)} characters, confidence: {result.get('confidence', 0):.1f}%, detected language: {result.get('detected_language', 'unknown')}")
+            else:
+                logger.error(f"OCR upload extract-auto failed: {result.get('error', 'Unknown error')}")
+            
+            return jsonify(result)
+            
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+                
+    except Exception as e:
+        logger.error(f"OCR upload extract-auto endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        if metrics:
+            metrics.increment_requests(success)
+
 # Graceful shutdown handler
 def signal_handler(signum, frame):
     logger.info(f"Received signal {signum}, shutting down gracefully...")
@@ -681,6 +789,8 @@ if __name__ == "__main__":
     logger.info(f"  - POST /ocr/extract-with-boxes - Extract text with bounding boxes")
     logger.info(f"  - POST /ocr/upload-extract - Extract text from uploaded image file")
     logger.info(f"  - POST /ocr/upload-extract-with-boxes - Extract text with boxes from uploaded file")
+    logger.info(f"  - POST /ocr/extract-auto - Extract text with automatic language detection")
+    logger.info(f"  - POST /ocr/upload-extract-auto - Extract text from uploaded file with auto language detection")
     logger.info(f"  - GET  /ocr/languages - Get supported OCR languages")
     logger.info(f"  - GET  /ocr/info - Get OCR service information")
     logger.info(f"📊 OpenCV Version: {cv2.__version__}")
