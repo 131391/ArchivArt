@@ -21,6 +21,13 @@ class OCRService:
         self.supported_languages = ['eng', 'fra', 'deu', 'spa', 'ita', 'por', 'rus', 'ara', 'chi_sim', 'chi_tra']
         self.default_language = 'eng'
         self.default_config = '--oem 3 --psm 6'  # OCR Engine Mode 3, Page Segmentation Mode 6
+        # Alternative configs for different image types
+        self.alternative_configs = [
+            '--oem 3 --psm 3',  # Fully automatic page segmentation
+            '--oem 3 --psm 6',  # Uniform block of text
+            '--oem 3 --psm 8',  # Single word
+            '--oem 3 --psm 13', # Raw line. Treat the image as a single text line
+        ]
         
         # Try to detect Tesseract installation
         try:
@@ -168,7 +175,7 @@ class OCRService:
             return image
 
     def preprocess_image(self, image_path: str, enhance_contrast: bool = True, denoise: bool = True, 
-                        auto_rotate: bool = True, improve_readability: bool = True) -> Optional[np.ndarray]:
+                        auto_rotate: bool = True, improve_readability: bool = False) -> Optional[np.ndarray]:
         """
         Preprocess image for better OCR results with advanced readability improvements
         """
@@ -356,23 +363,11 @@ class OCRService:
         
         return text
     
-    def extract_text(self, image_path: str, language: str = None, 
-                    preprocess: bool = True, config: str = None, auto_rotate: bool = True,
-                    improve_readability: bool = True, post_process: bool = True) -> Dict[str, Any]:
+    def extract_text_with_multiple_configs(self, image_path: str, language: str = None, 
+                                          preprocess: bool = True, auto_rotate: bool = True,
+                                          improve_readability: bool = False, post_process: bool = True) -> Dict[str, Any]:
         """
-        Extract text from image using Tesseract OCR with advanced readability improvements
-        
-        Args:
-            image_path: Path to the image file
-            language: Language code for OCR (default: 'eng')
-            preprocess: Whether to preprocess image for better results
-            config: Custom Tesseract configuration
-            auto_rotate: Whether to automatically detect and correct text rotation
-            improve_readability: Whether to apply advanced readability enhancements
-            post_process: Whether to post-process extracted text for better readability
-            
-        Returns:
-            Dictionary with extracted text and metadata
+        Extract text using multiple OCR configurations and return the best result
         """
         start_time = time.time()
         
@@ -395,9 +390,141 @@ class OCRService:
                 logger.warning(f"Language '{language}' not in supported languages, using default")
                 language = self.default_language
             
-            # Set configuration
-            if config is None:
-                config = self.default_config
+            # Preprocess image if requested
+            if preprocess:
+                processed_img = self.preprocess_image(image_path, auto_rotate=auto_rotate, 
+                                                    improve_readability=improve_readability)
+                if processed_img is None:
+                    return {
+                        "success": False,
+                        "error": "Failed to preprocess image",
+                        "text": "",
+                        "confidence": 0.0,
+                        "processing_time": 0.0
+                    }
+                pil_image = Image.fromarray(processed_img)
+            else:
+                pil_image = Image.open(image_path)
+            
+            best_result = None
+            best_confidence = 0
+            
+            # Try each configuration
+            for config in self.alternative_configs:
+                try:
+                    # Extract text with confidence scores
+                    data = pytesseract.image_to_data(pil_image, lang=language, config=config, output_type=pytesseract.Output.DICT)
+                    
+                    # Extract text
+                    text = pytesseract.image_to_string(pil_image, lang=language, config=config)
+                    
+                    # Post-process text for better readability
+                    if post_process:
+                        text = self.post_process_text(text)
+                    
+                    # Calculate average confidence
+                    confidences = [int(conf) for conf in data['conf'] if int(conf) > 0]
+                    avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
+                    
+                    # Check if this is the best result so far
+                    if avg_confidence > best_confidence and len(text.strip()) > 0:
+                        best_confidence = avg_confidence
+                        best_result = {
+                            "text": text.strip(),
+                            "confidence": avg_confidence,
+                            "config": config,
+                            "raw_data": data
+                        }
+                        
+                        logger.info(f"Better OCR result found with config '{config}': confidence {avg_confidence:.1f}%, text length {len(text)}")
+                
+                except Exception as e:
+                    logger.debug(f"OCR failed with config '{config}': {str(e)}")
+                    continue
+            
+            processing_time = time.time() - start_time
+            
+            if best_result:
+                logger.info(f"Best OCR result: {len(best_result['text'])} characters, confidence: {best_result['confidence']:.1f}%, config: {best_result['config']}, time: {processing_time:.3f}s")
+                
+                return {
+                    "success": True,
+                    "text": best_result['text'],
+                    "confidence": best_result['confidence'],
+                    "language": language,
+                    "word_count": len(best_result['text'].split()),
+                    "character_count": len(best_result['text']),
+                    "processing_time": processing_time,
+                    "raw_data": best_result['raw_data'],
+                    "config_used": best_result['config']
+                }
+            else:
+                logger.warning(f"No valid OCR results found for {image_path}")
+                return {
+                    "success": False,
+                    "error": "No valid text could be extracted with any configuration",
+                    "text": "",
+                    "confidence": 0.0,
+                    "processing_time": processing_time
+                }
+                
+        except Exception as e:
+            processing_time = time.time() - start_time
+            logger.error(f"OCR error for {image_path}: {str(e)}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "text": "",
+                "confidence": 0.0,
+                "processing_time": processing_time
+            }
+
+    def extract_text(self, image_path: str, language: str = None, 
+                    preprocess: bool = True, config: str = None, auto_rotate: bool = True,
+                    improve_readability: bool = False, post_process: bool = True) -> Dict[str, Any]:
+        """
+        Extract text from image using Tesseract OCR with advanced readability improvements
+        
+        Args:
+            image_path: Path to the image file
+            language: Language code for OCR (default: 'eng')
+            preprocess: Whether to preprocess image for better results
+            config: Custom Tesseract configuration (if None, will try multiple configs)
+            auto_rotate: Whether to automatically detect and correct text rotation
+            improve_readability: Whether to apply advanced readability enhancements
+            post_process: Whether to post-process extracted text for better readability
+            
+        Returns:
+            Dictionary with extracted text and metadata
+        """
+        # If no specific config is provided, use multiple configs for better results
+        if config is None:
+            logger.info(f"Using multiple OCR configurations for better results on {os.path.basename(image_path)}")
+            return self.extract_text_with_multiple_configs(
+                image_path, language, preprocess, auto_rotate, improve_readability, post_process
+            )
+        
+        # Use single configuration as specified
+        start_time = time.time()
+        
+        try:
+            # Validate file exists
+            if not os.path.exists(image_path):
+                return {
+                    "success": False,
+                    "error": f"Image file not found: {image_path}",
+                    "text": "",
+                    "confidence": 0.0,
+                    "processing_time": 0.0
+                }
+            
+            # Set language
+            if language is None:
+                language = self.default_language
+            
+            if language not in self.supported_languages:
+                logger.warning(f"Language '{language}' not in supported languages, using default")
+                language = self.default_language
             
             # Preprocess image if requested
             if preprocess:
@@ -443,7 +570,8 @@ class OCRService:
                 "word_count": len(text.split()),
                 "character_count": len(text),
                 "processing_time": processing_time,
-                "raw_data": data
+                "raw_data": data,
+                "config_used": config
             }
             
         except Exception as e:
@@ -459,7 +587,7 @@ class OCRService:
     
     def extract_text_with_boxes(self, image_path: str, language: str = None, 
                                preprocess: bool = True, config: str = None, auto_rotate: bool = True,
-                               improve_readability: bool = True, post_process: bool = True) -> Dict[str, Any]:
+                               improve_readability: bool = False, post_process: bool = True) -> Dict[str, Any]:
         """
         Extract text with bounding box information and advanced readability improvements
         
