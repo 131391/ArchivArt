@@ -424,10 +424,12 @@ def ocr_extract():
         preprocess = data.get('preprocess', True)
         config = data.get('config', None)
         auto_rotate = data.get('auto_rotate', True)
+        improve_readability = data.get('improve_readability', True)
+        post_process = data.get('post_process', True)
         
-        logger.info(f"OCR text extraction request for: {os.path.basename(image_path)} (lang: {language}, auto_rotate: {auto_rotate})")
+        logger.info(f"OCR text extraction request for: {os.path.basename(image_path)} (lang: {language}, auto_rotate: {auto_rotate}, readability: {improve_readability})")
         
-        result = ocr_service.extract_text(image_path, language, preprocess, config, auto_rotate)
+        result = ocr_service.extract_text(image_path, language, preprocess, config, auto_rotate, improve_readability, post_process)
         success = result.get('success', False)
         
         processing_time = time.time() - start_time
@@ -464,10 +466,12 @@ def ocr_extract_with_boxes():
         preprocess = data.get('preprocess', True)
         config = data.get('config', None)
         auto_rotate = data.get('auto_rotate', True)
+        improve_readability = data.get('improve_readability', True)
+        post_process = data.get('post_process', True)
         
-        logger.info(f"OCR text extraction with boxes request for: {os.path.basename(image_path)} (lang: {language}, auto_rotate: {auto_rotate})")
+        logger.info(f"OCR text extraction with boxes request for: {os.path.basename(image_path)} (lang: {language}, auto_rotate: {auto_rotate}, readability: {improve_readability})")
         
-        result = ocr_service.extract_text_with_boxes(image_path, language, preprocess, config, auto_rotate)
+        result = ocr_service.extract_text_with_boxes(image_path, language, preprocess, config, auto_rotate, improve_readability, post_process)
         success = result.get('success', False)
         
         processing_time = time.time() - start_time
@@ -531,6 +535,8 @@ def ocr_upload_extract():
         preprocess = request.form.get('preprocess', 'true').lower() == 'true'
         config = request.form.get('config', None)
         auto_rotate = request.form.get('auto_rotate', 'true').lower() == 'true'
+        improve_readability = request.form.get('improve_readability', 'true').lower() == 'true'
+        post_process = request.form.get('post_process', 'true').lower() == 'true'
         
         # Validate file type
         allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
@@ -546,10 +552,10 @@ def ocr_upload_extract():
         try:
             # Save uploaded file to temporary location
             file.save(temp_path)
-            logger.info(f"OCR upload extract request for: {file.filename} (lang: {language}, auto_rotate: {auto_rotate})")
+            logger.info(f"OCR upload extract request for: {file.filename} (lang: {language}, auto_rotate: {auto_rotate}, readability: {improve_readability})")
             
             # Process with OCR
-            result = ocr_service.extract_text(temp_path, language, preprocess, config, auto_rotate)
+            result = ocr_service.extract_text(temp_path, language, preprocess, config, auto_rotate, improve_readability, post_process)
             success = result.get('success', False)
             
             processing_time = time.time() - start_time
@@ -598,6 +604,8 @@ def ocr_upload_extract_with_boxes():
         preprocess = request.form.get('preprocess', 'true').lower() == 'true'
         config = request.form.get('config', None)
         auto_rotate = request.form.get('auto_rotate', 'true').lower() == 'true'
+        improve_readability = request.form.get('improve_readability', 'true').lower() == 'true'
+        post_process = request.form.get('post_process', 'true').lower() == 'true'
         
         # Validate file type
         allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
@@ -613,10 +621,10 @@ def ocr_upload_extract_with_boxes():
         try:
             # Save uploaded file to temporary location
             file.save(temp_path)
-            logger.info(f"OCR upload extract with boxes request for: {file.filename} (lang: {language}, auto_rotate: {auto_rotate})")
+            logger.info(f"OCR upload extract with boxes request for: {file.filename} (lang: {language}, auto_rotate: {auto_rotate}, readability: {improve_readability})")
             
             # Process with OCR
-            result = ocr_service.extract_text_with_boxes(temp_path, language, preprocess, config, auto_rotate)
+            result = ocr_service.extract_text_with_boxes(temp_path, language, preprocess, config, auto_rotate, improve_readability, post_process)
             success = result.get('success', False)
             
             processing_time = time.time() - start_time

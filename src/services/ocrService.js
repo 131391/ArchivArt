@@ -96,7 +96,9 @@ class OCRService {
                 language: options.language || 'eng',
                 preprocess: options.preprocess !== false, // default to true
                 config: options.config || null,
-                auto_rotate: options.auto_rotate !== false // default to true
+                auto_rotate: options.auto_rotate !== false, // default to true
+                improve_readability: options.improve_readability !== false, // default to true
+                post_process: options.post_process !== false // default to true
             };
 
             const response = await axios.post(`${this.baseURL}/ocr/extract`, requestData, {
@@ -156,7 +158,9 @@ class OCRService {
                 language: options.language || 'eng',
                 preprocess: options.preprocess !== false, // default to true
                 config: options.config || null,
-                auto_rotate: options.auto_rotate !== false // default to true
+                auto_rotate: options.auto_rotate !== false, // default to true
+                improve_readability: options.improve_readability !== false, // default to true
+                post_process: options.post_process !== false // default to true
             };
 
             const response = await axios.post(`${this.baseURL}/ocr/extract-with-boxes`, requestData, {
@@ -319,6 +323,12 @@ class OCRService {
             if (options.auto_rotate !== undefined) {
                 form.append('auto_rotate', options.auto_rotate.toString());
             }
+            if (options.improve_readability !== undefined) {
+                form.append('improve_readability', options.improve_readability.toString());
+            }
+            if (options.post_process !== undefined) {
+                form.append('post_process', options.post_process.toString());
+            }
 
             const response = await axios.post(`${this.baseURL}/ocr/upload-extract`, form, {
                 headers: {
@@ -395,6 +405,12 @@ class OCRService {
             }
             if (options.auto_rotate !== undefined) {
                 form.append('auto_rotate', options.auto_rotate.toString());
+            }
+            if (options.improve_readability !== undefined) {
+                form.append('improve_readability', options.improve_readability.toString());
+            }
+            if (options.post_process !== undefined) {
+                form.append('post_process', options.post_process.toString());
             }
 
             const response = await axios.post(`${this.baseURL}/ocr/upload-extract-with-boxes`, form, {

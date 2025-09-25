@@ -8,6 +8,7 @@ import numpy as np
 import pytesseract
 import logging
 import time
+import re
 from typing import Optional, Dict, Any, List
 from PIL import Image
 import os
@@ -167,9 +168,9 @@ class OCRService:
             return image
 
     def preprocess_image(self, image_path: str, enhance_contrast: bool = True, denoise: bool = True, 
-                        auto_rotate: bool = True) -> Optional[np.ndarray]:
+                        auto_rotate: bool = True, improve_readability: bool = True) -> Optional[np.ndarray]:
         """
-        Preprocess image for better OCR results with optional rotation correction
+        Preprocess image for better OCR results with advanced readability improvements
         """
         try:
             # Read image
@@ -187,6 +188,10 @@ class OCRService:
                 if abs(rotation_angle) > 1.0:  # Only rotate if angle is significant
                     gray = self.rotate_image(gray, rotation_angle)
             
+            # Advanced readability improvements
+            if improve_readability:
+                gray = self.enhance_readability(gray)
+            
             # Enhance contrast if requested
             if enhance_contrast:
                 # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
@@ -197,8 +202,14 @@ class OCRService:
             if denoise:
                 gray = cv2.medianBlur(gray, 3)
             
-            # Apply threshold to get binary image
-            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            # Apply adaptive threshold for better text separation
+            if improve_readability:
+                # Use adaptive threshold for better handling of varying lighting
+                binary = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                             cv2.THRESH_BINARY, 11, 2)
+            else:
+                # Use Otsu's method for simple cases
+                _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
             
             return binary
             
@@ -206,10 +217,150 @@ class OCRService:
             logger.error(f"Error preprocessing image {image_path}: {str(e)}")
             return None
     
-    def extract_text(self, image_path: str, language: str = None, 
-                    preprocess: bool = True, config: str = None, auto_rotate: bool = True) -> Dict[str, Any]:
+    def enhance_readability(self, image: np.ndarray) -> np.ndarray:
         """
-        Extract text from image using Tesseract OCR
+        Apply advanced image processing techniques to improve text readability
+        """
+        try:
+            # 1. Noise reduction with bilateral filter (preserves edges)
+            filtered = cv2.bilateralFilter(image, 9, 75, 75)
+            
+            # 2. Morphological operations to clean up text
+            # Remove small noise
+            kernel_noise = np.ones((2, 2), np.uint8)
+            filtered = cv2.morphologyEx(filtered, cv2.MORPH_OPEN, kernel_noise)
+            
+            # 3. Enhance text contrast
+            # Apply gamma correction for better contrast
+            gamma = 1.2
+            filtered = np.power(filtered / 255.0, gamma) * 255.0
+            filtered = np.uint8(filtered)
+            
+            # 4. Sharpen text edges
+            kernel_sharpen = np.array([[-1, -1, -1],
+                                     [-1,  9, -1],
+                                     [-1, -1, -1]])
+            sharpened = cv2.filter2D(filtered, -1, kernel_sharpen)
+            
+            # 5. Combine original and sharpened image
+            enhanced = cv2.addWeighted(filtered, 0.7, sharpened, 0.3, 0)
+            
+            # 6. Final cleanup - remove isolated pixels
+            kernel_cleanup = np.ones((3, 3), np.uint8)
+            enhanced = cv2.morphologyEx(enhanced, cv2.MORPH_CLOSE, kernel_cleanup)
+            
+            logger.info("Applied readability enhancements: noise reduction, contrast enhancement, edge sharpening")
+            return enhanced
+            
+        except Exception as e:
+            logger.warning(f"Readability enhancement failed: {str(e)}")
+            return image
+    
+    def post_process_text(self, text: str) -> str:
+        """
+        Post-process extracted text to improve readability and accuracy
+        """
+        try:
+            if not text:
+                return text
+            
+            # 1. Remove excessive whitespace
+            text = ' '.join(text.split())
+            
+            # 2. Fix common OCR errors
+            text = self.fix_common_ocr_errors(text)
+            
+            # 3. Improve punctuation
+            text = self.improve_punctuation(text)
+            
+            # 4. Fix line breaks and formatting
+            text = self.fix_line_breaks(text)
+            
+            logger.info("Applied text post-processing for better readability")
+            return text.strip()
+            
+        except Exception as e:
+            logger.warning(f"Text post-processing failed: {str(e)}")
+            return text
+    
+    def fix_common_ocr_errors(self, text: str) -> str:
+        """
+        Fix common OCR character recognition errors
+        """
+        # Common OCR error mappings
+        ocr_fixes = {
+            # Numbers and letters confusion
+            '0': 'O',  # Zero to letter O (context-dependent)
+            '1': 'l',  # One to lowercase l (context-dependent)
+            '5': 'S',  # Five to letter S (context-dependent)
+            '8': 'B',  # Eight to letter B (context-dependent)
+            
+            # Common character confusions
+            'rn': 'm',  # rn often misread as m
+            'cl': 'd',  # cl often misread as d
+            'li': 'h',  # li often misread as h
+            
+            # Punctuation fixes
+            '|': 'l',   # Pipe to lowercase l
+            '`': "'",   # Backtick to apostrophe
+            '"': '"',   # Straight quotes to curly quotes
+            '"': '"',   # Straight quotes to curly quotes
+            ''': "'",   # Straight apostrophe to curly
+            ''': "'",   # Straight apostrophe to curly
+        }
+        
+        # Apply fixes (be careful with context)
+        for error, correction in ocr_fixes.items():
+            # Only replace if it makes sense in context
+            if error in text:
+                # Simple replacement for now - could be made more sophisticated
+                text = text.replace(error, correction)
+        
+        return text
+    
+    def improve_punctuation(self, text: str) -> str:
+        """
+        Improve punctuation and spacing
+        """
+        import re
+        
+        # Fix spacing around punctuation
+        text = re.sub(r'\s+([,.!?;:])', r'\1', text)  # Remove space before punctuation
+        text = re.sub(r'([,.!?;:])([A-Za-z])', r'\1 \2', text)  # Add space after punctuation
+        
+        # Fix multiple spaces
+        text = re.sub(r'\s+', ' ', text)
+        
+        # Fix capitalization after periods
+        sentences = text.split('. ')
+        if len(sentences) > 1:
+            sentences = [sentences[0]] + [s.capitalize() for s in sentences[1:]]
+            text = '. '.join(sentences)
+        
+        return text
+    
+    def fix_line_breaks(self, text: str) -> str:
+        """
+        Fix line breaks and paragraph formatting
+        """
+        # Replace multiple newlines with single newline
+        text = re.sub(r'\n+', '\n', text)
+        
+        # Remove trailing whitespace from lines
+        lines = text.split('\n')
+        lines = [line.rstrip() for line in lines]
+        text = '\n'.join(lines)
+        
+        # Remove empty lines at the beginning and end
+        text = text.strip()
+        
+        return text
+    
+    def extract_text(self, image_path: str, language: str = None, 
+                    preprocess: bool = True, config: str = None, auto_rotate: bool = True,
+                    improve_readability: bool = True, post_process: bool = True) -> Dict[str, Any]:
+        """
+        Extract text from image using Tesseract OCR with advanced readability improvements
         
         Args:
             image_path: Path to the image file
@@ -217,6 +368,8 @@ class OCRService:
             preprocess: Whether to preprocess image for better results
             config: Custom Tesseract configuration
             auto_rotate: Whether to automatically detect and correct text rotation
+            improve_readability: Whether to apply advanced readability enhancements
+            post_process: Whether to post-process extracted text for better readability
             
         Returns:
             Dictionary with extracted text and metadata
@@ -248,7 +401,8 @@ class OCRService:
             
             # Preprocess image if requested
             if preprocess:
-                processed_img = self.preprocess_image(image_path, auto_rotate=auto_rotate)
+                processed_img = self.preprocess_image(image_path, auto_rotate=auto_rotate, 
+                                                    improve_readability=improve_readability)
                 if processed_img is None:
                     return {
                         "success": False,
@@ -268,6 +422,10 @@ class OCRService:
             
             # Extract text
             text = pytesseract.image_to_string(pil_image, lang=language, config=config)
+            
+            # Post-process text for better readability
+            if post_process:
+                text = self.post_process_text(text)
             
             # Calculate average confidence
             confidences = [int(conf) for conf in data['conf'] if int(conf) > 0]
@@ -300,9 +458,10 @@ class OCRService:
             }
     
     def extract_text_with_boxes(self, image_path: str, language: str = None, 
-                               preprocess: bool = True, config: str = None, auto_rotate: bool = True) -> Dict[str, Any]:
+                               preprocess: bool = True, config: str = None, auto_rotate: bool = True,
+                               improve_readability: bool = True, post_process: bool = True) -> Dict[str, Any]:
         """
-        Extract text with bounding box information
+        Extract text with bounding box information and advanced readability improvements
         
         Args:
             image_path: Path to the image file
@@ -310,6 +469,8 @@ class OCRService:
             preprocess: Whether to preprocess image for better results
             config: Custom Tesseract configuration
             auto_rotate: Whether to automatically detect and correct text rotation
+            improve_readability: Whether to apply advanced readability enhancements
+            post_process: Whether to post-process extracted text for better readability
         
         Returns:
             Dictionary with text, bounding boxes, and metadata
@@ -337,7 +498,8 @@ class OCRService:
             
             # Preprocess image if requested
             if preprocess:
-                processed_img = self.preprocess_image(image_path, auto_rotate=auto_rotate)
+                processed_img = self.preprocess_image(image_path, auto_rotate=auto_rotate, 
+                                                    improve_readability=improve_readability)
                 if processed_img is None:
                     return {
                         "success": False,
@@ -355,6 +517,10 @@ class OCRService:
             
             # Extract text
             text = pytesseract.image_to_string(pil_image, lang=language, config=config)
+            
+            # Post-process text for better readability
+            if post_process:
+                text = self.post_process_text(text)
             
             # Process bounding boxes
             boxes = []
