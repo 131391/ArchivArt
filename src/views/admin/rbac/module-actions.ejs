@@ -104,6 +104,11 @@ button.bg-gray-500:empty::after, button.bg-gray-600:empty::after {
     ]
 }) %>
 
+<!-- Pass user permissions to JavaScript -->
+<script>
+    window.userPermissions = <%- JSON.stringify(userPermissions || []) %>;
+</script>
+
 <!-- View Module Action Modal -->
 <div id="viewModuleActionModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50">
     <div class="flex min-h-full items-center justify-center p-4">

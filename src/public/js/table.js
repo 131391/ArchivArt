@@ -599,7 +599,34 @@ function generateUserTableRows(users) {
 
 // Generate media table rows
 function generateMediaTableRows(media) {
-    return media.map(item => `
+    return media.map(item => {
+        // Check user permissions
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.view');
+        const hasEditPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.edit');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.delete');
+        
+        // Generate action buttons based on permissions
+        let actionButtons = '';
+        
+        if (hasViewPermission) {
+            actionButtons += `<button onclick="window.location.href='/admin/media/view/${item.id}'" class="text-indigo-600 hover:text-indigo-900" title="View">
+                <i class="fas fa-eye"></i>
+            </button>`;
+        }
+        
+        if (hasEditPermission) {
+            actionButtons += `<button onclick="window.location.href='/admin/media/edit/${item.id}'" class="text-blue-600 hover:text-blue-900" title="Edit">
+                <i class="fas fa-edit"></i>
+            </button>`;
+        }
+        
+        if (hasDeletePermission) {
+            actionButtons += `<button onclick="deleteMedia(${item.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>`;
+        }
+        
+        return `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaTitle" data-item='${JSON.stringify(item)}'>
                 <!-- Media title will be formatted by JavaScript -->
@@ -624,24 +651,47 @@ function generateMediaTableRows(media) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
-                    <button onclick="window.location.href='/admin/media/view/${item.id}'" class="text-indigo-600 hover:text-indigo-900" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="window.location.href='/admin/media/edit/${item.id}'" class="text-blue-600 hover:text-blue-900" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deleteMedia(${item.id})" class="text-red-600 hover:text-red-900" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${actionButtons}
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Generate role table rows
 function generateRoleTableRows(roles) {
-    return roles.map(role => `
+    return roles.map(role => {
+        // Check user permissions
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.view');
+        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.update');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.delete');
+        
+        // Generate action buttons based on permissions
+        let actionButtons = '';
+        
+        if (hasViewPermission) {
+            actionButtons += `<button onclick="viewRole(${role.id})" class="text-blue-600 hover:text-blue-900" title="View">
+                <i class="fas fa-eye"></i>
+            </button>`;
+        }
+        
+        if (hasUpdatePermission) {
+            actionButtons += `<button onclick="editRole(${role.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button onclick="manageRolePermissions(${role.id})" class="text-green-600 hover:text-green-900" title="Permissions">
+                <i class="fas fa-key"></i>
+            </button>`;
+        }
+        
+        if (hasDeletePermission) {
+            actionButtons += `<button onclick="deleteRole(${role.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>`;
+        }
+        
+        return `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${role.id}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatRole" data-item='${JSON.stringify(role)}'>
@@ -661,27 +711,44 @@ function generateRoleTableRows(roles) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
-                    <button onclick="viewRole(${role.id})" class="text-blue-600 hover:text-blue-900" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="editRole(${role.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="manageRolePermissions(${role.id})" class="text-green-600 hover:text-green-900" title="Permissions">
-                        <i class="fas fa-key"></i>
-                    </button>
-                    <button onclick="deleteRole(${role.id})" class="text-red-600 hover:text-red-900" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${actionButtons}
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Generate permission table rows
 function generatePermissionTableRows(permissions) {
-    return permissions.map(permission => `
+    return permissions.map(permission => {
+        // Check user permissions
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.view');
+        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.update');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.delete');
+        
+        // Generate action buttons based on permissions
+        let actionButtons = '';
+        
+        if (hasViewPermission) {
+            actionButtons += `<button onclick="viewPermission(${permission.id})" class="text-blue-600 hover:text-blue-900" title="View">
+                <i class="fas fa-eye"></i>
+            </button>`;
+        }
+        
+        if (hasUpdatePermission) {
+            actionButtons += `<button onclick="editPermission(${permission.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                <i class="fas fa-edit"></i>
+            </button>`;
+        }
+        
+        if (hasDeletePermission) {
+            actionButtons += `<button onclick="deletePermission(${permission.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>`;
+        }
+        
+        return `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.id}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermission" data-item='${JSON.stringify(permission)}'>
@@ -704,58 +771,47 @@ function generatePermissionTableRows(permissions) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
-                    <button onclick="viewPermission(${permission.id})" class="text-blue-600 hover:text-blue-900" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="editPermission(${permission.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deletePermission(${permission.id})" class="text-red-600 hover:text-red-900" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${actionButtons}
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Generate module table rows
 function generateModuleTableRows(modules) {
-    return modules.map(module => `
-        <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.display_name || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.route || ''}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.order_index || 0}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.action_count || 0}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.permission_count || 0}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatStatus" data-item='${JSON.stringify(module)}'>
-                <!-- Status will be formatted by JavaScript -->
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
-                    <button onclick="viewModule(${module.id})" class="text-blue-600 hover:text-blue-900" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="editModule(${module.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="manageModuleActions(${module.id})" class="text-green-600 hover:text-green-900" title="Actions">
-                        <i class="fas fa-cogs"></i>
-                    </button>
-                    <button onclick="deleteModule(${module.id})" class="text-red-600 hover:text-red-900" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-// Generate module table rows
-function generateModuleTableRows(modules) {
-    return modules.map(module => `
+    return modules.map(module => {
+        // Check user permissions
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.view');
+        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.update');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.delete');
+        
+        // Generate action buttons based on permissions
+        let actionButtons = '';
+        
+        if (hasViewPermission) {
+            actionButtons += `<button onclick="viewModule(${module.id})" class="text-blue-600 hover:text-blue-900" title="View">
+                <i class="fas fa-eye"></i>
+            </button>`;
+        }
+        
+        if (hasUpdatePermission) {
+            actionButtons += `<button onclick="editModule(${module.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button onclick="manageModuleActions(${module.id})" class="text-green-600 hover:text-green-900" title="Actions">
+                <i class="fas fa-cogs"></i>
+            </button>`;
+        }
+        
+        if (hasDeletePermission) {
+            actionButtons += `<button onclick="deleteModule(${module.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>`;
+        }
+        
+        return `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.id}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModule" data-item='${JSON.stringify(module)}'>
@@ -781,27 +837,44 @@ function generateModuleTableRows(modules) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
-                    <button onclick="viewModule(${module.id})" class="text-blue-600 hover:text-blue-900" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="editModule(${module.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="manageModuleActions(${module.id})" class="text-green-600 hover:text-green-900" title="Actions">
-                        <i class="fas fa-cogs"></i>
-                    </button>
-                    <button onclick="deleteModule(${module.id})" class="text-red-600 hover:text-red-900" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${actionButtons}
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Generate module action table rows
 function generateModuleActionTableRows(actions) {
-    return actions.map(action => `
+    return actions.map(action => {
+        // Check user permissions
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.view');
+        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.update');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.delete');
+        
+        // Generate action buttons based on permissions
+        let actionButtons = '';
+        
+        if (hasViewPermission) {
+            actionButtons += `<button onclick="viewModuleAction(${action.id})" class="text-blue-600 hover:text-blue-900" title="View">
+                <i class="fas fa-eye"></i>
+            </button>`;
+        }
+        
+        if (hasUpdatePermission) {
+            actionButtons += `<button onclick="editModuleAction(${action.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                <i class="fas fa-edit"></i>
+            </button>`;
+        }
+        
+        if (hasDeletePermission) {
+            actionButtons += `<button onclick="deleteModuleAction(${action.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>`;
+        }
+        
+        return `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.id}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionName" data-item='${JSON.stringify(action)}'>
@@ -818,19 +891,12 @@ function generateModuleActionTableRows(actions) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
-                    <button onclick="viewModuleAction(${action.id})" class="text-blue-600 hover:text-blue-900" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="editModuleAction(${action.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deleteModuleAction(${action.id})" class="text-red-600 hover:text-red-900" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${actionButtons}
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Wait for formatters to be available

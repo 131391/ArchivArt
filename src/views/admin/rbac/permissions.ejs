@@ -33,6 +33,11 @@
     ]
 }) %>
 
+<!-- Pass user permissions to JavaScript -->
+<script>
+    window.userPermissions = <%- JSON.stringify(userPermissions || []) %>;
+</script>
+
 <!-- Enhanced Permission View Modal -->
 <div id="viewPermissionModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 modal-backdrop">
     <div class="relative top-20 mx-auto p-0 border-0 max-w-2xl w-full mx-4 modal-container rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="viewPermissionModalContainer">

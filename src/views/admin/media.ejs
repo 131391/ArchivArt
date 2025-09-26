@@ -98,6 +98,11 @@ const tableFilters = [
     emptySearchMessage: 'No media files match your search criteria.'
 }) %>
 
+<!-- Pass user permissions to JavaScript -->
+<script>
+    window.userPermissions = <%- JSON.stringify(userPermissions || []) %>;
+</script>
+
 <!-- Enhanced Media View Modal -->
 <div id="viewMediaModal" class="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 backdrop-blur-sm">
     <div class="relative top-20 mx-auto p-0 border-0 w-11/12 md:w-3/4 lg:w-1/2 shadow-2xl rounded-2xl bg-white transform transition-all duration-300 ease-out scale-95 opacity-0" id="viewMediaModalContainer">
