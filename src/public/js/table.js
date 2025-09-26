@@ -608,11 +608,20 @@ function generateUserTableRows(users) {
 
 // Generate media table rows
 function generateMediaTableRows(media) {
+    console.log('generateMediaTableRows called with media:', media.length);
+    console.log('window.userPermissions for media:', window.userPermissions);
+    
     return media.map(item => {
         // Check user permissions
         const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.view');
         const hasEditPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.edit');
         const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.delete');
+        
+        console.log(`Media ${item.id} permissions:`, {
+            hasViewPermission,
+            hasEditPermission,
+            hasDeletePermission
+        });
         
         // Generate action buttons based on permissions
         let actionButtons = '';
@@ -670,11 +679,20 @@ function generateMediaTableRows(media) {
 
 // Generate role table rows
 function generateRoleTableRows(roles) {
+    console.log('generateRoleTableRows called with roles:', roles.length);
+    console.log('window.userPermissions for roles:', window.userPermissions);
+    
     return roles.map(role => {
         // Check user permissions
         const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.view');
         const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.update');
         const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.delete');
+        
+        console.log(`Role ${role.id} permissions:`, {
+            hasViewPermission,
+            hasUpdatePermission,
+            hasDeletePermission
+        });
         
         // Generate action buttons based on permissions
         let actionButtons = '';
@@ -730,11 +748,20 @@ function generateRoleTableRows(roles) {
 
 // Generate permission table rows
 function generatePermissionTableRows(permissions) {
+    console.log('generatePermissionTableRows called with permissions:', permissions.length);
+    console.log('window.userPermissions for permissions:', window.userPermissions);
+    
     return permissions.map(permission => {
         // Check user permissions
         const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.view');
         const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.update');
         const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.delete');
+        
+        console.log(`Permission ${permission.id} permissions:`, {
+            hasViewPermission,
+            hasUpdatePermission,
+            hasDeletePermission
+        });
         
         // Generate action buttons based on permissions
         let actionButtons = '';
@@ -790,11 +817,20 @@ function generatePermissionTableRows(permissions) {
 
 // Generate module table rows
 function generateModuleTableRows(modules) {
+    console.log('generateModuleTableRows called with modules:', modules.length);
+    console.log('window.userPermissions for modules:', window.userPermissions);
+    
     return modules.map(module => {
         // Check user permissions
         const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.view');
         const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.update');
         const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.delete');
+        
+        console.log(`Module ${module.id} permissions:`, {
+            hasViewPermission,
+            hasUpdatePermission,
+            hasDeletePermission
+        });
         
         // Generate action buttons based on permissions
         let actionButtons = '';
@@ -856,11 +892,20 @@ function generateModuleTableRows(modules) {
 
 // Generate module action table rows
 function generateModuleActionTableRows(actions) {
+    console.log('generateModuleActionTableRows called with actions:', actions.length);
+    console.log('window.userPermissions for actions:', window.userPermissions);
+    
     return actions.map(action => {
         // Check user permissions
         const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.view');
         const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.update');
         const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.delete');
+        
+        console.log(`Action ${action.id} permissions:`, {
+            hasViewPermission,
+            hasUpdatePermission,
+            hasDeletePermission
+        });
         
         // Generate action buttons based on permissions
         let actionButtons = '';
