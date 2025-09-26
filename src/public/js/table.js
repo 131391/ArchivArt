@@ -540,11 +540,20 @@ function generateTableRows(data) {
 
 // Generate user table rows
 function generateUserTableRows(users) {
+    console.log('generateUserTableRows called with users:', users.length);
+    console.log('window.userPermissions:', window.userPermissions);
+    
     return users.map(user => {
         // Check user permissions
         const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.view');
         const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.update');
         const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.delete');
+        
+        console.log(`User ${user.id} permissions:`, {
+            hasViewPermission,
+            hasUpdatePermission,
+            hasDeletePermission
+        });
         
         // Generate action buttons based on permissions
         let actionButtons = '';

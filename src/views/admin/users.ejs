@@ -44,6 +44,8 @@ const columns = [
 <!-- Pass user permissions to JavaScript -->
 <script>
     window.userPermissions = <%- JSON.stringify(userPermissions || []) %>;
+    console.log('User permissions loaded:', window.userPermissions);
+    console.log('Has users.view permission:', window.userPermissions && window.userPermissions.some(p => p.name === 'users.view'));
 </script>
 
 <!-- Enhanced User View Modal -->
