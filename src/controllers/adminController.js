@@ -143,6 +143,7 @@ class AdminController {
       res.json({
         success: true,
         data: users,
+        userPermissions: req.userPermissions || [],
         pagination: {
           currentPage: page,
           totalPages: totalPages,

@@ -257,6 +257,7 @@ class MediaController {
             res.json({
                 success: true,
                 data: plainMedia,
+                userPermissions: req.userPermissions || [],
                 pagination: {
                     currentPage: result.page,
                     totalPages: result.totalPages,

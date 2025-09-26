@@ -95,6 +95,7 @@ class RBACController {
             res.json({
                 success: true,
                 data: roles,
+                userPermissions: req.userPermissions || [],
                 pagination: {
                     currentPage: parseInt(page),
                     totalPages: Math.ceil(total / limit),
@@ -347,6 +348,7 @@ class RBACController {
             res.json({
                 success: true,
                 data: permissions,
+                userPermissions: req.userPermissions || [],
                 pagination: {
                     currentPage: parsedPage,
                     totalPages: totalPages,
@@ -828,7 +830,8 @@ class RBACController {
             
             res.json({
                 success: true,
-                data: modules
+                data: modules,
+                userPermissions: req.userPermissions || []
             });
         } catch (error) {
             console.error('Error getting modules:', error);

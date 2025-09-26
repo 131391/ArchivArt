@@ -272,6 +272,12 @@ async function loadTableData() {
 
 // Update table content with new data
 function updateTableContent(data) {
+    // Update user permissions from API response if available
+    if (data.success && data.userPermissions) {
+        window.userPermissions = data.userPermissions;
+        console.log('Updated userPermissions from API:', window.userPermissions);
+    }
+    
     // Update table body
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
