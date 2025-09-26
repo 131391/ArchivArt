@@ -540,7 +540,37 @@ function generateTableRows(data) {
 
 // Generate user table rows
 function generateUserTableRows(users) {
-    return users.map(user => `
+    return users.map(user => {
+        // Check user permissions
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.view');
+        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.update');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.delete');
+        
+        // Generate action buttons based on permissions
+        let actionButtons = '';
+        
+        if (hasViewPermission) {
+            actionButtons += `<button onclick="viewUser(${user.id})" class="text-blue-600 hover:text-blue-900" title="View">
+                <i class="fas fa-eye"></i>
+            </button>`;
+        }
+        
+        if (hasUpdatePermission) {
+            actionButtons += `<button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button onclick="toggleUserStatus(${user.id}, '${user.is_blocked ? 'unblock' : 'block'}')" class="text-${user.is_blocked ? 'green' : 'yellow'}-600 hover:text-${user.is_blocked ? 'green' : 'yellow'}-900" title="${user.is_blocked ? 'Unblock' : 'Block'}">
+                <i class="fas fa-${user.is_blocked ? 'check' : 'ban'}"></i>
+            </button>`;
+        }
+        
+        if (hasDeletePermission) {
+            actionButtons += `<button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>`;
+        }
+        
+        return `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserName" data-item='${JSON.stringify(user)}'>
                 <!-- User name will be formatted by JavaScript -->
@@ -559,22 +589,12 @@ function generateUserTableRows(users) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
-                    <button onclick="viewUser(${user.id})" class="text-blue-600 hover:text-blue-900" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="toggleUserStatus(${user.id}, '${user.is_blocked ? 'unblock' : 'block'}')" class="text-${user.is_blocked ? 'green' : 'yellow'}-600 hover:text-${user.is_blocked ? 'green' : 'yellow'}-900" title="${user.is_blocked ? 'Unblock' : 'Block'}">
-                        <i class="fas fa-${user.is_blocked ? 'check' : 'ban'}"></i>
-                    </button>
-                    <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${actionButtons}
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Generate media table rows
