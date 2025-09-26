@@ -65,7 +65,7 @@ const hasModuleActionPermission = (moduleName, actionName) => {
                 
                 if (isWebRequest) {
                     req.flash('error_msg', 'You do not have permission to access this page');
-                    return res.redirect('/admin/dashboard');
+                    return res.redirect('/admin/login');
                 }
                 
                 return res.status(403).json({
@@ -101,14 +101,14 @@ const hasModuleActionPermissionWeb = (moduleName, actionName) => {
             
             if (!hasAccess) {
                 req.flash('error_msg', `Access denied. You don't have permission to access ${moduleName}. Required permission: ${permissionName}`);
-                return res.redirect('/admin/dashboard');
+                return res.redirect('/admin/login');
             }
 
             next();
         } catch (error) {
             console.error('Permission check error:', error);
             req.flash('error_msg', 'Permission check failed');
-            return res.redirect('/admin/dashboard');
+            return res.redirect('/admin/login');
         }
     };
 };
