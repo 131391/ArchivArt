@@ -116,6 +116,13 @@ function cleanUrlParameters() {
 }
 
 async function handleFormSubmission(form, type) {
+    // Check if submit button is disabled (no permission)
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (!submitBtn || submitBtn.disabled) {
+        showErrorToast('You do not have permission to update settings');
+        return;
+    }
+    
     // Validate form
     const errors = validateForm(form, type);
     if (errors.length > 0) {
@@ -123,8 +130,7 @@ async function handleFormSubmission(form, type) {
         return;
     }
     
-    // Get submit button and show loading state
-    const submitBtn = form.querySelector('button[type="submit"]');
+    // Show loading state
     const originalText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
@@ -218,6 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
         brandForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Check if form is disabled (no permission)
+            if (this.classList.contains('form-disabled')) {
+                showErrorToast('You do not have permission to update settings');
+                return false;
+            }
+            
             await handleFormSubmission(this, 'brand');
             return false;
         });
@@ -227,6 +240,13 @@ document.addEventListener('DOMContentLoaded', function() {
         systemForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Check if form is disabled (no permission)
+            if (this.classList.contains('form-disabled')) {
+                showErrorToast('You do not have permission to update settings');
+                return false;
+            }
+            
             await handleFormSubmission(this, 'system');
             return false;
         });
@@ -236,6 +256,13 @@ document.addEventListener('DOMContentLoaded', function() {
         awsForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Check if form is disabled (no permission)
+            if (this.classList.contains('form-disabled')) {
+                showErrorToast('You do not have permission to update settings');
+                return false;
+            }
+            
             await handleFormSubmission(this, 'aws');
             return false;
         });
@@ -245,6 +272,13 @@ document.addEventListener('DOMContentLoaded', function() {
         securityForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Check if form is disabled (no permission)
+            if (this.classList.contains('form-disabled')) {
+                showErrorToast('You do not have permission to update settings');
+                return false;
+            }
+            
             await handleFormSubmission(this, 'security');
             return false;
         });
@@ -254,6 +288,13 @@ document.addEventListener('DOMContentLoaded', function() {
         emailForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Check if form is disabled (no permission)
+            if (this.classList.contains('form-disabled')) {
+                showErrorToast('You do not have permission to update settings');
+                return false;
+            }
+            
             await handleFormSubmission(this, 'email');
             return false;
         });

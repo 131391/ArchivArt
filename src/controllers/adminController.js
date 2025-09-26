@@ -615,23 +615,45 @@ class AdminController {
             
             if (existingSettings.length > 0) {
               // Update existing settings
-              const updateFields = ['site_name = ?', 'site_tagline = ?', 'primary_color = ?'];
-              const updateValues = [site_name, site_tagline, primary_color];
+              const updateFields = [];
+              const updateValues = [];
+              
+              // Only add fields that have values
+              if (site_name !== undefined && site_name !== null) {
+                updateFields.push('site_name = ?');
+                updateValues.push(site_name);
+              }
+              
+              if (site_tagline !== undefined && site_tagline !== null) {
+                updateFields.push('site_tagline = ?');
+                updateValues.push(site_tagline);
+              }
+              
+              if (primary_color !== undefined && primary_color !== null) {
+                updateFields.push('primary_color = ?');
+                updateValues.push(primary_color);
+              }
               
               if (logoPath) {
                 updateFields.push('logo_path = ?');
                 updateValues.push(logoPath);
-                
               }
               
-              updateValues.push(existingSettings[0].id);
-              
-              
-              
-              await db.execute(
-                `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-                updateValues
-              );
+              // Only proceed if there are fields to update
+              if (updateFields.length > 0) {
+                updateValues.push(existingSettings[0].id);
+                
+                await db.execute(
+                  `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+                  updateValues
+                );
+              } else {
+                // If no fields to update, just update the timestamp
+                await db.execute(
+                  'UPDATE settings SET updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                  [existingSettings[0].id]
+                );
+              }
               
               
             } else {
@@ -670,26 +692,52 @@ class AdminController {
           const updateValues = [];
           
           Object.keys(settingsData).forEach(key => {
-            updateFields.push(`${key} = ?`);
-            updateValues.push(settingsData[key]);
+            if (settingsData[key] !== undefined && settingsData[key] !== null && settingsData[key] !== '') {
+              updateFields.push(`${key} = ?`);
+              updateValues.push(settingsData[key]);
+            }
           });
           
-          updateValues.push(existingSettings[0].id);
-          
-          await db.execute(
-            `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-            updateValues
-          );
+          // Only proceed if there are fields to update
+          if (updateFields.length > 0) {
+            updateValues.push(existingSettings[0].id);
+            
+            await db.execute(
+              `UPDATE settings SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+              updateValues
+            );
+          } else {
+            // If no fields to update, just update the timestamp
+            await db.execute(
+              'UPDATE settings SET updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+              [existingSettings[0].id]
+            );
+          }
         } else {
-          // Insert new settings
-          const fields = Object.keys(settingsData);
-          const values = Object.values(settingsData);
-          const placeholders = fields.map(() => '?').join(', ');
+          // Insert new settings - only insert fields that have values
+          const fields = [];
+          const values = [];
           
-          await db.execute(
-            `INSERT INTO settings (${fields.join(', ')}, created_at, updated_at) VALUES (${placeholders}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-            values
-          );
+          Object.keys(settingsData).forEach(key => {
+            if (settingsData[key] !== undefined && settingsData[key] !== null && settingsData[key] !== '') {
+              fields.push(key);
+              values.push(settingsData[key]);
+            }
+          });
+          
+          if (fields.length > 0) {
+            const placeholders = fields.map(() => '?').join(', ');
+            
+            await db.execute(
+              `INSERT INTO settings (${fields.join(', ')}, created_at, updated_at) VALUES (${placeholders}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+              values
+            );
+          } else {
+            // If no valid fields, create a minimal settings record
+            await db.execute(
+              'INSERT INTO settings (created_at, updated_at) VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
+            );
+          }
         }
         
         res.json({

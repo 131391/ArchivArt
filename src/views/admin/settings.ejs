@@ -29,7 +29,7 @@
         </div>
         
         <div class="p-6">
-            <form id="brandForm" enctype="multipart/form-data">
+            <form id="brandForm" enctype="multipart/form-data" class="<%= !(typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) ? 'form-disabled' : '' %>">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Logo Upload Section -->
                     <div class="space-y-4">
@@ -113,11 +113,20 @@
                 </div>
                 
                 <div class="mt-6 flex justify-end">
-                    <button type="submit" 
-                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-save mr-2"></i>
-                        Save Brand Settings
-                    </button>
+                    <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) { %>
+                        <button type="submit" 
+                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Brand Settings
+                        </button>
+                    <% } else { %>
+                        <button type="button" disabled
+                                class="inline-flex items-center px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed opacity-60"
+                                title="You don't have permission to update settings">
+                            <i class="fas fa-lock mr-2"></i>
+                            Save Brand Settings
+                        </button>
+                    <% } %>
                 </div>
             </form>
         </div>
@@ -133,7 +142,7 @@
         </div>
         
         <div class="p-6">
-            <form id="systemForm">
+            <form id="systemForm" class="<%= !(typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) ? 'form-disabled' : '' %>">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="max_file_size" class="block text-sm font-medium text-gray-700 mb-2">
@@ -157,11 +166,20 @@
                 </div>
                 
                 <div class="mt-6 flex justify-end">
-                    <button type="submit" 
-                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-save mr-2"></i>
-                        Save System Settings
-                    </button>
+                    <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) { %>
+                        <button type="submit" 
+                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-save mr-2"></i>
+                            Save System Settings
+                        </button>
+                    <% } else { %>
+                        <button type="button" disabled
+                                class="inline-flex items-center px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed opacity-60"
+                                title="You don't have permission to update settings">
+                            <i class="fas fa-lock mr-2"></i>
+                            Save System Settings
+                        </button>
+                    <% } %>
                 </div>
             </form>
         </div>
@@ -177,7 +195,7 @@
         </div>
         
         <div class="p-6">
-            <form id="awsForm">
+            <form id="awsForm" class="<%= !(typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) ? 'form-disabled' : '' %>">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="aws_bucket" class="block text-sm font-medium text-gray-700 mb-2">
@@ -203,11 +221,20 @@
                 </div>
                 
                 <div class="mt-6 flex justify-end">
-                    <button type="submit" 
-                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-medium rounded-lg hover:from-orange-700 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-save mr-2"></i>
-                        Save AWS Settings
-                    </button>
+                    <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) { %>
+                        <button type="submit" 
+                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-medium rounded-lg hover:from-orange-700 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-save mr-2"></i>
+                            Save AWS Settings
+                        </button>
+                    <% } else { %>
+                        <button type="button" disabled
+                                class="inline-flex items-center px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed opacity-60"
+                                title="You don't have permission to update settings">
+                            <i class="fas fa-lock mr-2"></i>
+                            Save AWS Settings
+                        </button>
+                    <% } %>
                 </div>
             </form>
         </div>
@@ -223,7 +250,7 @@
         </div>
         
         <div class="p-6">
-            <form id="securityForm">
+            <form id="securityForm" class="<%= !(typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) ? 'form-disabled' : '' %>">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="jwt_expiry" class="block text-sm font-medium text-gray-700 mb-2">
@@ -247,11 +274,20 @@
                 </div>
                 
                 <div class="mt-6 flex justify-end">
-                    <button type="submit" 
-                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white font-medium rounded-lg hover:from-red-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-save mr-2"></i>
-                        Save Security Settings
-                    </button>
+                    <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) { %>
+                        <button type="submit" 
+                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white font-medium rounded-lg hover:from-red-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Security Settings
+                        </button>
+                    <% } else { %>
+                        <button type="button" disabled
+                                class="inline-flex items-center px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed opacity-60"
+                                title="You don't have permission to update settings">
+                            <i class="fas fa-lock mr-2"></i>
+                            Save Security Settings
+                        </button>
+                    <% } %>
                 </div>
             </form>
         </div>
@@ -267,7 +303,7 @@
         </div>
         
         <div class="p-6">
-            <form id="emailForm">
+            <form id="emailForm" class="<%= !(typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) ? 'form-disabled' : '' %>">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="smtp_host" class="block text-sm font-medium text-gray-700 mb-2">
@@ -307,11 +343,20 @@
                 </div>
                 
                 <div class="mt-6 flex justify-end">
-                    <button type="submit" 
-                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-save mr-2"></i>
-                        Save Email Settings
-                    </button>
+                    <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.update')) { %>
+                        <button type="submit" 
+                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Email Settings
+                        </button>
+                    <% } else { %>
+                        <button type="button" disabled
+                                class="inline-flex items-center px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed opacity-60"
+                                title="You don't have permission to update settings">
+                            <i class="fas fa-lock mr-2"></i>
+                            Save Email Settings
+                        </button>
+                    <% } %>
                 </div>
             </form>
         </div>
@@ -405,3 +450,40 @@
 </div>
 
 <!-- Settings JavaScript - loaded from admin layout -->
+
+<style>
+/* Disable form inputs when user doesn't have permission */
+.form-disabled input,
+.form-disabled select,
+.form-disabled textarea,
+.form-disabled button:not([type="button"]) {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.form-disabled input:focus,
+.form-disabled select:focus,
+.form-disabled textarea:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.form-disabled label {
+    opacity: 0.7;
+}
+
+/* Show permission message for disabled forms */
+.form-disabled::before {
+    content: "You don't have permission to modify these settings";
+    display: block;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 1px solid #f59e0b;
+    color: #92400e;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    text-align: center;
+}
+</style>
