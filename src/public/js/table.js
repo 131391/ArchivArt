@@ -560,6 +560,10 @@ function generateUserTableRows(users) {
             hasUpdatePermission,
             hasDeletePermission
         });
+        console.log(`User ${user.id} data:`, {
+            is_blocked: user.is_blocked,
+            is_active: user.is_active
+        });
         
         // Generate action buttons based on permissions
         let actionButtons = '';
@@ -573,9 +577,16 @@ function generateUserTableRows(users) {
         if (hasUpdatePermission) {
             actionButtons += `<button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
                 <i class="fas fa-edit"></i>
-            </button>
-            <button onclick="toggleUserStatus(${user.id}, '${user.is_blocked ? 'unblock' : 'block'}')" class="text-${user.is_blocked ? 'green' : 'yellow'}-600 hover:text-${user.is_blocked ? 'green' : 'yellow'}-900" title="${user.is_blocked ? 'Unblock' : 'Block'}">
-                <i class="fas fa-${user.is_blocked ? 'check' : 'ban'}"></i>
+            </button>`;
+            
+            // Block/Unblock button
+            const blockStatus = user.is_blocked ? 'unblock' : 'block';
+            const blockClass = user.is_blocked ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900';
+            const blockIcon = user.is_blocked ? 'fas fa-check' : 'fas fa-ban';
+            const blockTitle = user.is_blocked ? 'Unblock' : 'Block';
+            
+            actionButtons += `<button onclick="toggleUserStatus(${user.id}, '${blockStatus}')" class="${blockClass}" title="${blockTitle}">
+                <i class="${blockIcon}"></i>
             </button>`;
         }
         
