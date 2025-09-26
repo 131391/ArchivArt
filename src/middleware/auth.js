@@ -235,9 +235,27 @@ const requireAdminWeb = async (req, res, next) => {
 };
 
 // Middleware to check if user is already logged in (for login page)
-const redirectIfAuthenticated = (req, res, next) => {
+const redirectIfAuthenticated = async (req, res, next) => {
   if (req.session.user) {
-    return res.redirect('/admin/dashboard');
+    // Check if user has dashboard permission before redirecting
+    try {
+      const UserRole = require('../models/UserRole');
+      const hasDashboardPermission = await UserRole.hasPermission(req.session.user.id, 'dashboard.view');
+      
+      if (hasDashboardPermission) {
+        return res.redirect('/admin/dashboard');
+      } else {
+        // User is logged in but doesn't have dashboard permission
+        // Clear the session and allow them to login again
+        req.session.destroy();
+        return next();
+      }
+    } catch (error) {
+      console.error('Error checking dashboard permission:', error);
+      // On error, clear session and allow login
+      req.session.destroy();
+      return next();
+    }
   }
   next();
 };

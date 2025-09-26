@@ -19,9 +19,27 @@ const {
 const { profileUpload } = require('../config/multer');
 
 // Root admin route - redirect to dashboard
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   if (req.session.user) {
-    res.redirect('/admin/dashboard');
+    // Check if user has dashboard permission before redirecting
+    try {
+      const UserRole = require('../models/UserRole');
+      const hasDashboardPermission = await UserRole.hasPermission(req.session.user.id, 'dashboard.view');
+      
+      if (hasDashboardPermission) {
+        res.redirect('/admin/dashboard');
+      } else {
+        // User is logged in but doesn't have dashboard permission
+        // Clear the session and redirect to login
+        req.session.destroy();
+        res.redirect('/admin/login');
+      }
+    } catch (error) {
+      console.error('Error checking dashboard permission:', error);
+      // On error, clear session and redirect to login
+      req.session.destroy();
+      res.redirect('/admin/login');
+    }
   } else {
     res.redirect('/admin/login');
   }
