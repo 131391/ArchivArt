@@ -11,6 +11,8 @@ class ModuleAction {
         this.is_active = data.is_active;
         this.created_at = data.created_at;
         this.updated_at = data.updated_at;
+        this.module_name = data.module_name;
+        this.module_display_name = data.module_display_name;
     }
 
     // Get all actions

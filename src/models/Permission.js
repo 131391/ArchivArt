@@ -6,8 +6,8 @@ class Permission {
         this.name = data.name;
         this.display_name = data.display_name;
         this.description = data.description;
-        this.module = data.module;
-        this.action = data.action;
+        this.module = data.module || data.module_name;
+        this.action = data.action || data.action_name;
         this.resource = data.resource;
         this.is_system_permission = data.is_system_permission;
         this.is_active = data.is_active;
@@ -17,14 +17,14 @@ class Permission {
 
     // Create a new permission
     static async create(permissionData) {
-        const { name, display_name, description = '', module = '', action = '', resource = '', is_system_permission = 0 } = permissionData;
+        const { name, display_name, description = '', module_id, action_id, resource = '', is_system_permission = 0 } = permissionData;
         
         const query = `
-            INSERT INTO permissions (name, display_name, description, module, action, resource, is_system_permission, created_at, updated_at)
+            INSERT INTO permissions (name, display_name, description, module_id, action_id, resource, is_system_permission, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         `;
         
-        const [result] = await db.execute(query, [name, display_name, description, module, action, resource, is_system_permission]);
+        const [result] = await db.execute(query, [name, display_name, description, module_id, action_id, resource, is_system_permission]);
         return result.insertId;
     }
 
@@ -41,24 +41,37 @@ class Permission {
         } = options;
         
         let query = `
-            SELECT id, name, display_name, description, module, action, resource, is_system_permission, is_active, created_at, updated_at
-            FROM permissions
+            SELECT 
+                p.id, 
+                p.name, 
+                p.display_name, 
+                p.description, 
+                m.name as module, 
+                ma.name as action, 
+                p.resource, 
+                p.is_system_permission, 
+                p.is_active, 
+                p.created_at, 
+                p.updated_at
+            FROM permissions p
+            LEFT JOIN modules m ON p.module_id = m.id
+            LEFT JOIN module_actions ma ON p.action_id = ma.id
         `;
         const params = [];
         const conditions = [];
         
         if (module) {
-            conditions.push('module = ?');
+            conditions.push('m.name = ?');
             params.push(module);
         }
         
         if (is_active !== null) {
-            conditions.push('is_active = ?');
+            conditions.push('p.is_active = ?');
             params.push(is_active);
         }
         
         if (search) {
-            conditions.push('(name LIKE ? OR display_name LIKE ? OR description LIKE ? OR module LIKE ?)');
+            conditions.push('(p.name LIKE ? OR p.display_name LIKE ? OR p.description LIKE ? OR m.name LIKE ?)');
             const searchParam = `%${search}%`;
             params.push(searchParam, searchParam, searchParam, searchParam);
         }
@@ -69,7 +82,19 @@ class Permission {
         
         // Add sorting
         const validSortColumns = ['id', 'name', 'display_name', 'description', 'module', 'action', 'resource', 'created_at', 'updated_at'];
-        const sortColumn = validSortColumns.includes(sort) ? sort : 'display_name';
+        let sortColumn = validSortColumns.includes(sort) ? sort : 'display_name';
+        
+        // Map sort columns to actual table columns
+        if (sortColumn === 'module') sortColumn = 'm.name';
+        else if (sortColumn === 'action') sortColumn = 'ma.name';
+        else if (sortColumn === 'name') sortColumn = 'p.name';
+        else if (sortColumn === 'display_name') sortColumn = 'p.display_name';
+        else if (sortColumn === 'description') sortColumn = 'p.description';
+        else if (sortColumn === 'resource') sortColumn = 'p.resource';
+        else if (sortColumn === 'created_at') sortColumn = 'p.created_at';
+        else if (sortColumn === 'updated_at') sortColumn = 'p.updated_at';
+        else if (sortColumn === 'id') sortColumn = 'p.id';
+        
         const sortOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
         query += ` ORDER BY ${sortColumn} ${sortOrder}`;
         
@@ -95,23 +120,25 @@ class Permission {
         
         let query = `
             SELECT COUNT(*) as total
-            FROM permissions
+            FROM permissions p
+            LEFT JOIN modules m ON p.module_id = m.id
+            LEFT JOIN module_actions ma ON p.action_id = ma.id
         `;
         const params = [];
         const conditions = [];
         
         if (module) {
-            conditions.push('module = ?');
+            conditions.push('m.name = ?');
             params.push(module);
         }
         
         if (is_active !== null) {
-            conditions.push('is_active = ?');
+            conditions.push('p.is_active = ?');
             params.push(is_active);
         }
         
         if (search) {
-            conditions.push('(name LIKE ? OR display_name LIKE ? OR description LIKE ? OR module LIKE ?)');
+            conditions.push('(p.name LIKE ? OR p.display_name LIKE ? OR p.description LIKE ? OR m.name LIKE ?)');
             const searchParam = `%${search}%`;
             params.push(searchParam, searchParam, searchParam, searchParam);
         }
@@ -156,11 +183,11 @@ class Permission {
 
     // Update permission
     static async update(id, updateData) {
-        const { name, display_name, description, module, action, resource, is_active } = updateData;
+        const { name, display_name, description, module_id, action_id, resource, is_active } = updateData;
         
         const query = `
             UPDATE permissions
-            SET name = ?, display_name = ?, description = ?, module = ?, action = ?, resource = ?, is_active = ?, updated_at = NOW()
+            SET name = ?, display_name = ?, description = ?, module_id = ?, action_id = ?, resource = ?, is_active = ?, updated_at = NOW()
             WHERE id = ?
         `;
         
@@ -168,12 +195,12 @@ class Permission {
         const safeName = name || null;
         const safeDisplayName = display_name || null;
         const safeDescription = description || null;
-        const safeModule = module || null;
-        const safeAction = action || null;
+        const safeModuleId = module_id || null;
+        const safeActionId = action_id || null;
         const safeResource = resource || null;
         const safeIsActive = is_active !== undefined ? is_active : 1;
         
-        const [result] = await db.execute(query, [safeName, safeDisplayName, safeDescription, safeModule, safeAction, safeResource, safeIsActive, id]);
+        const [result] = await db.execute(query, [safeName, safeDisplayName, safeDescription, safeModuleId, safeActionId, safeResource, safeIsActive, id]);
         return result.affectedRows > 0;
     }
 
@@ -187,10 +214,11 @@ class Permission {
     // Get permissions by module
     static async findByModule(module) {
         const query = `
-            SELECT id, name, display_name, description, module, is_active, created_at, updated_at
-            FROM permissions
-            WHERE module = ? AND is_active = 1
-            ORDER BY display_name
+            SELECT p.id, p.name, p.display_name, p.description, m.name as module, p.is_active, p.created_at, p.updated_at
+            FROM permissions p
+            LEFT JOIN modules m ON p.module_id = m.id
+            WHERE m.name = ? AND p.is_active = 1
+            ORDER BY p.display_name
         `;
         
         const [rows] = await db.execute(query, [module]);
@@ -200,10 +228,11 @@ class Permission {
     // Get all modules
     static async getModules() {
         const query = `
-            SELECT DISTINCT module
-            FROM permissions
-            WHERE is_active = 1 AND module != ''
-            ORDER BY module
+            SELECT DISTINCT m.name as module
+            FROM permissions p
+            LEFT JOIN modules m ON p.module_id = m.id
+            WHERE p.is_active = 1 AND m.name IS NOT NULL AND m.name != ''
+            ORDER BY m.name
         `;
         
         const [rows] = await db.execute(query);
@@ -212,10 +241,11 @@ class Permission {
 
     static async getModuleActions() {
         const query = `
-            SELECT DISTINCT action
-            FROM permissions
-            WHERE is_active = 1 AND action != ''
-            ORDER BY action
+            SELECT DISTINCT ma.name as action
+            FROM permissions p
+            LEFT JOIN module_actions ma ON p.action_id = ma.id
+            WHERE p.is_active = 1 AND ma.name IS NOT NULL AND ma.name != ''
+            ORDER BY ma.name
         `;
         
         const [rows] = await db.execute(query);

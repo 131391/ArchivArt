@@ -2,7 +2,7 @@
 <%
 // Prepare header buttons
 const headerButtons = [];
-if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.create')) {
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.upload')) {
     headerButtons.push({
         text: 'Upload Media',
         href: '/admin/media/upload',
@@ -32,7 +32,7 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
         onclick: (item) => `window.location.href='/admin/media/view/${item.id}'`
     });
 }
-if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.manage')) {
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.upload')) {
     actions.push({
         icon: (item) => 'fas fa-edit',
         title: (item) => 'Edit',
@@ -46,7 +46,7 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
         onclick: (item) => `toggleMediaStatus(${item.id})`
     });
 }
-if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.manage')) {
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.upload')) {
     actions.push({
         icon: (item) => 'fas fa-trash',
         title: (item) => 'Delete',

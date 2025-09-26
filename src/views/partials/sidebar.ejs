@@ -15,40 +15,54 @@
                 Dashboard
             </a>
             
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.view')) { %>
             <a href="/admin/users" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-users mr-3"></i>
                 Users
             </a>
+            <% } %>
             
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.view')) { %>
             <a href="/admin/media" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-images mr-3"></i>
                 Media
             </a>
+            <% } %>
             
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.upload')) { %>
             <a href="/admin/upload" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-upload mr-3"></i>
                 Upload Media
             </a>
+            <% } %>
             
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'security.view')) { %>
             <a href="/admin/security" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-shield-alt mr-3"></i>
                 Security
             </a>
+            <% } %>
             
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.view')) { %>
             <a href="/admin/rbac" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-shield-alt mr-3"></i>
                 RBAC Management
             </a>
+            <% } %>
             
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.modules.view')) { %>
             <a href="/admin/rbac/modules" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-cubes mr-3"></i>
                 Module Management
             </a>
+            <% } %>
             
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.view')) { %>
             <a href="/admin/settings" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-cog mr-3"></i>
                 Settings
             </a>
+            <% } %>
         </div>
     </nav>
 </div>

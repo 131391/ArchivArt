@@ -264,8 +264,8 @@
                 </a>
           <% } %>
                 
-          <!-- Upload Media - Only for users with media.manage permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.manage')) { %>
+          <!-- Upload Media - Only for users with media.upload permission -->
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.upload')) { %>
           <a
             href="/admin/media/upload"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -313,7 +313,7 @@
               </a>
               
               <!-- Module Management - Only for users with modules.view permission -->
-              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('modules.'))) { %>
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.modules.view')) { %>
               <a
                 href="/admin/rbac/modules"
                 class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-indigo-500 hover:to-indigo-600 hover:text-white hover:shadow-lg transition-all duration-300"
@@ -328,7 +328,7 @@
               <% } %>
               
               <!-- Role Management - Only for users with roles.view permission -->
-              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('roles.'))) { %>
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.roles.view')) { %>
               <a
                 href="/admin/rbac/roles"
                 class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-600 hover:text-white hover:shadow-lg transition-all duration-300"
@@ -343,7 +343,7 @@
               <% } %>
               
               <!-- Permission Management - Only for users with permissions.view permission -->
-              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('permissions.'))) { %>
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.permissions.view')) { %>
               <a
                 href="/admin/rbac/permissions"
                 class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-green-500 hover:to-green-600 hover:text-white hover:shadow-lg transition-all duration-300"
@@ -361,7 +361,7 @@
           <% } %>
 
           <!-- Settings - Only for users with settings.view permission -->
-          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('settings.'))) { %>
+          <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'settings.view')) { %>
           <a
             href="/admin/settings"
             class="nav-link group flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-gradient-to-r hover:from-pink-500 hover:to-pink-600 hover:text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -840,12 +840,12 @@
         // Function to update profile picture in header
         function updateProfilePictures() {
             <% if (typeof user !== 'undefined' && user && user.profile_picture) { %>
-                // Update header profile picture
-                const headerProfileImg = document.querySelector('#user-menu-button img');
-                if (headerProfileImg) {
-                    headerProfileImg.src = '<%= user.profile_picture %>';
-                    headerProfileImg.classList.add('object-cover');
-                }
+            // Update header profile picture
+            const headerProfileImg = document.querySelector('#user-menu-button img');
+            if (headerProfileImg) {
+                headerProfileImg.src = '<%= user.profile_picture %>';
+                headerProfileImg.classList.add('object-cover');
+            }
             <% } %>
         }
         

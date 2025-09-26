@@ -66,12 +66,13 @@ class UserRole {
     // Get user permissions
     static async getUserPermissions(userId) {
         const query = `
-            SELECT DISTINCT p.id, p.name, p.display_name, p.description, p.module
+            SELECT DISTINCT p.id, p.name, p.display_name, p.description, m.name as module
             FROM permissions p
+            LEFT JOIN modules m ON p.module_id = m.id
             INNER JOIN role_permissions rp ON p.id = rp.permission_id
             INNER JOIN user_roles ur ON rp.role_id = ur.role_id
-            WHERE ur.user_id = ? AND ur.is_active = 1
-            ORDER BY p.module, p.display_name
+            WHERE ur.user_id = ? AND ur.is_active = 1 AND p.is_active = 1 AND rp.is_active = 1
+            ORDER BY m.name, p.display_name
         `;
         
         const [rows] = await db.execute(query, [userId]);

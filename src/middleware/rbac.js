@@ -41,6 +41,14 @@ const hasModuleActionPermission = (moduleName, actionName) => {
     return async (req, res, next) => {
         try {
             if (!req.session || !req.session.userId) {
+                // Check if this is a web request (HTML) or API request (JSON)
+                const isWebRequest = req.accepts('html') && !req.accepts('json');
+                
+                if (isWebRequest) {
+                    req.flash('error_msg', 'Please log in to access this page');
+                    return res.redirect('/admin/login');
+                }
+                
                 return res.status(401).json({
                     success: false,
                     message: 'Authentication required'
@@ -52,6 +60,14 @@ const hasModuleActionPermission = (moduleName, actionName) => {
             const hasAccess = await UserRole.hasPermission(req.session.userId, permissionName);
             
             if (!hasAccess) {
+                // Check if this is a web request (HTML) or API request (JSON)
+                const isWebRequest = req.accepts('html') && !req.accepts('json');
+                
+                if (isWebRequest) {
+                    req.flash('error_msg', 'You do not have permission to access this page');
+                    return res.redirect('/admin/dashboard');
+                }
+                
                 return res.status(403).json({
                     success: false,
                     message: 'Insufficient permissions',
@@ -236,7 +252,7 @@ const addUserPermissions = async (req, res, next) => {
             try {
                 primaryRole = await Promise.race([
                     UserRole.getUserPrimaryRole(req.session.userId),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
                 ]);
                 isAdmin = primaryRole && (primaryRole.name === 'admin' || primaryRole.name === 'super_admin');
             } catch (error) {
@@ -246,15 +262,9 @@ const addUserPermissions = async (req, res, next) => {
             // For admin users, load permissions for sidebar display
             if (isAdmin) {
                 try {
-                    const permissions = await Promise.race([
-                        UserRole.getUserPermissions(req.session.userId),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-                    ]);
-                    
-                    const primaryRole = await Promise.race([
-                        UserRole.getUserPrimaryRole(req.session.userId),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-                    ]);
+                    // For admin users, don't use timeout to avoid permission loading issues
+                    const permissions = await UserRole.getUserPermissions(req.session.userId);
+                    const primaryRole = await UserRole.getUserPrimaryRole(req.session.userId);
                     
                     req.userPermissions = permissions;
                     req.userPrimaryRole = primaryRole;
@@ -282,17 +292,31 @@ const addUserPermissions = async (req, res, next) => {
                         { name: 'media.create', module: 'media' },
                         { name: 'media.update', module: 'media' },
                         { name: 'media.delete', module: 'media' },
-                        { name: 'media.manage', module: 'media' },
+                        { name: 'media.upload', module: 'media' },
                         { name: 'rbac.view', module: 'rbac' },
-                        { name: 'rbac.create', module: 'rbac' },
-                        { name: 'rbac.update', module: 'rbac' },
-                        { name: 'rbac.delete', module: 'rbac' },
+                        { name: 'rbac.roles.view', module: 'rbac' },
+                        { name: 'rbac.roles.create', module: 'rbac' },
+                        { name: 'rbac.roles.update', module: 'rbac' },
+                        { name: 'rbac.roles.delete', module: 'rbac' },
+                        { name: 'rbac.permissions.view', module: 'rbac' },
+                        { name: 'rbac.permissions.create', module: 'rbac' },
+                        { name: 'rbac.permissions.update', module: 'rbac' },
+                        { name: 'rbac.permissions.delete', module: 'rbac' },
+                        { name: 'rbac.modules.view', module: 'rbac' },
+                        { name: 'rbac.modules.create', module: 'rbac' },
+                        { name: 'rbac.modules.update', module: 'rbac' },
+                        { name: 'rbac.modules.delete', module: 'rbac' },
+                        { name: 'rbac.actions.view', module: 'rbac' },
+                        { name: 'rbac.actions.create', module: 'rbac' },
+                        { name: 'rbac.actions.update', module: 'rbac' },
+                        { name: 'rbac.actions.delete', module: 'rbac' },
+                        { name: 'rbac.assign_roles', module: 'rbac' },
                         { name: 'settings.view', module: 'settings' },
                         { name: 'settings.update', module: 'settings' },
-                        { name: 'modules.view', module: 'modules' },
-                        { name: 'modules.create', module: 'modules' },
-                        { name: 'modules.update', module: 'modules' },
-                        { name: 'modules.delete', module: 'modules' }
+                        { name: 'security.view', module: 'security' },
+                        { name: 'security.logs.view', module: 'security' },
+                        { name: 'security.sessions.view', module: 'security' },
+                        { name: 'security.sessions.revoke', module: 'security' }
                     ];
                     req.userPrimaryRole = { name: 'admin', display_name: 'Administrator' };
                     

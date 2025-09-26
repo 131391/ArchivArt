@@ -253,6 +253,7 @@ async function loadModulesAndActions() {
         const actionsData = await actionsResponse.json();
         if (actionsData.success) {
             availableActions = actionsData.data;
+            // Initially populate with all actions (no filtering)
             populateActionDropdowns();
         }
     } catch (error) {
@@ -275,8 +276,18 @@ function populateModuleDropdowns() {
             editModuleSelect.appendChild(option);
         });
         
-        // Add event listener for auto-generating permission name
-        editModuleSelect.addEventListener('change', generateEditPermissionName);
+        // Add event listener for filtering actions and auto-generating permission name
+        editModuleSelect.addEventListener('change', function() {
+            const selectedModule = this.value;
+            // Filter actions based on selected module
+            populateActionDropdowns(selectedModule);
+            // Clear action selection when module changes
+            const actionSelect = document.getElementById('editPermissionAction');
+            if (actionSelect) {
+                actionSelect.value = '';
+            }
+            generateEditPermissionName();
+        });
     }
     
     if (createModuleSelect) {
@@ -289,25 +300,51 @@ function populateModuleDropdowns() {
             createModuleSelect.appendChild(option);
         });
         
-        // Add event listener for auto-generating permission name
-        createModuleSelect.addEventListener('change', generateCreatePermissionName);
+        // Add event listener for filtering actions and auto-generating permission name
+        createModuleSelect.addEventListener('change', function() {
+            const selectedModule = this.value;
+            // Filter actions based on selected module
+            populateActionDropdowns(selectedModule);
+            // Clear action selection when module changes
+            const actionSelect = document.getElementById('createPermissionAction');
+            if (actionSelect) {
+                actionSelect.value = '';
+            }
+            generateCreatePermissionName();
+        });
     }
 }
 
-// Populate action dropdowns
-function populateActionDropdowns() {
+// Populate action dropdowns based on selected module
+function populateActionDropdowns(moduleName = null) {
     const editActionSelect = document.getElementById('editPermissionAction');
     const createActionSelect = document.getElementById('createPermissionAction');
+    
+    // Filter actions based on selected module
+    let filteredActions = availableActions;
+    if (moduleName && moduleName !== '') {
+        filteredActions = availableActions.filter(action => action.module_name === moduleName);
+    }
     
     if (editActionSelect) {
         // Clear existing options except the first one
         editActionSelect.innerHTML = '<option value="">Select Action</option>';
-        availableActions.forEach(action => {
+        
+        if (filteredActions.length === 0 && moduleName) {
+            // No actions available for this module
             const option = document.createElement('option');
-            option.value = action.name;
-            option.textContent = action.display_name || action.name.charAt(0).toUpperCase() + action.name.slice(1);
+            option.value = '';
+            option.textContent = 'No actions available for this module';
+            option.disabled = true;
             editActionSelect.appendChild(option);
-        });
+        } else {
+            filteredActions.forEach(action => {
+                const option = document.createElement('option');
+                option.value = action.name;
+                option.textContent = action.display_name || action.name.charAt(0).toUpperCase() + action.name.slice(1);
+                editActionSelect.appendChild(option);
+            });
+        }
         
         // Add event listener for auto-generating permission name
         editActionSelect.addEventListener('change', generateEditPermissionName);
@@ -316,12 +353,22 @@ function populateActionDropdowns() {
     if (createActionSelect) {
         // Clear existing options except the first one
         createActionSelect.innerHTML = '<option value="">Select Action</option>';
-        availableActions.forEach(action => {
+        
+        if (filteredActions.length === 0 && moduleName) {
+            // No actions available for this module
             const option = document.createElement('option');
-            option.value = action.name;
-            option.textContent = action.display_name || action.name.charAt(0).toUpperCase() + action.name.slice(1);
+            option.value = '';
+            option.textContent = 'No actions available for this module';
+            option.disabled = true;
             createActionSelect.appendChild(option);
-        });
+        } else {
+            filteredActions.forEach(action => {
+                const option = document.createElement('option');
+                option.value = action.name;
+                option.textContent = action.display_name || action.name.charAt(0).toUpperCase() + action.name.slice(1);
+                createActionSelect.appendChild(option);
+            });
+        }
         
         // Add event listener for auto-generating permission name
         createActionSelect.addEventListener('change', generateCreatePermissionName);
@@ -634,13 +681,17 @@ function editPermission(permissionId) {
                 document.getElementById('editPermissionName').value = permission.name;
                 document.getElementById('editPermissionDisplayName').value = permission.display_name;
                 
-                // Set module dropdown value
+                // Set module dropdown value and filter actions
                 const moduleSelect = document.getElementById('editPermissionModule');
                 if (moduleSelect) {
                     moduleSelect.value = permission.module || '';
+                    // Filter actions based on selected module
+                    if (permission.module) {
+                        populateActionDropdowns(permission.module);
+                    }
                 }
                 
-                // Set action dropdown value
+                // Set action dropdown value after filtering
                 const actionSelect = document.getElementById('editPermissionAction');
                 if (actionSelect) {
                     actionSelect.value = permission.action || '';

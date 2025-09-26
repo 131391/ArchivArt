@@ -628,7 +628,7 @@ router.get('/rbac/permissions', addUserPermissions, hasModuleActionPermissionWeb
   }
 });
 
-router.get('/rbac/roles/:id/permissions', addUserPermissions, hasModuleActionPermission('rbac', 'view'), (req, res) => {
+router.get('/rbac/roles/:id/permissions', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), (req, res) => {
   res.render('admin/rbac/role-permissions', {
     title: 'Role Permissions',
     userPermissions: req.userPermissions,
@@ -648,7 +648,7 @@ router.post('/api/rbac/migrate', [
 // ==================== MODULE MANAGEMENT ====================
 
 // RBAC Modules data endpoint for AJAX requests
-router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWeb('modules', 'view'), async (req, res) => {
+router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWeb('rbac.modules', 'view'), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
@@ -704,7 +704,7 @@ router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWe
 });
 
 // Module management page
-router.get('/rbac/modules', addUserPermissions, hasModuleActionPermissionWeb('modules', 'view'), async (req, res) => {
+router.get('/rbac/modules', addUserPermissions, hasModuleActionPermissionWeb('rbac.modules', 'view'), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
@@ -806,7 +806,7 @@ router.get('/rbac/modules', addUserPermissions, hasModuleActionPermissionWeb('mo
 });
 
 // Module actions management page
-router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermissionWeb('modules', 'view'), async (req, res) => {
+router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermissionWeb('rbac.modules', 'view'), async (req, res) => {
   try {
     const { id } = req.params;
     const page = parseInt(req.query.page) || 1;
@@ -884,7 +884,7 @@ router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermi
 });
 
 // AJAX endpoint for module actions data
-router.get('/rbac/modules/:id/actions/data', addUserPermissions, hasModuleActionPermissionWeb('modules', 'view'), async (req, res) => {
+router.get('/rbac/modules/:id/actions/data', addUserPermissions, hasModuleActionPermissionWeb('rbac.modules', 'view'), async (req, res) => {
   try {
     const { id } = req.params;
     const page = parseInt(req.query.page) || 1;

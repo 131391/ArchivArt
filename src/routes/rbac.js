@@ -2,14 +2,14 @@ const express = require('express');
 const { body, param, query } = require('express-validator');
 const router = express.Router();
 const RBACController = require('../controllers/rbacController');
-const { hasPermission, hasModuleActionPermission, hasModulePermission, addUserPermissions } = require('../middleware/rbac');
+const { hasPermission, hasModuleActionPermissionWeb, hasModuleActionPermissionWebWeb, hasModulePermission, addUserPermissions } = require('../middleware/rbac');
 
 // ==================== DASHBOARD ====================
 
 // Get RBAC dashboard stats
 router.get('/dashboard',
     addUserPermissions,
-    hasModuleActionPermission('dashboard', 'view'),
+    hasModuleActionPermissionWeb('dashboard', 'view'),
     RBACController.getDashboard
 );
 
@@ -18,7 +18,7 @@ router.get('/dashboard',
 // Get all roles
 router.get('/roles', 
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
+    hasModuleActionPermissionWeb('rbac', 'view'),
     [
         query('page').optional().isInt({ min: 1 }),
         query('limit').optional().isInt({ min: 1, max: 100 }),
@@ -31,7 +31,7 @@ router.get('/roles',
 // Get role by ID
 router.get('/roles/:id',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
+    hasModuleActionPermissionWeb('rbac', 'view'),
     [
         param('id').isInt({ min: 1 })
     ],
@@ -41,7 +41,7 @@ router.get('/roles/:id',
 // Create new role
 router.post('/roles',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'create'),
+    hasModuleActionPermissionWeb('rbac', 'create'),
     [
         body('name')
             .notEmpty()
@@ -74,7 +74,7 @@ router.post('/roles',
 // Update role
 router.put('/roles/:id',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'update'),
+    hasModuleActionPermissionWeb('rbac', 'update'),
     [
         param('id').isInt({ min: 1 }),
         body('name')
@@ -112,7 +112,7 @@ router.put('/roles/:id',
 // Delete role
 router.delete('/roles/:id',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'delete'),
+    hasModuleActionPermissionWeb('rbac', 'delete'),
     [
         param('id').isInt({ min: 1 })
     ],
@@ -124,18 +124,14 @@ router.delete('/roles/:id',
 // Get all permissions
 router.get('/permissions',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
-    [
-        query('module').optional().isString().trim(),
-        query('is_active').optional().isIn(['0', '1'])
-    ],
+    hasModuleActionPermissionWeb('rbac', 'view'),
     RBACController.getPermissions
 );
 
 // Get permission by ID
 router.get('/permissions/:id',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
+    hasModuleActionPermissionWeb('rbac', 'view'),
     [
         param('id').isInt({ min: 1 })
     ],
@@ -145,7 +141,7 @@ router.get('/permissions/:id',
 // Create new permission
 router.post('/permissions',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'create'),
+    hasModuleActionPermissionWeb('rbac', 'create'),
     [
         body('name')
             .notEmpty()
@@ -175,7 +171,7 @@ router.post('/permissions',
 // Update permission
 router.put('/permissions/:id',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'update'),
+    hasModuleActionPermissionWeb('rbac', 'update'),
     [
         param('id').isInt({ min: 1 }),
         body('name')
@@ -210,7 +206,7 @@ router.put('/permissions/:id',
 // Delete permission
 router.delete('/permissions/:id',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'delete'),
+    hasModuleActionPermissionWeb('rbac', 'delete'),
     [
         param('id').isInt({ min: 1 })
     ],
@@ -220,7 +216,7 @@ router.delete('/permissions/:id',
 // Get all modules (for permissions system)
 router.get('/modules-list',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
+    hasModuleActionPermissionWeb('rbac', 'view'),
     RBACController.getModules
 );
 
@@ -229,49 +225,49 @@ router.get('/modules-list',
 // Get module action by ID
 router.get('/module-actions/:id',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'view'),
+    hasModuleActionPermissionWeb('rbac.modules', 'view'),
     RBACController.getModuleActionById
 );
 
 // Create module action
 router.post('/module-actions',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'create'),
+    hasModuleActionPermissionWeb('rbac.modules', 'create'),
     RBACController.createModuleAction
 );
 
 // Update module action
 router.put('/module-actions/:id',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'update'),
+    hasModuleActionPermissionWeb('rbac.modules', 'update'),
     RBACController.updateModuleAction
 );
 
 // Delete module action
 router.delete('/module-actions/:id',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'delete'),
+    hasModuleActionPermissionWeb('rbac.modules', 'delete'),
     RBACController.deleteModuleAction
 );
 
 // Restore/Activate module action
 router.patch('/module-actions/:id/restore',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'update'),
+    hasModuleActionPermissionWeb('rbac.modules', 'update'),
     RBACController.restoreModuleAction
 );
 
 // Get all module actions
 router.get('/module-actions',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
+    hasModuleActionPermissionWeb('rbac', 'view'),
     RBACController.getModuleActions
 );
 
 // Check for duplicate permission
 router.get('/permissions/check-duplicate',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
+    hasModuleActionPermissionWeb('rbac', 'view'),
     RBACController.checkDuplicatePermission
 );
 
@@ -280,14 +276,14 @@ router.get('/permissions/check-duplicate',
 // Get all modules
 router.get('/modules',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'view'),
+    hasModuleActionPermissionWeb('rbac.modules', 'view'),
     RBACController.getModules
 );
 
 // Get module by ID
 router.get('/modules/:id',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'view'),
+    hasModuleActionPermissionWeb('rbac.modules', 'view'),
     [
         param('id').isInt({ min: 1 }).withMessage('Module ID must be a positive integer')
     ],
@@ -297,7 +293,7 @@ router.get('/modules/:id',
 // Create module
 router.post('/modules',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'create'),
+    hasModuleActionPermissionWeb('rbac.modules', 'create'),
     [
         body('name').notEmpty().withMessage('Module name is required'),
         body('display_name').notEmpty().withMessage('Display name is required'),
@@ -313,7 +309,7 @@ router.post('/modules',
 // Update module
 router.put('/modules/:id',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'update'),
+    hasModuleActionPermissionWeb('rbac.modules', 'update'),
     [
         param('id').isInt({ min: 1 }).withMessage('Module ID must be a positive integer'),
         body('name').optional().notEmpty(),
@@ -330,7 +326,7 @@ router.put('/modules/:id',
 // Get module deletion impact (related data count)
 router.get('/modules/:id/deletion-impact',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'view'),
+    hasModuleActionPermissionWeb('rbac.modules', 'view'),
     [
         param('id').isInt({ min: 1 }).withMessage('Module ID must be a positive integer')
     ],
@@ -340,7 +336,7 @@ router.get('/modules/:id/deletion-impact',
 // Delete module
 router.delete('/modules/:id',
     addUserPermissions,
-    hasModuleActionPermission('modules', 'delete'),
+    hasModuleActionPermissionWeb('rbac.modules', 'delete'),
     [
         param('id').isInt({ min: 1 }).withMessage('Module ID must be a positive integer')
     ],
@@ -352,7 +348,7 @@ router.delete('/modules/:id',
 // Get role permissions
 router.get('/roles/:id/permissions',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
+    hasModuleActionPermissionWeb('rbac', 'view'),
     [
         param('id').isInt({ min: 1 })
     ],
@@ -362,7 +358,7 @@ router.get('/roles/:id/permissions',
 // Update role permissions
 router.put('/roles/:id/permissions',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'update'),
+    hasModuleActionPermissionWeb('rbac.roles', 'update'),
     [
         param('id').isInt({ min: 1 }),
         body('permission_ids').isArray().withMessage('Permission IDs must be an array')
@@ -375,7 +371,7 @@ router.put('/roles/:id/permissions',
 // Get user roles
 router.get('/users/:userId/roles',
     addUserPermissions,
-    hasModuleActionPermission('users', 'view'),
+    hasModuleActionPermissionWeb('users', 'view'),
     [
         param('userId').isInt({ min: 1 })
     ],
@@ -385,7 +381,7 @@ router.get('/users/:userId/roles',
 // Assign role to user
 router.post('/users/roles',
     addUserPermissions,
-    hasModuleActionPermission('users', 'update'),
+    hasModuleActionPermissionWeb('users', 'update'),
     [
         body('userId')
             .isInt({ min: 1 })
@@ -400,7 +396,7 @@ router.post('/users/roles',
 // Remove role from user
 router.delete('/users/roles',
     addUserPermissions,
-    hasModuleActionPermission('users', 'update'),
+    hasModuleActionPermissionWeb('users', 'update'),
     [
         body('userId')
             .isInt({ min: 1 })
@@ -415,7 +411,7 @@ router.delete('/users/roles',
 // Update user's primary role
 router.put('/users/primary-role',
     addUserPermissions,
-    hasModuleActionPermission('users', 'update'),
+    hasModuleActionPermissionWeb('users', 'update'),
     [
         body('userId')
             .isInt({ min: 1 })
@@ -430,7 +426,7 @@ router.put('/users/primary-role',
 // Get role statistics
 router.get('/stats',
     addUserPermissions,
-    hasModuleActionPermission('rbac', 'view'),
+    hasModuleActionPermissionWeb('rbac', 'view'),
     RBACController.getRoleStats
 );
 

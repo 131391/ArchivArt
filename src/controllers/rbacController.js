@@ -269,6 +269,7 @@ class RBACController {
     async deleteRole(req, res) {
         try {
             const { id } = req.params;
+            const db = require('../config/database');
             
             // Check if role exists
             const role = await Role.findById(id);
@@ -279,22 +280,20 @@ class RBACController {
                 });
             }
             
-            // Check if role is assigned to any users
-            const usersWithRole = await UserRole.getUsersWithRole(id);
-            if (usersWithRole.length > 0) {
+            // Check if role is system role (prevent deletion of system roles)
+            if (role.is_system_role) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Cannot delete role that is assigned to users',
-                    data: { userCount: usersWithRole.length }
+                    message: 'Cannot delete system roles'
                 });
             }
             
-            // Delete role
-            await Role.delete(id);
+            // Use cascade deletion stored procedure
+            await db.execute('CALL DeleteRoleWithCascade(?)', [id]);
             
             res.json({
                 success: true,
-                message: 'Role deleted successfully'
+                message: 'Role and all related data deleted successfully'
             });
         } catch (error) {
             console.error('Error deleting role:', error);
@@ -314,13 +313,17 @@ class RBACController {
                 module = null, 
                 is_active = null,
                 page = 1,
-                limit = 10,
+                limit = 1000,  // Use high default for role management
                 search = '',
                 sort = 'created_at',
                 order = 'desc'
             } = req.query;
             
-            const offset = (parseInt(page) - 1) * parseInt(limit);
+            // Ensure limit is properly parsed
+            const parsedLimit = parseInt(limit) || 1000;
+            const parsedPage = parseInt(page) || 1;
+            
+            const offset = (parsedPage - 1) * parsedLimit;
             
             const permissions = await Permission.findAll({
                 module,
@@ -328,7 +331,7 @@ class RBACController {
                 search,
                 sort,
                 order,
-                limit: parseInt(limit),
+                limit: parsedLimit,
                 offset
             });
             
@@ -339,17 +342,17 @@ class RBACController {
                 search
             });
             
-            const totalPages = Math.ceil(totalPermissions / parseInt(limit));
+            const totalPages = Math.ceil(totalPermissions / parsedLimit);
             
             res.json({
                 success: true,
                 data: permissions,
                 pagination: {
-                    currentPage: parseInt(page),
+                    currentPage: parsedPage,
                     totalPages: totalPages,
                     totalItems: totalPermissions,
-                    hasNext: parseInt(page) < totalPages,
-                    hasPrev: parseInt(page) > 1
+                    hasNext: parsedPage < totalPages,
+                    hasPrev: parsedPage > 1
                 }
             });
         } catch (error) {
@@ -416,13 +419,33 @@ class RBACController {
                 });
             }
             
+            // Get module and action IDs
+            let module_id = null;
+            let action_id = null;
+            
+            if (module) {
+                const Module = require('../models/Module');
+                const moduleRecord = await Module.findByName(module);
+                if (moduleRecord) {
+                    module_id = moduleRecord.id;
+                }
+            }
+            
+            if (action) {
+                const ModuleAction = require('../models/ModuleAction');
+                const actionRecord = await ModuleAction.findByName(action);
+                if (actionRecord) {
+                    action_id = actionRecord.id;
+                }
+            }
+            
             // Create permission
             const permissionId = await Permission.create({
                 name,
                 display_name,
                 description,
-                module,
-                action,
+                module_id,
+                action_id,
                 resource
             });
             
@@ -473,13 +496,33 @@ class RBACController {
                 });
             }
             
+            // Get module and action IDs
+            let module_id = null;
+            let action_id = null;
+            
+            if (module) {
+                const Module = require('../models/Module');
+                const moduleRecord = await Module.findByName(module);
+                if (moduleRecord) {
+                    module_id = moduleRecord.id;
+                }
+            }
+            
+            if (action) {
+                const ModuleAction = require('../models/ModuleAction');
+                const actionRecord = await ModuleAction.findByName(action);
+                if (actionRecord) {
+                    action_id = actionRecord.id;
+                }
+            }
+            
             // Update permission
             await Permission.update(id, {
                 name,
                 display_name,
                 description,
-                module,
-                action,
+                module_id,
+                action_id,
                 resource,
                 is_active
             });
@@ -501,6 +544,7 @@ class RBACController {
     async deletePermission(req, res) {
         try {
             const { id } = req.params;
+            const db = require('../config/database');
             
             // Check if permission exists
             const permission = await Permission.findById(id);
@@ -511,12 +555,12 @@ class RBACController {
                 });
             }
             
-            // Delete permission
-            await Permission.delete(id);
+            // Use cascade deletion stored procedure
+            await db.execute('CALL DeletePermissionWithCascade(?)', [id]);
             
             res.json({
                 success: true,
-                message: 'Permission deleted successfully'
+                message: 'Permission and all related data deleted successfully'
             });
         } catch (error) {
             console.error('Error deleting permission:', error);
@@ -1222,6 +1266,7 @@ class RBACController {
         try {
             const { id } = req.params;
             const ModuleAction = require('../models/ModuleAction');
+            const db = require('../config/database');
             
             // Check if action exists (including inactive)
             const existingAction = await ModuleAction.findByIdAny(id);
@@ -1232,12 +1277,12 @@ class RBACController {
                 });
             }
             
-            // Delete module action
-            await ModuleAction.delete(id);
+            // Use cascade deletion stored procedure
+            await db.execute('CALL DeleteModuleActionWithCascade(?)', [id]);
             
             res.json({
                 success: true,
-                message: 'Module action deleted successfully'
+                message: 'Module action and all related data deleted successfully'
             });
         } catch (error) {
             console.error('Error deleting module action:', error);

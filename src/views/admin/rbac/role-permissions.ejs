@@ -106,14 +106,25 @@ function loadPermissions() {
     document.getElementById('loadingState').classList.remove('hidden');
     
     Promise.all([
-        fetch('/admin/api/rbac/permissions').then(response => response.json()),
-        fetch(`/admin/api/rbac/roles/${currentRoleId}/permissions`).then(response => response.json())
+        fetch('/admin/api/rbac/permissions').then(response => {
+            console.log('Permissions API response status:', response.status);
+            return response.json();
+        }),
+        fetch(`/admin/api/rbac/roles/${currentRoleId}/permissions`).then(response => {
+            console.log('Role permissions API response status:', response.status);
+            return response.json();
+        })
     ])
     .then(([permissionsData, rolePermissionsData]) => {
         document.getElementById('loadingState').classList.add('hidden');
         
         if (permissionsData.success) {
             allPermissions = permissionsData.data || [];
+            console.log('Loaded permissions:', allPermissions.length);
+            console.log('Permissions by module:', allPermissions.reduce((acc, p) => {
+                acc[p.module] = (acc[p.module] || 0) + 1;
+                return acc;
+            }, {}));
         } else {
             showErrorToast('Failed to load permissions');
             return;
@@ -131,12 +142,15 @@ function loadPermissions() {
     .catch(error => {
         document.getElementById('loadingState').classList.add('hidden');
         console.error('Error loading permissions:', error);
-        showErrorToast('Error loading permissions');
+        console.error('Error details:', error.message);
+        showErrorToast('Error loading permissions: ' + error.message);
     });
 }
 
 function renderPermissions() {
     const container = document.getElementById('permissionsContainer');
+    
+    console.log('Rendering permissions. Total:', allPermissions.length);
     
     // Group permissions by module
     const permissionsByModule = {};
@@ -146,6 +160,8 @@ function renderPermissions() {
         }
         permissionsByModule[permission.module].push(permission);
     });
+    
+    console.log('Modules found:', Object.keys(permissionsByModule));
     
     // Create HTML for each module
     const modulesHtml = Object.keys(permissionsByModule).map(module => {

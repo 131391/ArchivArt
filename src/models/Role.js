@@ -148,8 +148,10 @@ class Role {
     // Get role permissions
     async getPermissions() {
         const query = `
-            SELECT p.id, p.name, p.display_name, p.description, p.module, p.action, p.resource
+            SELECT p.id, p.name, p.display_name, p.description, m.name as module, ma.name as action, p.resource
             FROM permissions p
+            LEFT JOIN modules m ON p.module_id = m.id
+            LEFT JOIN module_actions ma ON p.action_id = ma.id
             INNER JOIN role_permissions rp ON p.id = rp.permission_id
             WHERE rp.role_id = ? AND p.is_active = 1 AND rp.is_active = 1
         `;
@@ -189,13 +191,14 @@ class Role {
                 p.id as permission_id,
                 p.name,
                 p.display_name,
-                p.module,
+                m.name as module,
                 p.description,
                 1 as is_active
             FROM permissions p
+            LEFT JOIN modules m ON p.module_id = m.id
             INNER JOIN role_permissions rp ON p.id = rp.permission_id
             WHERE rp.role_id = ?
-            ORDER BY p.module, p.display_name
+            ORDER BY m.name, p.display_name
         `;
         
         const [rows] = await db.execute(query, [roleId]);

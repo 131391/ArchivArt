@@ -384,18 +384,21 @@ class AdminController {
     try {
       const { id } = req.params;
 
-      const [result] = await db.execute('DELETE FROM users WHERE id = ?', [id]);
-
-      if (result.affectedRows === 0) {
+      // Check if user exists
+      const [userCheck] = await db.execute('SELECT id FROM users WHERE id = ?', [id]);
+      if (userCheck.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'User not found'
         });
       }
 
+      // Use cascade deletion stored procedure
+      await db.execute('CALL DeleteUserWithCascade(?)', [id]);
+
       res.json({
         success: true,
-        message: 'User deleted successfully'
+        message: 'User and all related data deleted successfully'
       });
     } catch (error) {
       console.error('Error deleting user:', error);
