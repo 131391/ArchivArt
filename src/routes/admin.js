@@ -30,9 +30,9 @@ router.get('/', async (req, res) => {
         res.redirect('/admin/dashboard');
       } else {
         // User is logged in but doesn't have dashboard permission
-        // Clear the session and redirect to login
-        req.session.destroy();
-        res.redirect('/admin/login');
+        // Redirect to profile page instead of clearing session
+        req.flash('error_msg', 'Access denied. You don\'t have permission to access the dashboard.');
+        res.redirect('/admin/profile');
       }
     } catch (error) {
       console.error('Error checking dashboard permission:', error);

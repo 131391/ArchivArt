@@ -522,6 +522,15 @@ function toggleUserStatus(userId, action) {
 }
 
 function performToggleUserStatus(userId, action, actionText) {
+    // Show loader
+    if (typeof showLoader === 'function') {
+        showLoader({
+            title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)}ing User...`,
+            message: `Please wait while we ${actionText} the user`,
+            delay: 0
+        });
+    }
+    
     fetch(`/admin/users/${userId}/${action}`, {
         method: 'POST',
         credentials: 'same-origin',
@@ -537,14 +546,28 @@ function performToggleUserStatus(userId, action, actionText) {
         return response.json();
     })
     .then(data => {
+        // Hide loader
+        if (typeof hideLoader === 'function') {
+            hideLoader();
+        }
+        
         if (data.success) {
             showSuccessToast(`User ${actionText}ed successfully`);
-            setTimeout(() => location.reload(), 1000);
+            // Refresh the table instead of full page reload
+            if (typeof loadTableData === 'function') {
+                loadTableData();
+            } else {
+                setTimeout(() => location.reload(), 1000);
+            }
         } else {
             showErrorToast(`Error ${actionText}ing user: ${data.message || 'Unknown error'}`);
         }
     })
     .catch(error => {
+        // Hide loader on error
+        if (typeof hideLoader === 'function') {
+            hideLoader();
+        }
         showErrorToast(`Error ${actionText}ing user: ${error.message}`);
     });
 }

@@ -32,13 +32,15 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
         onclick: (item) => `window.location.href='/admin/media/view/${item.id}'`
     });
 }
-if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.upload')) {
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.edit')) {
     actions.push({
         icon: (item) => 'fas fa-edit',
         title: (item) => 'Edit',
         class: 'text-blue-600 hover:text-blue-900',
         onclick: (item) => `window.location.href='/admin/media/edit/${item.id}'`
     });
+}
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.edit')) {
     actions.push({
         icon: (item) => item.is_active ? 'fas fa-pause' : 'fas fa-play',
         title: (item) => item.is_active ? 'Deactivate' : 'Activate',
@@ -46,7 +48,7 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
         onclick: (item) => `toggleMediaStatus(${item.id})`
     });
 }
-if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.upload')) {
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.delete')) {
     actions.push({
         icon: (item) => 'fas fa-trash',
         title: (item) => 'Delete',

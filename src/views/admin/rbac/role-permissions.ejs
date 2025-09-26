@@ -210,19 +210,45 @@ function renderPermissions() {
 }
 
 function togglePermission(permissionId, isChecked) {
+    const permissionIdNum = parseInt(permissionId);
+    console.log(`Toggling permission ${permissionId} (${permissionIdNum}) to ${isChecked ? 'checked' : 'unchecked'}`);
+    console.log('Current rolePermissions before toggle:', rolePermissions);
+    
     if (isChecked) {
         // Add permission to role
-        if (!rolePermissions.some(rp => rp.permission_id === permissionId)) {
-            rolePermissions.push({ permission_id: permissionId });
+        if (!rolePermissions.some(rp => rp.permission_id === permissionIdNum)) {
+            rolePermissions.push({ permission_id: permissionIdNum });
+            console.log('Added permission to rolePermissions');
+        } else {
+            console.log('Permission already exists in rolePermissions');
         }
     } else {
         // Remove permission from role
-        rolePermissions = rolePermissions.filter(rp => rp.permission_id !== permissionId);
+        const beforeLength = rolePermissions.length;
+        rolePermissions = rolePermissions.filter(rp => rp.permission_id !== permissionIdNum);
+        const afterLength = rolePermissions.length;
+        console.log(`Removed permission from rolePermissions. Before: ${beforeLength}, After: ${afterLength}`);
     }
+    
+    console.log('Updated rolePermissions:', rolePermissions);
 }
 
 function savePermissions() {
-    const permissionIds = rolePermissions.map(rp => rp.permission_id);
+    const permissionIds = rolePermissions.map(rp => parseInt(rp.permission_id));
+    
+    console.log('Saving permissions for role:', currentRoleId);
+    console.log('Current rolePermissions array:', rolePermissions);
+    console.log('Permission IDs being sent:', permissionIds);
+    console.log('Permission IDs types:', permissionIds.map(id => typeof id));
+    
+    // Show loader
+    if (typeof showLoader === 'function') {
+        showLoader({
+            title: 'Saving Permissions...',
+            message: 'Please wait while we update the role permissions',
+            delay: 0
+        });
+    }
     
     fetch(`/admin/api/rbac/roles/${currentRoleId}/permissions`, {
         method: 'PUT',
@@ -232,15 +258,31 @@ function savePermissions() {
         },
         body: JSON.stringify({ permission_ids: permissionIds })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        // Hide loader
+        if (typeof hideLoader === 'function') {
+            hideLoader();
+        }
+        
+        console.log('Response data:', data);
         if (data.success) {
             showSuccessToast('Role permissions updated successfully');
+            // Reload permissions to reflect changes
+            loadPermissions();
         } else {
             showErrorToast('Error: ' + (data.message || 'Unknown error'));
         }
     })
     .catch(error => {
+        // Hide loader on error
+        if (typeof hideLoader === 'function') {
+            hideLoader();
+        }
+        
         console.error('Error:', error);
         showErrorToast('Error: ' + error.message);
     });

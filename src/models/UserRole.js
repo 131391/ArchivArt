@@ -86,11 +86,14 @@ class UserRole {
             FROM permissions p
             INNER JOIN role_permissions rp ON p.id = rp.permission_id
             INNER JOIN user_roles ur ON rp.role_id = ur.role_id
-            WHERE ur.user_id = ? AND p.name = ? AND ur.is_active = 1
+            WHERE ur.user_id = ? AND p.name = ? AND ur.is_active = 1 AND rp.is_active = 1
         `;
         
+        console.log(`🔍 UserRole.hasPermission: userId=${userId}, permissionName=${permissionName}`);
         const [rows] = await db.execute(query, [userId, permissionName]);
-        return rows[0].count > 0;
+        const hasPermission = rows[0].count > 0;
+        console.log(`🔍 UserRole.hasPermission result: ${hasPermission} (count: ${rows[0].count})`);
+        return hasPermission;
     }
 
     // Check if user has any permission in a module
@@ -100,7 +103,7 @@ class UserRole {
             FROM permissions p
             INNER JOIN role_permissions rp ON p.id = rp.permission_id
             INNER JOIN user_roles ur ON rp.role_id = ur.role_id
-            WHERE ur.user_id = ? AND p.module = ? AND ur.is_active = 1
+            WHERE ur.user_id = ? AND p.module = ? AND ur.is_active = 1 AND rp.is_active = 1
         `;
         
         const [rows] = await db.execute(query, [userId, module]);

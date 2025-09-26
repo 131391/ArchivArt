@@ -289,7 +289,7 @@
                                         <% actions.forEach(action => { %>
                                             <% if (!action.condition || action.condition(item)) { %>
                                             <button onclick="<%= action.onclick(item) %>" 
-                                                    class="<%= action.class || 'inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2' %>" 
+                                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 <%= typeof action.class === 'function' ? action.class(item) : (action.class || 'text-gray-600 hover:text-gray-900') %>" 
                                                     title="<%= typeof action.title === 'function' ? action.title(item) : action.title %>">
                                                 <i class="<%= typeof action.icon === 'function' ? action.icon(item) : action.icon %>"></i>
                                             </button>

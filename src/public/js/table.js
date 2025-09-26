@@ -564,38 +564,43 @@ function generateUserTableRows(users) {
         });
         console.log(`User ${user.id} data:`, {
             is_blocked: user.is_blocked,
-            is_active: user.is_active
+            is_active: user.is_active,
+            willShowBlockButton: hasBlockPermission && !user.is_blocked,
+            willShowUnblockButton: hasBlockPermission && user.is_blocked
         });
         
         // Generate action buttons based on permissions
         let actionButtons = '';
         
         if (hasViewPermission) {
-            actionButtons += `<button onclick="viewUser(${user.id})" class="text-blue-600 hover:text-blue-900" title="View">
+            actionButtons += `<button onclick="viewUser(${user.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-blue-600 hover:text-blue-900" title="View">
                 <i class="fas fa-eye"></i>
             </button>`;
         }
         
         if (hasUpdatePermission) {
-            actionButtons += `<button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+            actionButtons += `<button onclick="editUser(${user.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-indigo-600 hover:text-indigo-900" title="Edit">
                 <i class="fas fa-edit"></i>
             </button>`;
         }
         
         if (hasBlockPermission) {
-            // Block/Unblock button
-            const blockStatus = user.is_blocked ? 'unblock' : 'block';
-            const blockClass = user.is_blocked ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900';
-            const blockIcon = user.is_blocked ? 'fas fa-check' : 'fas fa-ban';
-            const blockTitle = user.is_blocked ? 'Unblock' : 'Block';
-            
-            actionButtons += `<button onclick="toggleUserStatus(${user.id}, '${blockStatus}')" class="${blockClass}" title="${blockTitle}">
-                <i class="${blockIcon}"></i>
-            </button>`;
+            // Show only one button based on user status
+            if (user.is_blocked == 1 || user.is_blocked === true) {
+                // User is blocked - show unblock button
+                actionButtons += `<button onclick="toggleUserStatus(${user.id}, 'unblock')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-green-600 hover:text-green-900" title="Unblock User">
+                    <i class="fas fa-check"></i>
+                </button>`;
+            } else {
+                // User is active - show block button
+                actionButtons += `<button onclick="toggleUserStatus(${user.id}, 'block')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-yellow-600 hover:text-yellow-900" title="Block User">
+                    <i class="fas fa-ban"></i>
+                </button>`;
+            }
         }
         
         if (hasDeletePermission) {
-            actionButtons += `<button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900" title="Delete">
+            actionButtons += `<button onclick="deleteUser(${user.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-red-600 hover:text-red-900" title="Delete">
                 <i class="fas fa-trash"></i>
             </button>`;
         }
@@ -633,7 +638,7 @@ function generateMediaTableRows(media) {
     console.log('window.userPermissions for media:', window.userPermissions);
     
     return media.map(item => {
-        // Check user permissions
+        // Check user permissions - use correct specific permissions
         const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.view');
         const hasEditPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.edit');
         const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.delete');
@@ -644,23 +649,34 @@ function generateMediaTableRows(media) {
             hasDeletePermission
         });
         
-        // Generate action buttons based on permissions
+        // Generate action buttons based on permissions - use correct specific permissions
         let actionButtons = '';
         
         if (hasViewPermission) {
-            actionButtons += `<button onclick="window.location.href='/admin/media/view/${item.id}'" class="text-indigo-600 hover:text-indigo-900" title="View">
+            actionButtons += `<button onclick="window.location.href='/admin/media/view/${item.id}'" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-indigo-600 hover:text-indigo-900" title="View">
                 <i class="fas fa-eye"></i>
             </button>`;
         }
         
         if (hasEditPermission) {
-            actionButtons += `<button onclick="window.location.href='/admin/media/edit/${item.id}'" class="text-blue-600 hover:text-blue-900" title="Edit">
+            actionButtons += `<button onclick="window.location.href='/admin/media/edit/${item.id}'" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-blue-600 hover:text-blue-900" title="Edit">
                 <i class="fas fa-edit"></i>
             </button>`;
+            
+            // Add activate/deactivate button
+            if (item.is_active == 1 || item.is_active === true) {
+                actionButtons += `<button onclick="toggleMediaStatus(${item.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-yellow-600 hover:text-yellow-900" title="Deactivate">
+                    <i class="fas fa-pause"></i>
+                </button>`;
+            } else {
+                actionButtons += `<button onclick="toggleMediaStatus(${item.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-green-600 hover:text-green-900" title="Activate">
+                    <i class="fas fa-play"></i>
+                </button>`;
+            }
         }
         
         if (hasDeletePermission) {
-            actionButtons += `<button onclick="deleteMedia(${item.id})" class="text-red-600 hover:text-red-900" title="Delete">
+            actionButtons += `<button onclick="deleteMedia(${item.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-red-600 hover:text-red-900" title="Delete">
                 <i class="fas fa-trash"></i>
             </button>`;
         }

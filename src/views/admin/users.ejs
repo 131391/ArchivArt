@@ -8,8 +8,15 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
     actions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit User', onclick: (item) => `editUser(${item.id})` });
 }
 if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.block')) {
-    actions.push({ name: 'block', label: 'Block', icon: 'fas fa-ban', class: 'text-yellow-600 hover:text-yellow-900', title: 'Block User', onclick: (item) => `toggleUserStatus(${item.id}, 'block')` });
-    actions.push({ name: 'unblock', label: 'Unblock', icon: 'fas fa-check', class: 'text-green-600 hover:text-green-900', title: 'Unblock User', onclick: (item) => `toggleUserStatus(${item.id}, 'unblock')` });
+    // Block/Unblock button will be handled dynamically in the table generation
+    actions.push({ 
+        name: 'block', 
+        label: 'Block/Unblock', 
+        icon: (item) => item.is_blocked ? 'fas fa-check' : 'fas fa-ban', 
+        class: (item) => item.is_blocked ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900', 
+        title: (item) => item.is_blocked ? 'Unblock User' : 'Block User', 
+        onclick: (item) => `toggleUserStatus(${item.id}, '${item.is_blocked ? 'unblock' : 'block'}')` 
+    });
 }
 if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.delete')) {
     actions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete User', onclick: (item) => `deleteUser(${item.id})` });
@@ -386,35 +393,69 @@ function editUser(userId) {
 
 function toggleUserStatus(userId, action) {
     const actionText = action === 'block' ? 'block' : 'unblock';
-    if (confirm(`Are you sure you want to ${actionText} this user?`)) {
-        fetch(`/admin/users/${userId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                is_blocked: action === 'block' ? 1 : 0
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showSuccessToast(`User ${actionText}ed successfully`);
-                // Refresh the table
-                if (typeof refreshTable === 'function') {
-                    refreshTable();
-                } else {
-                    location.reload();
-                }
-            } else {
-                showErrorToast('Error: ' + (data.message || 'Unknown error'));
+    
+    if (typeof showConfirmModal === 'function') {
+        showConfirmModal(
+            `Are you sure you want to ${actionText} this user?`,
+            'Confirm Action',
+            function() {
+                performToggleUserStatus(userId, action, actionText);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showErrorToast('Error updating user status');
+        );
+    } else if (confirm(`Are you sure you want to ${actionText} this user?`)) {
+        performToggleUserStatus(userId, action, actionText);
+    }
+}
+
+function performToggleUserStatus(userId, action, actionText) {
+    // Show loader
+    if (typeof showLoader === 'function') {
+        showLoader({
+            title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)}ing User...`,
+            message: `Please wait while we ${actionText} the user`,
+            delay: 0
         });
     }
+    
+    fetch(`/admin/users/${userId}/${action}`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Hide loader
+        if (typeof hideLoader === 'function') {
+            hideLoader();
+        }
+        
+        if (data.success) {
+            showSuccessToast(`User ${actionText}ed successfully`);
+            // Refresh the table instead of full page reload
+            if (typeof loadTableData === 'function') {
+                loadTableData();
+            } else {
+                setTimeout(() => location.reload(), 1000);
+            }
+        } else {
+            showErrorToast(`Error ${actionText}ing user: ${data.message || 'Unknown error'}`);
+        }
+    })
+    .catch(error => {
+        // Hide loader on error
+        if (typeof hideLoader === 'function') {
+            hideLoader();
+        }
+        showErrorToast(`Error ${actionText}ing user: ${error.message}`);
+    });
 }
 
 function deleteUser(userId) {

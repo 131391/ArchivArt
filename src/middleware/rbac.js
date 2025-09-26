@@ -90,25 +90,32 @@ const hasModuleActionPermission = (moduleName, actionName) => {
 const hasModuleActionPermissionWeb = (moduleName, actionName) => {
     return async (req, res, next) => {
         try {
+            console.log(`🔒 Permission check: ${moduleName}.${actionName} for user ${req.session?.userId}`);
+            
             if (!req.session || !req.session.userId) {
+                console.log('❌ No session or userId found');
                 req.flash('error_msg', 'Authentication required');
                 return res.redirect('/admin/login');
             }
 
             // Check if user has permission for this module.action
             const permissionName = `${moduleName}.${actionName}`;
+            console.log(`🔍 Checking permission: ${permissionName}`);
             const hasAccess = await UserRole.hasPermission(req.session.userId, permissionName);
+            console.log(`✅ Permission result: ${hasAccess}`);
             
             if (!hasAccess) {
+                console.log(`❌ Access denied for ${permissionName}`);
                 req.flash('error_msg', `Access denied. You don't have permission to access ${moduleName}. Required permission: ${permissionName}`);
-                return res.redirect('/admin/login');
+                return res.redirect('/admin/profile');
             }
 
+            console.log(`✅ Access granted for ${permissionName}`);
             next();
         } catch (error) {
             console.error('Permission check error:', error);
             req.flash('error_msg', 'Permission check failed');
-            return res.redirect('/admin/login');
+            return res.redirect('/admin/profile');
         }
     };
 };

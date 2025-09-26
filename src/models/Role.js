@@ -40,7 +40,7 @@ class Role {
                 r.created_at, 
                 r.updated_at,
                 COUNT(DISTINCT ur.user_id) as user_count,
-                COUNT(DISTINCT rp.permission_id) as permission_count
+                COUNT(DISTINCT CASE WHEN rp.is_active = 1 THEN rp.permission_id END) as permission_count
             FROM roles r
             LEFT JOIN user_roles ur ON r.id = ur.role_id AND ur.is_active = 1
             LEFT JOIN role_permissions rp ON r.id = rp.role_id
@@ -76,7 +76,7 @@ class Role {
         if (sortColumn === 'user_count') {
             orderByClause = `COUNT(DISTINCT ur.user_id) ${sortOrder}`;
         } else if (sortColumn === 'permission_count') {
-            orderByClause = `COUNT(DISTINCT rp.permission_id) ${sortOrder}`;
+            orderByClause = `COUNT(DISTINCT CASE WHEN rp.is_active = 1 THEN rp.permission_id END) ${sortOrder}`;
         } else {
             orderByClause = `r.${sortColumn} ${sortOrder}`;
         }
@@ -193,47 +193,63 @@ class Role {
                 p.display_name,
                 m.name as module,
                 p.description,
-                1 as is_active
+                rp.is_active
             FROM permissions p
             LEFT JOIN modules m ON p.module_id = m.id
             INNER JOIN role_permissions rp ON p.id = rp.permission_id
-            WHERE rp.role_id = ?
+            WHERE rp.role_id = ? AND rp.is_active = 1
             ORDER BY m.name, p.display_name
         `;
         
+        console.log('Getting role permissions for role:', roleId);
         const [rows] = await db.execute(query, [roleId]);
+        console.log('Retrieved role permissions:', rows.length, 'permissions');
         return rows;
     }
 
     // Update role permissions
     static async updateRolePermissions(roleId, permissionIds) {
+        console.log('Role.updateRolePermissions called with:');
+        console.log('- roleId:', roleId);
+        console.log('- permissionIds:', permissionIds);
+        console.log('- permissionIds type:', typeof permissionIds);
+        console.log('- permissionIds length:', permissionIds ? permissionIds.length : 'null/undefined');
+        
         const connection = await db.getConnection();
         
         try {
             await connection.beginTransaction();
             
             // Remove all existing permissions for this role
-            await connection.execute(
+            console.log('Setting all existing permissions to inactive for role:', roleId);
+            const [deactivateResult] = await connection.execute(
                 'UPDATE role_permissions SET is_active = 0 WHERE role_id = ?',
                 [roleId]
             );
+            console.log('Deactivated permissions count:', deactivateResult.affectedRows);
             
             // Add new permissions
             if (permissionIds && permissionIds.length > 0) {
+                console.log('Adding new permissions:', permissionIds);
                 const values = permissionIds.map(permissionId => [roleId, permissionId, 1, new Date()]);
                 const placeholders = values.map(() => '(?, ?, ?, ?)').join(', ');
                 
-                await connection.execute(
+                const [insertResult] = await connection.execute(
                     `INSERT INTO role_permissions (role_id, permission_id, is_active, granted_at) 
                      VALUES ${placeholders} 
                      ON DUPLICATE KEY UPDATE is_active = 1`,
                     values.flat()
                 );
+                console.log('Insert/Update result:', insertResult);
+            } else {
+                console.log('No permissions to add - all permissions will be inactive');
             }
             
             await connection.commit();
+            console.log('Transaction committed successfully');
             return { success: true };
         } catch (error) {
+            console.error('Error in updateRolePermissions:', error);
             await connection.rollback();
             throw error;
         } finally {

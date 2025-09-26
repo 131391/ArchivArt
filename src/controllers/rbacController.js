@@ -774,7 +774,14 @@ class RBACController {
             const { id } = req.params;
             const { permission_ids } = req.body;
             
+            console.log('Update role permissions - Role ID:', id);
+            console.log('Update role permissions - Permission IDs:', permission_ids);
+            console.log('Update role permissions - Permission IDs type:', typeof permission_ids);
+            console.log('Update role permissions - Permission IDs length:', permission_ids ? permission_ids.length : 'null/undefined');
+            
             const result = await Role.updateRolePermissions(id, permission_ids);
+            
+            console.log('Update role permissions - Result:', result);
             
             res.json({
                 success: true,
