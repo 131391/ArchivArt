@@ -553,11 +553,13 @@ function generateUserTableRows(users) {
         // Check user permissions
         const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.view');
         const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.update');
+        const hasBlockPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.block');
         const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.delete');
         
         console.log(`User ${user.id} permissions:`, {
             hasViewPermission,
             hasUpdatePermission,
+            hasBlockPermission,
             hasDeletePermission
         });
         console.log(`User ${user.id} data:`, {
@@ -578,7 +580,9 @@ function generateUserTableRows(users) {
             actionButtons += `<button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
                 <i class="fas fa-edit"></i>
             </button>`;
-            
+        }
+        
+        if (hasBlockPermission) {
             // Block/Unblock button
             const blockStatus = user.is_blocked ? 'unblock' : 'block';
             const blockClass = user.is_blocked ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900';

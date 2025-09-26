@@ -110,7 +110,9 @@ router.put('/users/:id', [
 ], adminController.updateUser);
 
 router.post('/users/:id/block', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('users', 'block'),
   strictRateLimit,
   preventSQLInjection,
   param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),
@@ -118,7 +120,9 @@ router.post('/users/:id/block', [
 ], adminController.blockUser);
 
 router.post('/users/:id/unblock', [
-  requireAdminWeb, 
+  requireAdminWeb,
+  addUserPermissions,
+  hasModuleActionPermissionWeb('users', 'block'),
   strictRateLimit,
   preventSQLInjection,
   param('id').isInt({ min: 1 }).withMessage('Valid user ID is required'),

@@ -6,6 +6,8 @@ if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name =
 }
 if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.update')) {
     actions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit User', onclick: (item) => `editUser(${item.id})` });
+}
+if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'users.block')) {
     actions.push({ name: 'block', label: 'Block', icon: 'fas fa-ban', class: 'text-yellow-600 hover:text-yellow-900', title: 'Block User', onclick: (item) => `toggleUserStatus(${item.id}, 'block')` });
     actions.push({ name: 'unblock', label: 'Unblock', icon: 'fas fa-check', class: 'text-green-600 hover:text-green-900', title: 'Unblock User', onclick: (item) => `toggleUserStatus(${item.id}, 'unblock')` });
 }
