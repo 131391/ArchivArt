@@ -251,7 +251,7 @@
                                                 <!-- Custom formatter will be applied by JavaScript -->
                                             </div>
                                             <script>
-                                                // Apply formatter after page loads
+                                                // Apply formatter immediately if available, otherwise retry
                                                 (function() {
                                                     const formatterName = '<%= column.formatter %>';
                                                     const itemData = <%- JSON.stringify(item) %>;
@@ -261,13 +261,18 @@
                                                         if (typeof window[formatterName] === 'function') {
                                                             element.innerHTML = window[formatterName](itemData);
                                                         } else {
-                                                            // Retry after a short delay
-                                                            setTimeout(applyFormatter, 100);
+                                                            // Retry after a short delay, but limit retries
+                                                            setTimeout(applyFormatter, 50);
                                                         }
                                                     }
                                                     
-                                                    // Try immediately, then retry if needed
+                                                    // Try immediately
                                                     applyFormatter();
+                                                    
+                                                    // Also try when DOM is fully loaded
+                                                    if (document.readyState === 'loading') {
+                                                        document.addEventListener('DOMContentLoaded', applyFormatter);
+                                                    }
                                                 })();
                                             </script>
                                         <% } %>
@@ -397,3 +402,30 @@
 </div>
 
 <!-- Table JavaScript is now handled by /js/table.js -->
+
+<script>
+// Global function to apply all formatters on page load
+function applyAllFormatters() {
+    const formatterElements = document.querySelectorAll('[data-formatter]');
+    formatterElements.forEach(element => {
+        const formatterName = element.getAttribute('data-formatter');
+        const itemData = JSON.parse(element.getAttribute('data-item'));
+        
+        if (typeof window[formatterName] === 'function') {
+            element.innerHTML = window[formatterName](itemData);
+        }
+    });
+}
+
+// Apply formatters when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Apply formatters immediately
+    applyAllFormatters();
+    
+    // Also apply after a short delay to catch any late-loaded scripts
+    setTimeout(applyAllFormatters, 100);
+});
+
+// Make the function globally available
+window.applyAllFormatters = applyAllFormatters;
+</script>

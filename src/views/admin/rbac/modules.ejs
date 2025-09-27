@@ -16,12 +16,22 @@
         { key: 'action_count', label: 'Actions', sortable: true, type: 'custom', formatter: 'formatModuleActions' },
         { key: 'permission_count', label: 'Permissions', sortable: true, type: 'custom', formatter: 'formatModulePermissions' }
     ],
-    actions: [
-        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', title: 'View Module Details', onclick: (item) => `viewModule(${item.id})` },
-        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit Module', onclick: (item) => `editModule(${item.id})` },
-        { name: 'actions', label: 'Actions', icon: 'fas fa-cogs', class: 'text-green-600 hover:text-green-900', title: 'Manage Module Actions', onclick: (item) => `manageModuleActions(${item.id})` },
-        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Module', onclick: (item) => `deleteModule(${item.id})` }
-    ],
+    actions: (() => {
+        const actions = [];
+        if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.view')) {
+            actions.push({ name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', title: 'View Module Details', onclick: (item) => `viewModule(${item.id})` });
+        }
+        if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.update')) {
+            actions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit Module', onclick: (item) => `editModule(${item.id})` });
+        }
+        if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.view')) {
+            actions.push({ name: 'actions', label: 'Actions', icon: 'fas fa-cogs', class: 'text-green-600 hover:text-green-900', title: 'Manage Module Actions', onclick: (item) => `manageModuleActions(${item.id})` });
+        }
+        if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.delete')) {
+            actions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Module', onclick: (item) => `deleteModule(${item.id})` });
+        }
+        return actions;
+    })(),
     pagination: pagination,
     search: search,
     filters: filters,
@@ -31,9 +41,13 @@
     emptyTitle: 'No Modules Found',
     emptyMessage: 'There are no modules to display.',
     emptySearchMessage: 'No modules match your search criteria.',
-    headerButtons: [
-        { text: 'Create Module', href: '#', icon: 'fas fa-plus', onclick: 'createModule()' }
-    ]
+    headerButtons: (() => {
+        const buttons = [];
+        if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.create')) {
+            buttons.push({ text: 'Create Module', href: '#', icon: 'fas fa-plus', onclick: 'createModule()' });
+        }
+        return buttons;
+    })()
 }) %>
 
 <!-- Pass user permissions to JavaScript -->

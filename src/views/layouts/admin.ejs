@@ -312,8 +312,8 @@
                 <span>RBAC Dashboard</span>
               </a>
               
-              <!-- Module Management - Only for users with modules.view permission -->
-              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.modules.view')) { %>
+              <!-- Module Management - Show for users with rbac.view permission -->
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.view')) { %>
               <a
                 href="/admin/rbac/modules"
                 class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-indigo-500 hover:to-indigo-600 hover:text-white hover:shadow-lg transition-all duration-300"
@@ -327,8 +327,8 @@
               </a>
               <% } %>
               
-              <!-- Role Management - Only for users with roles.view permission -->
-              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.roles.view')) { %>
+              <!-- Role Management - Show for users with rbac.view permission -->
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.view')) { %>
               <a
                 href="/admin/rbac/roles"
                 class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-600 hover:text-white hover:shadow-lg transition-all duration-300"
@@ -342,8 +342,8 @@
               </a>
               <% } %>
               
-              <!-- Permission Management - Only for users with permissions.view permission -->
-              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.permissions.view')) { %>
+              <!-- Permission Management - Show for users with rbac.view permission -->
+              <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.view')) { %>
               <a
                 href="/admin/rbac/permissions"
                 class="nav-link group flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:bg-gradient-to-r hover:from-green-500 hover:to-green-600 hover:text-white hover:shadow-lg transition-all duration-300"

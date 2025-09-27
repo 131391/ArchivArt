@@ -11,15 +11,14 @@ function formatStatus(item) {
     }
 }
 
-// Permission formatter with icon
+// Permission formatter with consistent icon styling
 function formatPermission(item) {
     const permissionName = typeof item === 'object' ? item.display_name : item;
     const permissionKey = typeof item === 'object' ? item.name : '';
     
-    // Get appropriate icon based on action type
+    // Get appropriate icon based on action type - consistent styling without background squares
     let iconClass = 'fas fa-key';
     let iconColor = 'text-purple-600';
-    let bgColor = 'bg-purple-100';
     
     if (permissionKey) {
         const action = permissionKey.split('.').pop() || '';
@@ -28,44 +27,40 @@ function formatPermission(item) {
             case 'read':
                 iconClass = 'fas fa-eye';
                 iconColor = 'text-blue-600';
-                bgColor = 'bg-blue-100';
                 break;
             case 'create':
             case 'add':
                 iconClass = 'fas fa-plus';
                 iconColor = 'text-green-600';
-                bgColor = 'bg-green-100';
                 break;
             case 'update':
             case 'edit':
                 iconClass = 'fas fa-edit';
                 iconColor = 'text-yellow-600';
-                bgColor = 'bg-yellow-100';
                 break;
             case 'delete':
             case 'remove':
                 iconClass = 'fas fa-trash';
                 iconColor = 'text-red-600';
-                bgColor = 'bg-red-100';
                 break;
             case 'manage':
                 iconClass = 'fas fa-cogs';
                 iconColor = 'text-indigo-600';
-                bgColor = 'bg-indigo-100';
+                break;
+            case 'assign_roles':
+                iconClass = 'fas fa-key';
+                iconColor = 'text-purple-600';
                 break;
             default:
                 iconClass = 'fas fa-key';
                 iconColor = 'text-purple-600';
-                bgColor = 'bg-purple-100';
         }
     }
     
     return `
         <div class="flex items-center space-x-3">
             <div class="flex-shrink-0">
-                <div class="w-10 h-10 ${bgColor} rounded-lg flex items-center justify-center">
-                    <i class="${iconClass} ${iconColor} text-sm"></i>
-                </div>
+                <i class="${iconClass} ${iconColor} text-lg"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-gray-900 truncate">${permissionName}</p>
@@ -82,7 +77,7 @@ function formatPermissionName(item) {
     
     return `
         <div class="max-w-xs">
-            <p class="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">${name}</p>
+            <p class="text-sm font-mono text-gray-700">${name}</p>
         </div>
     `;
 }
@@ -92,53 +87,43 @@ function formatModule(item) {
     const module = typeof item === 'object' ? item.module : item;
     if (!module) return '<span class="text-gray-400 italic">No module</span>';
     
-    // Get module icon based on module name
+    // Get module icon based on module name - consistent styling without background squares
     let iconClass = 'fas fa-puzzle-piece';
     let iconColor = 'text-indigo-600';
-    let bgColor = 'bg-indigo-100';
     
     switch (module.toLowerCase()) {
         case 'dashboard':
             iconClass = 'fas fa-tachometer-alt';
             iconColor = 'text-blue-600';
-            bgColor = 'bg-blue-100';
             break;
         case 'users':
             iconClass = 'fas fa-users';
             iconColor = 'text-green-600';
-            bgColor = 'bg-green-100';
             break;
         case 'media':
             iconClass = 'fas fa-images';
             iconColor = 'text-purple-600';
-            bgColor = 'bg-purple-100';
             break;
         case 'rbac':
             iconClass = 'fas fa-shield-alt';
             iconColor = 'text-orange-600';
-            bgColor = 'bg-orange-100';
             break;
         case 'settings':
             iconClass = 'fas fa-cog';
             iconColor = 'text-gray-600';
-            bgColor = 'bg-gray-100';
             break;
         case 'modules':
             iconClass = 'fas fa-cubes';
             iconColor = 'text-indigo-600';
-            bgColor = 'bg-indigo-100';
             break;
         default:
             iconClass = 'fas fa-puzzle-piece';
             iconColor = 'text-indigo-600';
-            bgColor = 'bg-indigo-100';
     }
     
     return `
         <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 ${bgColor} rounded-lg flex items-center justify-center">
-                <i class="${iconClass} ${iconColor} text-xs"></i>
-            </div>
+            <i class="${iconClass} ${iconColor} text-sm"></i>
             <span class="text-sm font-medium text-gray-700 capitalize">${module}</span>
         </div>
     `;
@@ -149,53 +134,44 @@ function formatAction(item) {
     const action = typeof item === 'object' ? item.action : item;
     if (!action) return '<span class="text-gray-400 italic">No action</span>';
     
-    // Get action icon and color
+    // Get action icon and color - consistent styling without background squares
     let iconClass = 'fas fa-circle';
     let iconColor = 'text-gray-600';
-    let bgColor = 'bg-gray-100';
     
     switch (action.toLowerCase()) {
         case 'view':
         case 'read':
             iconClass = 'fas fa-eye';
             iconColor = 'text-blue-600';
-            bgColor = 'bg-blue-100';
             break;
         case 'create':
         case 'add':
             iconClass = 'fas fa-plus';
             iconColor = 'text-green-600';
-            bgColor = 'bg-green-100';
             break;
         case 'update':
         case 'edit':
             iconClass = 'fas fa-edit';
             iconColor = 'text-yellow-600';
-            bgColor = 'bg-yellow-100';
             break;
         case 'delete':
         case 'remove':
             iconClass = 'fas fa-trash';
             iconColor = 'text-red-600';
-            bgColor = 'bg-red-100';
             break;
         case 'manage':
             iconClass = 'fas fa-cogs';
             iconColor = 'text-indigo-600';
-            bgColor = 'bg-indigo-100';
             break;
         default:
             iconClass = 'fas fa-circle';
             iconColor = 'text-gray-600';
-            bgColor = 'bg-gray-100';
     }
     
     return `
         <div class="flex items-center space-x-2">
-            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${bgColor} ${iconColor}">
-                <i class="${iconClass} mr-1"></i>
-                ${action.charAt(0).toUpperCase() + action.slice(1)}
-            </span>
+            <i class="${iconClass} ${iconColor} text-sm mr-1"></i>
+            <span class="text-sm font-medium text-gray-700 capitalize">${action}</span>
         </div>
     `;
 }
@@ -207,7 +183,7 @@ function formatResource(item) {
     
     return `
         <div class="max-w-xs">
-            <p class="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded font-mono">${resource}</p>
+            <p class="text-sm text-gray-700 font-mono">${resource}</p>
         </div>
     `;
 }

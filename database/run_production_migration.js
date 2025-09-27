@@ -121,11 +121,60 @@ async function runMigration() {
         log('This may take a few moments...', 'cyan');
         
         const startTime = Date.now();
-        await connection.execute(migrationSQL);
+        
+        // Remove stored procedures from the SQL to avoid RESIGNAL issues
+        let cleanSQL = migrationSQL;
+        
+        // Remove all stored procedure blocks
+        cleanSQL = cleanSQL.replace(/DELIMITER \/\/[\s\S]*?DELIMITER ;/g, '');
+        cleanSQL = cleanSQL.replace(/CREATE PROCEDURE[\s\S]*?END \/\/[\s\S]*?DELIMITER ;/g, '');
+        
+        // Split SQL into individual statements
+        const statements = cleanSQL
+            .split(';')
+            .map(stmt => stmt.trim())
+            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'))
+            .filter(stmt => !stmt.startsWith('/*') && !stmt.endsWith('*/'));
+        
+        log(`Found ${statements.length} SQL statements to execute (stored procedures skipped)`, 'cyan');
+        
+        let executedCount = 0;
+        for (let i = 0; i < statements.length; i++) {
+            const statement = statements[i];
+            if (statement.trim()) {
+                try {
+                    await connection.execute(statement);
+                    executedCount++;
+                    
+                    // Log progress for major operations
+                    if (statement.toUpperCase().includes('CREATE TABLE') || 
+                        statement.toUpperCase().includes('INSERT INTO')) {
+                        const tableName = statement.match(/CREATE TABLE.*?(\w+)/i)?.[1] || 
+                                        statement.match(/INSERT INTO.*?(\w+)/i)?.[1] || 
+                                        'operation';
+                        log(`  ✓ ${tableName}`, 'green');
+                    }
+                } catch (error) {
+                    // Skip errors for statements that might already exist
+                    if (error.code === 'ER_TABLE_EXISTS_ERROR' || 
+                        error.code === 'ER_DUP_ENTRY' ||
+                        error.message.includes('already exists')) {
+                        log(`  ⚠ Skipping existing: ${statement.substring(0, 50)}...`, 'yellow');
+                        continue;
+                    }
+                    
+                    log(`✗ Error executing statement ${i + 1}: ${error.message}`, 'red');
+                    log(`Statement: ${statement.substring(0, 100)}...`, 'yellow');
+                    throw error;
+                }
+            }
+        }
+        
         const endTime = Date.now();
         
         log('✓ Production migration completed successfully!', 'green');
         log(`Migration took ${((endTime - startTime) / 1000).toFixed(2)} seconds`, 'cyan');
+        log(`Executed ${executedCount} statements`, 'cyan');
         
         // Get migration results
         log('\nFetching migration results...', 'yellow');

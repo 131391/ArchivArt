@@ -12,7 +12,6 @@
 
 -- Create database (if not exists)
 CREATE DATABASE IF NOT EXISTS archivartv2;
-USE archivartv2;
 
 -- =====================================================
 -- CORE TABLES
@@ -383,24 +382,11 @@ INSERT IGNORE INTO module_actions (module_id, name, display_name, description, r
 ((SELECT id FROM modules WHERE name = 'media'), 'delete', 'Delete Media', 'Delete media files', '/admin/media/delete'),
 ((SELECT id FROM modules WHERE name = 'media'), 'scan', 'Scan Media', 'Scan and process media files', '/admin/media/scan'),
 
--- RBAC actions
+-- RBAC actions (simplified)
 ((SELECT id FROM modules WHERE name = 'rbac'), 'view', 'View RBAC', 'View roles and permissions', '/admin/rbac'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'roles_view', 'View Roles', 'View system roles', '/admin/rbac/roles'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'roles_create', 'Create Roles', 'Create new roles', '/admin/rbac/roles/create'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'roles_update', 'Update Roles', 'Edit role information', '/admin/rbac/roles/edit'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'roles_delete', 'Delete Roles', 'Delete roles', '/admin/rbac/roles/delete'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'permissions_view', 'View Permissions', 'View system permissions', '/admin/rbac/permissions'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'permissions_create', 'Create Permissions', 'Create new permissions', '/admin/rbac/permissions/create'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'permissions_update', 'Update Permissions', 'Edit permission information', '/admin/rbac/permissions/edit'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'permissions_delete', 'Delete Permissions', 'Delete permissions', '/admin/rbac/permissions/delete'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'modules_view', 'View Modules', 'View system modules', '/admin/rbac/modules'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'modules_create', 'Create Modules', 'Create new modules', '/admin/rbac/modules/create'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'modules_update', 'Update Modules', 'Edit module information', '/admin/rbac/modules/edit'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'modules_delete', 'Delete Modules', 'Delete modules', '/admin/rbac/modules/delete'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'actions_view', 'View Actions', 'View module actions', '/admin/rbac/actions'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'actions_create', 'Create Actions', 'Create new actions', '/admin/rbac/actions/create'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'actions_update', 'Update Actions', 'Edit action information', '/admin/rbac/actions/edit'),
-((SELECT id FROM modules WHERE name = 'rbac'), 'actions_delete', 'Delete Actions', 'Delete actions', '/admin/rbac/actions/delete'),
+((SELECT id FROM modules WHERE name = 'rbac'), 'create', 'Create RBAC', 'Create new roles, permissions, modules, and actions', '/admin/rbac/create'),
+((SELECT id FROM modules WHERE name = 'rbac'), 'update', 'Update RBAC', 'Edit roles, permissions, modules, and actions', '/admin/rbac/update'),
+((SELECT id FROM modules WHERE name = 'rbac'), 'delete', 'Delete RBAC', 'Delete roles, permissions, modules, and actions', '/admin/rbac/delete'),
 ((SELECT id FROM modules WHERE name = 'rbac'), 'assign_roles', 'Assign Roles', 'Assign roles to users', '/admin/rbac/assign'),
 
 -- Settings actions
@@ -463,58 +449,19 @@ INSERT IGNORE INTO permissions (name, display_name, description, module_id, acti
  (SELECT id FROM modules WHERE name = 'media'), 
  (SELECT id FROM module_actions WHERE name = 'scan' AND module_id = (SELECT id FROM modules WHERE name = 'media')), 1),
 
--- RBAC permissions
+-- RBAC permissions (simplified) 
 ('rbac.view', 'View RBAC', 'View roles and permissions', 
  (SELECT id FROM modules WHERE name = 'rbac'), 
  (SELECT id FROM module_actions WHERE name = 'view' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.roles.view', 'View Roles', 'View system roles', 
+('rbac.create', 'Create RBAC', 'Create new roles, permissions, modules, and actions', 
  (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'roles_view' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.roles.create', 'Create Roles', 'Create new roles', 
+ (SELECT id FROM module_actions WHERE name = 'create' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
+('rbac.update', 'Update RBAC', 'Edit roles, permissions, modules, and actions', 
  (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'roles_create' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.roles.update', 'Update Roles', 'Edit role information', 
+ (SELECT id FROM module_actions WHERE name = 'update' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
+('rbac.delete', 'Delete RBAC', 'Delete roles, permissions, modules, and actions', 
  (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'roles_update' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.roles.delete', 'Delete Roles', 'Delete roles', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'roles_delete' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.permissions.view', 'View Permissions', 'View system permissions', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'permissions_view' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.permissions.create', 'Create Permissions', 'Create new permissions', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'permissions_create' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.permissions.update', 'Update Permissions', 'Edit permission information', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'permissions_update' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.permissions.delete', 'Delete Permissions', 'Delete permissions', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'permissions_delete' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.modules.view', 'View Modules', 'View system modules', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'modules_view' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.modules.create', 'Create Modules', 'Create new modules', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'modules_create' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.modules.update', 'Update Modules', 'Edit module information', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'modules_update' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.modules.delete', 'Delete Modules', 'Delete modules', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'modules_delete' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.actions.view', 'View Actions', 'View module actions', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'actions_view' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.actions.create', 'Create Actions', 'Create new actions', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'actions_create' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.actions.update', 'Update Actions', 'Edit action information', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'actions_update' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
-('rbac.actions.delete', 'Delete Actions', 'Delete actions', 
- (SELECT id FROM modules WHERE name = 'rbac'), 
- (SELECT id FROM module_actions WHERE name = 'actions_delete' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
+ (SELECT id FROM module_actions WHERE name = 'delete' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
 ('rbac.assign_roles', 'Assign Roles', 'Assign roles to users', 
  (SELECT id FROM modules WHERE name = 'rbac'), 
  (SELECT id FROM module_actions WHERE name = 'assign_roles' AND module_id = (SELECT id FROM modules WHERE name = 'rbac')), 1),
@@ -549,7 +496,7 @@ WHERE r.name = 'super_admin' AND p.is_active = 1;
 
 -- Insert single admin user (password: admin123)
 INSERT IGNORE INTO users (name, email, password, username, auth_provider, is_active, is_blocked, is_verified, timezone, language, notifications_enabled, two_factor_enabled) VALUES 
-('Admin User', 'admin@archivart.com', '$2a$10$kPH.XxHXewiDrYB827en.OrvNTv6ZgOZ6Z1.8ci7eAIdqJV2VUoPe', 'admin', 'local', true, false, true, 'UTC', 'en', true, false);
+('Admin User', 'admin@archivart.com', '$2b$10$9PP1adwj1AZe3l7BGniAfOacoRkEBJ5E2Ka7XdgAGuzI/G11yKjoK', 'admin', 'local', true, false, true, 'UTC', 'en', true, false);
 
 -- Assign super_admin role to the admin user
 INSERT IGNORE INTO user_roles (user_id, role_id)
@@ -567,7 +514,7 @@ VALUES ('ArchivArt', 'Your Digital Archive Solution', '#4f46e5', 100, 50, 24, 24
 
 -- Procedure to delete a module and all its related data
 DELIMITER //
-CREATE PROCEDURE DeleteModuleWithCascade(IN module_id INT)
+CREATE PROCEDURE DeleteModuleWithCascade(IN target_module_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -580,16 +527,16 @@ BEGIN
     -- 1. Delete all role permissions for this module's permissions
     DELETE rp FROM role_permissions rp 
     INNER JOIN permissions p ON rp.permission_id = p.id 
-    WHERE p.module_id = module_id;
+    WHERE p.module_id = target_module_id;
     
     -- 2. Delete all permissions for this module
-    DELETE FROM permissions WHERE module_id = module_id;
+    DELETE FROM permissions WHERE module_id = target_module_id;
     
     -- 3. Delete all module actions for this module
-    DELETE FROM module_actions WHERE module_id = module_id;
+    DELETE FROM module_actions WHERE module_id = target_module_id;
     
     -- 4. Finally, delete the module itself
-    DELETE FROM modules WHERE id = module_id;
+    DELETE FROM modules WHERE id = target_module_id;
     
     COMMIT;
 END //

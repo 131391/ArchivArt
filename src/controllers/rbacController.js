@@ -433,9 +433,9 @@ class RBACController {
                 }
             }
             
-            if (action) {
+            if (action && module_id) {
                 const ModuleAction = require('../models/ModuleAction');
-                const actionRecord = await ModuleAction.findByName(action);
+                const actionRecord = await ModuleAction.findByModuleAndName(module_id, action);
                 if (actionRecord) {
                     action_id = actionRecord.id;
                 }
@@ -510,9 +510,9 @@ class RBACController {
                 }
             }
             
-            if (action) {
+            if (action && module_id) {
                 const ModuleAction = require('../models/ModuleAction');
-                const actionRecord = await ModuleAction.findByName(action);
+                const actionRecord = await ModuleAction.findByModuleAndName(module_id, action);
                 if (actionRecord) {
                     action_id = actionRecord.id;
                 }
@@ -1208,6 +1208,35 @@ class RBACController {
                 display_name,
                 description
             });
+
+            // Auto-create permission for this action
+            try {
+                const Module = require('../models/Module');
+                const Permission = require('../models/Permission');
+                
+                // Get module details
+                const moduleRecord = await Module.findById(module_id);
+                if (moduleRecord) {
+                    // Check if permission already exists
+                    const existingPermission = await Permission.findByName(`${moduleRecord.name}.${name}`);
+                    if (!existingPermission) {
+                        // Create permission automatically
+                        const permissionId = await Permission.create({
+                            name: `${moduleRecord.name}.${name}`,
+                            display_name: `${moduleRecord.display_name} ${display_name}`,
+                            description: description || `Permission for ${display_name} action in ${moduleRecord.display_name} module`,
+                            module_id: module_id,
+                            action_id: actionId,
+                            resource: null
+                        });
+                        
+                        console.log(`Auto-created permission: ${moduleRecord.name}.${name} (ID: ${permissionId})`);
+                    }
+                }
+            } catch (permissionError) {
+                console.error('Error auto-creating permission:', permissionError);
+                // Don't fail the action creation if permission creation fails
+            }
             
             res.json({
                 success: true,

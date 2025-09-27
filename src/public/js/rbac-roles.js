@@ -598,6 +598,27 @@ window.formatDescription = formatDescription;
 window.formatUserCount = formatUserCount;
 window.formatPermissionCount = formatPermissionCount;
 
+// Apply formatters when this script loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof window.applyAllFormatters === 'function') {
+        window.applyAllFormatters();
+    }
+});
+
+// Also apply immediately if DOM is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.applyAllFormatters === 'function') {
+            window.applyAllFormatters();
+        }
+    });
+} else {
+    // DOM is already loaded, apply formatters immediately
+    if (typeof window.applyAllFormatters === 'function') {
+        window.applyAllFormatters();
+    }
+}
+
     // Form submission handlers
     setTimeout(() => {
         // Edit form submission

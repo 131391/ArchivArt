@@ -204,13 +204,21 @@ const requireAdminWeb = async (req, res, next) => {
     return res.redirect('/admin/login');
   }
   
-  // Check if user has any role in RBAC system (except 'user' role)
+  // Check if user has dashboard.view permission for admin panel access
   try {
     const UserRole = require('../models/UserRole');
     const primaryRole = await UserRole.getUserPrimaryRole(req.session.user.id);
     
-    if (!primaryRole || primaryRole.name === 'user') {
+    if (!primaryRole) {
       req.flash('error_msg', 'Admin panel access required');
+      return res.redirect('/admin/login');
+    }
+    
+    // Check for dashboard.view permission
+    const hasDashboardPermission = await UserRole.hasPermission(req.session.user.id, 'dashboard.view');
+    
+    if (!hasDashboardPermission) {
+      req.flash('error_msg', 'You don\'t have permission to access the admin panel');
       return res.redirect('/admin/login');
     }
     

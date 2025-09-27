@@ -50,7 +50,7 @@
             </a>
             <% } %>
             
-            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.modules.view')) { %>
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.view')) { %>
             <a href="/admin/rbac/modules" class="nav-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-cubes mr-3"></i>
                 Module Management

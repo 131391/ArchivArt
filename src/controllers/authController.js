@@ -409,22 +409,37 @@ class AuthController {
         });
       }
 
-      // Check if user has admin access using RBAC system
-      // Allow all users who have any role in the RBAC system (except those without roles)
+      // Check if user has dashboard.view permission for admin panel access
       const UserRole = require('../models/UserRole');
-      let hasRole = false;
+      let hasDashboardAccess = false;
       let primaryRole = null;
+      let userPermissions = [];
       
       try {
         primaryRole = await UserRole.getUserPrimaryRole(user.id);
-        hasRole = primaryRole && primaryRole.name !== 'user';
+        
+        if (primaryRole) {
+          // Get user permissions to check for dashboard.view
+          const [permissions] = await db.execute(`
+            SELECT p.name, p.display_name
+            FROM users u
+            INNER JOIN user_roles ur ON u.id = ur.user_id
+            INNER JOIN roles r ON ur.role_id = r.id
+            INNER JOIN role_permissions rp ON r.id = rp.role_id
+            INNER JOIN permissions p ON rp.permission_id = p.id
+            WHERE u.id = ? AND p.is_active = 1 AND rp.is_active = 1
+          `, [user.id]);
+          
+          userPermissions = permissions;
+          hasDashboardAccess = permissions.some(p => p.name === 'dashboard.view');
+        }
       } catch (error) {
-        console.error('Error checking user role:', error);
-        hasRole = false;
+        console.error('Error checking user permissions:', error);
+        hasDashboardAccess = false;
       }
       
-      if (!hasRole) {
-        req.flash('error_msg', 'Access denied. Admin panel access required.');
+      if (!hasDashboardAccess) {
+        req.flash('error_msg', 'Access denied. You don\'t have permission to access the admin panel.');
         return res.render('admin/login', { 
           title: 'Login',
           email: req.body.email,
@@ -442,7 +457,8 @@ class AuthController {
         role_display_name: primaryRole ? primaryRole.display_name : 'User',
         profile_picture: user.profile_picture,
         is_active: user.is_active,
-        is_blocked: user.is_blocked
+        is_blocked: user.is_blocked,
+        permissions: userPermissions // Include user permissions in session
       };
       
       // Set userId for RBAC middleware

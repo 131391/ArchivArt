@@ -398,6 +398,7 @@ router.get('/rbac/roles/data', addUserPermissions, hasModuleActionPermissionWeb(
     res.json({
       success: true,
       data: roles,
+      userPermissions: req.userPermissions || [],
       pagination: {
         currentPage: page,
         totalPages: totalPages,
@@ -468,11 +469,27 @@ router.get('/rbac/roles', addUserPermissions, hasModuleActionPermissionWeb('rbac
     const startPage = Math.max(1, page - 2);
     const endPage = Math.min(totalPages, page + 2);
     
+    // Build actions array server-side
+    const roleActions = [];
+    if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.view')) {
+      roleActions.push({ name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', title: 'View Role Details', onclick: (item) => `viewRole(${item.id})` });
+    }
+    if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.create')) {
+      roleActions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit Role', onclick: (item) => `editRole(${item.id})` });
+    }
+    if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.assign_roles')) {
+      roleActions.push({ name: 'permissions', label: 'Permissions', icon: 'fas fa-key', class: 'text-green-600 hover:text-green-900', title: 'Manage Role Permissions', onclick: (item) => `manageRolePermissions(${item.id})` });
+    }
+    if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.delete')) {
+      roleActions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Role', onclick: (item) => `deleteRole(${item.id})` });
+    }
+
     res.render('admin/rbac/roles', {
       title: 'Roles Management',
       data: roles,
       userPermissions: req.userPermissions || [],
       userPrimaryRole: req.userPrimaryRole || { name: 'admin', display_name: 'Administrator' },
+      roleActions: roleActions,
       pagination: {
         currentPage: page,
         totalPages: totalPages,
@@ -536,6 +553,7 @@ router.get('/rbac/permissions/data', addUserPermissions, hasModuleActionPermissi
     res.json({
       success: true,
       data: permissions,
+      userPermissions: req.userPermissions || [],
       pagination: {
         currentPage: page,
         totalPages: totalPages,
@@ -614,12 +632,25 @@ router.get('/rbac/permissions', addUserPermissions, hasModuleActionPermissionWeb
     const Module = require('../models/Module');
     const modules = await Module.findAll();
     
+    // Build actions array server-side
+    const permissionActions = [];
+    if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.view')) {
+      permissionActions.push({ name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', title: 'View Permission Details', onclick: (item) => `viewPermission(${item.id})` });
+    }
+    if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.update')) {
+      permissionActions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit Permission', onclick: (item) => `editPermission(${item.id})` });
+    }
+    if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.delete')) {
+      permissionActions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Permission', onclick: (item) => `deletePermission(${item.id})` });
+    }
+
     res.render('admin/rbac/permissions', {
       title: 'Permissions Management',
       data: permissions,
       modules: modules,
       userPermissions: req.userPermissions || [],
       userPrimaryRole: req.userPrimaryRole || { name: 'admin', display_name: 'Administrator' },
+      permissionActions: permissionActions,
       pagination: {
         currentPage: page,
         totalPages: totalPages,
@@ -670,7 +701,7 @@ router.post('/api/rbac/migrate', [
 // ==================== MODULE MANAGEMENT ====================
 
 // RBAC Modules data endpoint for AJAX requests
-router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWeb('rbac.modules', 'view'), async (req, res) => {
+router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
@@ -709,6 +740,7 @@ router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWe
     res.json({
       success: true,
       data: modules,
+      userPermissions: req.userPermissions || [],
       pagination: {
         currentPage: page,
         totalPages: totalPages,
@@ -726,7 +758,7 @@ router.get('/rbac/modules/data', addUserPermissions, hasModuleActionPermissionWe
 });
 
 // Module management page
-router.get('/rbac/modules', addUserPermissions, hasModuleActionPermissionWeb('rbac.modules', 'view'), async (req, res) => {
+router.get('/rbac/modules', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
@@ -828,7 +860,7 @@ router.get('/rbac/modules', addUserPermissions, hasModuleActionPermissionWeb('rb
 });
 
 // Module actions management page
-router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermissionWeb('rbac.modules', 'view'), async (req, res) => {
+router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), async (req, res) => {
   try {
     const { id } = req.params;
     const page = parseInt(req.query.page) || 1;
@@ -906,7 +938,7 @@ router.get('/rbac/modules/:id/actions', addUserPermissions, hasModuleActionPermi
 });
 
 // AJAX endpoint for module actions data
-router.get('/rbac/modules/:id/actions/data', addUserPermissions, hasModuleActionPermissionWeb('rbac.modules', 'view'), async (req, res) => {
+router.get('/rbac/modules/:id/actions/data', addUserPermissions, hasModuleActionPermissionWeb('rbac', 'view'), async (req, res) => {
   try {
     const { id } = req.params;
     const page = parseInt(req.query.page) || 1;
@@ -950,6 +982,7 @@ router.get('/rbac/modules/:id/actions/data', addUserPermissions, hasModuleAction
     res.json({
       success: true,
       data: actions,
+      userPermissions: req.userPermissions || [],
       pagination: {
         currentPage: page,
         totalPages: totalPages,

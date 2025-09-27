@@ -322,6 +322,7 @@
                     <p class="text-sm text-gray-600 mt-1">Manage your media content</p>
                 </div>
                 <div class="flex space-x-4">
+                    <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.edit')) { %>
                     <button 
                         id="toggleStatusBtn"
                         data-media-id="<%= media.id %>"
@@ -336,7 +337,9 @@
                             <div id="toggleStatusSubtext" class="text-xs opacity-90"><%= media.is_active ? 'Make inactive' : 'Make active' %></div>
                         </div>
                     </button>
+                    <% } %>
                     
+                    <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.delete')) { %>
                     <button 
                         data-media-id="<%= media.id %>"
                         class="delete-media-btn group inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
@@ -349,6 +352,7 @@
                             <div class="text-xs opacity-90">Remove permanently</div>
                         </div>
                     </button>
+                    <% } %>
                 </div>
             </div>
         </div>

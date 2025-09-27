@@ -234,6 +234,12 @@ async function loadTableData() {
         }
 
         const data = await response.json();
+        
+        // Update user permissions if provided in response
+        if (data.userPermissions) {
+            window.userPermissions = data.userPermissions;
+        }
+        
         updateTableContent(data);
         
     } catch (error) {
@@ -721,13 +727,15 @@ function generateRoleTableRows(roles) {
     
     return roles.map(role => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.view');
-        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.update');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.roles.delete');
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.view');
+        const hasCreatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.create');
+        const hasAssignRolesPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.assign_roles');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.delete');
         
         console.log(`Role ${role.id} permissions:`, {
             hasViewPermission,
-            hasUpdatePermission,
+            hasCreatePermission,
+            hasAssignRolesPermission,
             hasDeletePermission
         });
         
@@ -740,11 +748,14 @@ function generateRoleTableRows(roles) {
             </button>`;
         }
         
-        if (hasUpdatePermission) {
+        if (hasCreatePermission) {
             actionButtons += `<button onclick="editRole(${role.id})" class="text-indigo-600 hover:text-indigo-900" title="Edit">
                 <i class="fas fa-edit"></i>
-            </button>
-            <button onclick="manageRolePermissions(${role.id})" class="text-green-600 hover:text-green-900" title="Permissions">
+            </button>`;
+        }
+        
+        if (hasAssignRolesPermission) {
+            actionButtons += `<button onclick="manageRolePermissions(${role.id})" class="text-green-600 hover:text-green-900" title="Permissions">
                 <i class="fas fa-key"></i>
             </button>`;
         }
@@ -790,9 +801,9 @@ function generatePermissionTableRows(permissions) {
     
     return permissions.map(permission => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.view');
-        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.update');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.permissions.delete');
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.view');
+        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.update');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.delete');
         
         console.log(`Permission ${permission.id} permissions:`, {
             hasViewPermission,
@@ -859,9 +870,9 @@ function generateModuleTableRows(modules) {
     
     return modules.map(module => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.view');
-        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.update');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.modules.delete');
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.view');
+        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.update');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.delete');
         
         console.log(`Module ${module.id} permissions:`, {
             hasViewPermission,
@@ -934,9 +945,9 @@ function generateModuleActionTableRows(actions) {
     
     return actions.map(action => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.view');
-        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.update');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.actions.delete');
+        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.view');
+        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.update');
+        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.delete');
         
         console.log(`Action ${action.id} permissions:`, {
             hasViewPermission,

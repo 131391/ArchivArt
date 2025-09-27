@@ -1,3 +1,5 @@
+<!-- Use server-side built actions array -->
+
 <!-- Include Common Table Component -->
 <%- include('../../components/table', {
     title: title,
@@ -14,11 +16,7 @@
         { key: 'resource', label: 'Resource', sortable: true, type: 'custom', formatter: 'formatResource' },
         { key: 'description', label: 'Description', sortable: true, type: 'custom', formatter: 'formatDescription' }
     ],
-    actions: [
-        { name: 'view', label: 'View', icon: 'fas fa-eye', class: 'text-blue-600 hover:text-blue-900', title: 'View Permission Details', onclick: (item) => `viewPermission(${item.id})` },
-        { name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit Permission', onclick: (item) => `editPermission(${item.id})` },
-        { name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Permission', onclick: (item) => `deletePermission(${item.id})` }
-    ],
+    actions: permissionActions,
     pagination: pagination,
     search: search,
     filters: filters,
@@ -28,9 +26,13 @@
     emptyTitle: 'No Permissions Found',
     emptyMessage: 'There are no permissions to display.',
     emptySearchMessage: 'No permissions match your search criteria.',
-    headerButtons: [
-        { text: 'Create Permission', href: '#', icon: 'fas fa-plus', onclick: 'createPermission()' }
-    ]
+    headerButtons: (() => {
+        const buttons = [];
+        if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.create')) {
+            buttons.push({ text: 'Create Permission', href: '#', icon: 'fas fa-plus', onclick: 'createPermission()' });
+        }
+        return buttons;
+    })()
 }) %>
 
 <!-- Pass user permissions to JavaScript -->
