@@ -234,7 +234,15 @@ function viewUser(userId) {
                                     </div>
                                     <span class="text-sm font-medium text-gray-700">Role</span>
                                 </div>
-                                <span class="text-sm font-semibold text-gray-900 capitalize">${user.role}</span>
+                                <div class="flex items-center space-x-2">
+                                    ${user.role_display_name ? `
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                            ${user.role_display_name}
+                                        </span>
+                                    ` : `
+                                        <span class="text-sm font-semibold text-gray-500 italic">No Role Assigned</span>
+                                    `}
+                                </div>
                             </div>
 
                             <div class="flex items-center justify-between py-3 border-b border-gray-100">

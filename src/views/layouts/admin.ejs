@@ -668,12 +668,10 @@
             if (
               // Module Management: Only highlight Module Management, not RBAC Dashboard
               (linkHref === "/admin/rbac/modules" && currentPath.startsWith("/admin/rbac/modules")) ||
-              // Role Management: Highlight both RBAC Dashboard and Role Management
+              // Role Management: Only highlight Role Management, not RBAC Dashboard
               (linkHref === "/admin/rbac/roles" && currentPath.startsWith("/admin/rbac/roles")) ||
-              (linkHref === "/admin/rbac" && currentPath.startsWith("/admin/rbac/roles")) ||
-              // Permission Management: Highlight both RBAC Dashboard and Permission Management
+              // Permission Management: Only highlight Permission Management, not RBAC Dashboard
               (linkHref === "/admin/rbac/permissions" && currentPath.startsWith("/admin/rbac/permissions")) ||
-              (linkHref === "/admin/rbac" && currentPath.startsWith("/admin/rbac/permissions")) ||
               // RBAC Dashboard: Only highlight when on exact RBAC dashboard page
               (linkHref === "/admin/rbac" && currentPath === "/admin/rbac") ||
               // For non-RBAC links, use the original logic

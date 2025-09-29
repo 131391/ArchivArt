@@ -336,6 +336,33 @@ document.addEventListener('submit', function(event) {
     });
 });
 
+// Intercept button clicks that might trigger navigation or actions
+document.addEventListener('click', function(event) {
+    const button = event.target.closest('button');
+    
+    // Only handle buttons with onclick attributes that contain navigation
+    if (button && button.hasAttribute('onclick')) {
+        const onclick = button.getAttribute('onclick');
+        
+        // Skip if button has data-no-loader attribute
+        if (button.hasAttribute('data-no-loader')) {
+            return;
+        }
+        
+        // Check if it's a navigation action (window.location.href)
+        if (onclick.includes('window.location.href')) {
+            // Don't show loader for navigation buttons - they handle their own loading states
+            return;
+        }
+        
+        // For other actions (like toggle, delete), let the specific function handle the loader
+        // This prevents double loaders
+        if (onclick.includes('toggle') || onclick.includes('delete') || onclick.includes('edit') || onclick.includes('view')) {
+            return;
+        }
+    }
+});
+
 // Intercept link clicks for navigation - DISABLED to prevent loader flash
 // document.addEventListener('click', function(event) {
 //     const link = event.target.closest('a');

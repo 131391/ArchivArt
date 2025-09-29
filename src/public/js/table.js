@@ -659,13 +659,13 @@ function generateMediaTableRows(media) {
         let actionButtons = '';
         
         if (hasViewPermission) {
-            actionButtons += `<button onclick="window.location.href='/admin/media/view/${item.id}'" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-indigo-600 hover:text-indigo-900" title="View">
+            actionButtons += `<button onclick="window.location.href='/admin/media/view/${item.id}'" data-no-loader="true" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-indigo-600 hover:text-indigo-900" title="View">
                 <i class="fas fa-eye"></i>
             </button>`;
         }
         
         if (hasEditPermission) {
-            actionButtons += `<button onclick="window.location.href='/admin/media/edit/${item.id}'" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-blue-600 hover:text-blue-900" title="Edit">
+            actionButtons += `<button onclick="window.location.href='/admin/media/edit/${item.id}'" data-no-loader="true" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-blue-600 hover:text-blue-900" title="Edit">
                 <i class="fas fa-edit"></i>
             </button>`;
             
