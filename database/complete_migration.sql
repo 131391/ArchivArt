@@ -505,7 +505,7 @@ BEGIN
 END;
 
 -- Procedure to delete a module action and all its related data
-CREATE PROCEDURE DeleteModuleActionWithCascade(IN action_id INT)
+CREATE PROCEDURE DeleteModuleActionWithCascade(IN p_action_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -518,19 +518,19 @@ BEGIN
     -- 1. Delete all role permissions for this action's permissions
     DELETE rp FROM role_permissions rp 
     INNER JOIN permissions p ON rp.permission_id = p.id 
-    WHERE p.action_id = action_id;
+    WHERE p.action_id = p_action_id;
     
     -- 2. Delete all permissions for this action
-    DELETE FROM permissions WHERE action_id = action_id;
+    DELETE FROM permissions WHERE action_id = p_action_id;
     
     -- 3. Finally, delete the action itself
-    DELETE FROM module_actions WHERE id = action_id;
+    DELETE FROM module_actions WHERE id = p_action_id;
     
     COMMIT;
 END;
 
 -- Procedure to delete a permission and all its related data
-CREATE PROCEDURE DeletePermissionWithCascade(IN permission_id INT)
+CREATE PROCEDURE DeletePermissionWithCascade(IN p_permission_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -541,10 +541,10 @@ BEGIN
     START TRANSACTION;
     
     -- 1. Delete all role permissions for this permission
-    DELETE FROM role_permissions WHERE permission_id = permission_id;
+    DELETE FROM role_permissions WHERE permission_id = p_permission_id;
     
     -- 2. Finally, delete the permission itself
-    DELETE FROM permissions WHERE id = permission_id;
+    DELETE FROM permissions WHERE id = p_permission_id;
     
     COMMIT;
 END;
@@ -573,7 +573,7 @@ BEGIN
 END;
 
 -- Procedure to delete a user and all their related data
-CREATE PROCEDURE DeleteUserWithCascade(IN user_id INT)
+CREATE PROCEDURE DeleteUserWithCascade(IN p_user_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -584,22 +584,22 @@ BEGIN
     START TRANSACTION;
     
     -- 1. Delete all user sessions
-    DELETE FROM user_sessions WHERE user_id = user_id;
+    DELETE FROM user_sessions WHERE user_id = p_user_id;
     
     -- 2. Delete all user roles
-    DELETE FROM user_roles WHERE user_id = user_id;
+    DELETE FROM user_roles WHERE user_id = p_user_id;
     
     -- 3. Delete all media uploaded by this user
-    DELETE FROM media WHERE uploaded_by = user_id;
+    DELETE FROM media WHERE uploaded_by = p_user_id;
     
     -- 4. Delete all API usage records for this user
-    DELETE FROM api_usage WHERE user_id = user_id;
+    DELETE FROM api_usage WHERE user_id = p_user_id;
     
     -- 5. Delete all blacklisted tokens for this user
-    DELETE FROM blacklisted_tokens WHERE user_id = user_id;
+    DELETE FROM blacklisted_tokens WHERE user_id = p_user_id;
     
     -- 6. Finally, delete the user itself
-    DELETE FROM users WHERE id = user_id;
+    DELETE FROM users WHERE id = p_user_id;
     
     COMMIT;
 END;
