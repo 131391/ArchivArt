@@ -135,10 +135,12 @@ CREATE TABLE IF NOT EXISTS modules (
     route VARCHAR(100),
     order_index INT DEFAULT 0,
     is_active TINYINT(1) DEFAULT 1,
+    is_system_module TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_modules_name (name),
     INDEX idx_modules_active (is_active),
+    INDEX idx_modules_system (is_system_module),
     INDEX idx_modules_order (order_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -333,12 +335,12 @@ CREATE TABLE IF NOT EXISTS settings (
 -- =====================================================
 
 -- Insert system modules
-INSERT IGNORE INTO modules (name, display_name, description, icon, route, order_index) VALUES
-('dashboard', 'Dashboard', 'Main dashboard and overview', 'fas fa-tachometer-alt', '/admin/dashboard', 1),
-('users', 'User Management', 'Manage users and their accounts', 'fas fa-users', '/admin/users', 2),
-('media', 'Media Management', 'Upload and manage media files', 'fas fa-images', '/admin/media', 3),
-('rbac', 'Role & Permissions', 'Manage roles, permissions, and access control', 'fas fa-shield-alt', '/admin/rbac', 4),
-('settings', 'System Settings', 'Configure system settings and preferences', 'fas fa-cog', '/admin/settings', 5);
+INSERT IGNORE INTO modules (name, display_name, description, icon, route, order_index, is_system_module) VALUES
+('dashboard', 'Dashboard', 'Main dashboard and overview', 'fas fa-tachometer-alt', '/admin/dashboard', 1, 1),
+('users', 'User Management', 'Manage users and their accounts', 'fas fa-users', '/admin/users', 2, 1),
+('media', 'Media Management', 'Upload and manage media files', 'fas fa-images', '/admin/media', 3, 0),
+('rbac', 'Role & Permissions', 'Manage roles, permissions, and access control', 'fas fa-shield-alt', '/admin/rbac', 4, 1),
+('settings', 'System Settings', 'Configure system settings and preferences', 'fas fa-cog', '/admin/settings', 5, 1);
 
 -- Insert module actions
 INSERT IGNORE INTO module_actions (module_id, name, display_name, description, route) VALUES

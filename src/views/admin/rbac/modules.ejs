@@ -28,7 +28,16 @@
             actions.push({ name: 'actions', label: 'Actions', icon: 'fas fa-cogs', class: 'text-green-600 hover:text-green-900', title: 'Manage Module Actions', onclick: (item) => `manageModuleActions(${item.id})` });
         }
         if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.delete')) {
-            actions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Module', onclick: (item) => `deleteModule(${item.id})` });
+            // Only show delete button for non-system modules
+            actions.push({ 
+                name: 'delete', 
+                label: 'Delete', 
+                icon: 'fas fa-trash', 
+                class: 'text-red-600 hover:text-red-900', 
+                title: 'Delete Module', 
+                onclick: (item) => `deleteModule(${item.id})`,
+                condition: (item) => !item.is_system_module // Hide for system modules
+            });
         }
         return actions;
     })(),

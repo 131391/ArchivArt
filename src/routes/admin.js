@@ -481,7 +481,16 @@ router.get('/rbac/roles', addUserPermissions, hasModuleActionPermissionWeb('rbac
       roleActions.push({ name: 'permissions', label: 'Permissions', icon: 'fas fa-key', class: 'text-green-600 hover:text-green-900', title: 'Manage Role Permissions', onclick: (item) => `manageRolePermissions(${item.id})` });
     }
     if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.delete')) {
-      roleActions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Role', onclick: (item) => `deleteRole(${item.id})` });
+      // Only show delete button for non-system roles
+      roleActions.push({ 
+        name: 'delete', 
+        label: 'Delete', 
+        icon: 'fas fa-trash', 
+        class: 'text-red-600 hover:text-red-900', 
+        title: 'Delete Role', 
+        onclick: (item) => `deleteRole(${item.id})`,
+        condition: (item) => !item.is_system_role // Hide for system roles
+      });
     }
 
     res.render('admin/rbac/roles', {
@@ -792,6 +801,7 @@ router.get('/rbac/modules', addUserPermissions, hasModuleActionPermissionWeb('rb
         route: row.route,
         order_index: row.order_index,
         is_active: row.is_active,
+        is_system_module: row.is_system_module,
         action_count: row.action_count,
         permission_count: row.permission_count,
         created_at: row.created_at,

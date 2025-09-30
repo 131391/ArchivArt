@@ -7,6 +7,7 @@ class Role {
         this.display_name = data.display_name;
         this.description = data.description;
         this.is_active = data.is_active;
+        this.is_system_role = data.is_system_role;
         this.created_at = data.created_at;
         this.updated_at = data.updated_at;
         this.user_count = data.user_count || 0;
@@ -37,6 +38,7 @@ class Role {
                 r.display_name, 
                 r.description, 
                 r.is_active, 
+                r.is_system_role,
                 r.created_at, 
                 r.updated_at,
                 COUNT(DISTINCT ur.user_id) as user_count,
