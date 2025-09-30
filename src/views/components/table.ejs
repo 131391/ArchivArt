@@ -117,7 +117,7 @@
                                 <option value="">All Modules</option>
                                 <% if (typeof modules !== 'undefined' && modules && modules.length > 0) { %>
                                     <% modules.forEach(module => { %>
-                                        <option value="<%= module.id %>" <%= filters.moduleFilter === module.id.toString() ? 'selected' : '' %>><%= module.display_name %></option>
+                                        <option value="<%= module.name %>" <%= filters.moduleFilter === module.name ? 'selected' : '' %>><%= module.display_name %></option>
                                     <% }); %>
                                 <% } else { %>
                                     <option value="users" <%= filters.moduleFilter === 'users' ? 'selected' : '' %>>Users</option>
