@@ -161,6 +161,15 @@ function togglePermission(permissionId, isChecked) {
 function savePermissions() {
     const permissionIds = rolePermissions.map(rp => rp.permission_id);
     
+    // Show loader
+    if (typeof showLoader === 'function') {
+        showLoader({
+            title: 'Saving Permissions...',
+            message: 'Please wait while we update the role permissions',
+            delay: 0
+        });
+    }
+    
     fetch(`/admin/api/rbac/roles/${currentRoleId}/permissions`, {
         method: 'PUT',
         headers: {
@@ -171,6 +180,11 @@ function savePermissions() {
     })
     .then(response => response.json())
     .then(data => {
+        // Hide loader
+        if (typeof hideLoader === 'function') {
+            hideLoader();
+        }
+        
         if (data.success) {
             showSuccessToast('Role permissions updated successfully');
         } else {
@@ -178,6 +192,11 @@ function savePermissions() {
         }
     })
     .catch(error => {
+        // Hide loader on error
+        if (typeof hideLoader === 'function') {
+            hideLoader();
+        }
+        
         console.error('Error:', error);
         showErrorToast('Error: ' + error.message);
     });
