@@ -550,7 +550,7 @@ BEGIN
 END;
 
 -- Procedure to delete a role and all its related data
-CREATE PROCEDURE DeleteRoleWithCascade(IN role_id INT)
+CREATE PROCEDURE DeleteRoleWithCascade(IN p_role_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -561,13 +561,13 @@ BEGIN
     START TRANSACTION;
     
     -- 1. Delete all user role assignments for THIS SPECIFIC ROLE ONLY
-    DELETE FROM user_roles WHERE role_id = role_id;
+    DELETE FROM user_roles WHERE role_id = p_role_id;
     
     -- 2. Delete all role permissions for THIS SPECIFIC ROLE ONLY
-    DELETE FROM role_permissions WHERE role_id = role_id;
+    DELETE FROM role_permissions WHERE role_id = p_role_id;
     
     -- 3. Finally, delete the role itself (only if not system role)
-    DELETE FROM roles WHERE id = role_id AND is_system_role = 0;
+    DELETE FROM roles WHERE id = p_role_id AND is_system_role = 0;
     
     COMMIT;
 END;
