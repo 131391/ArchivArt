@@ -579,47 +579,25 @@ router.get('/rbac/permissions', addUserPermissions, hasModuleActionPermissionWeb
     const search = req.query.search || '';
     const module = req.query.module || 'all';
     
-    const db = require('../config/database');
+    // Use the Permission model to ensure consistent data structure
+    const Permission = require('../models/Permission');
     
-    // Build query with search and module filters
-    let query = `
-      SELECT p.*, m.display_name as module_display_name, ma.display_name as action_display_name
-      FROM permissions p
-      LEFT JOIN modules m ON p.module_id = m.id
-      LEFT JOIN module_actions ma ON p.action_id = ma.id
-    `;
-    let countQuery = 'SELECT COUNT(*) as total FROM permissions p';
-    let whereConditions = [];
-    let queryParams = [];
-    let countParams = [];
+    // Get permissions using the same method as AJAX endpoint
+    const permissions = await Permission.findAll({
+      search: search,
+      module: module !== 'all' ? module : null,
+      sort: 'created_at',
+      order: 'desc',
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
     
-    // Search condition
-    if (search) {
-      whereConditions.push('(p.name LIKE ? OR p.display_name LIKE ? OR p.description LIKE ?)');
-      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    }
+    // Get total count with search and module filters
+    const totalPermissions = await Permission.getTotalCount({
+      search: search,
+      module: module !== 'all' ? module : null
+    });
     
-    // Module filter
-    if (module !== 'all') {
-      whereConditions.push('p.module_id = ?');
-      queryParams.push(module);
-      countParams.push(module);
-    }
-    
-    // Build WHERE clause
-    if (whereConditions.length > 0) {
-      const whereClause = ' WHERE ' + whereConditions.join(' AND ');
-      query += whereClause;
-      countQuery += whereClause;
-    }
-    
-    // Add sorting and pagination
-    query += ` ORDER BY p.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
-    
-    const [permissions] = await db.execute(query, queryParams);
-    const [countResult] = await db.execute(countQuery, countParams);
-    const totalPermissions = countResult[0].total;
     const totalPages = Math.ceil(totalPermissions / limit);
     
     // Calculate pagination info
