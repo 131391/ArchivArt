@@ -1,17 +1,17 @@
 -- =====================================================
--- ArchivArt Production Database Migration
+-- ArchivArt Complete Production Migration
 -- =====================================================
--- This script creates a production-ready database with:
--- - Complete database schema
--- - RBAC system with modules and actions
--- - Single admin user with full access
--- - All system permissions and roles
+-- Database: archivartv3
+-- This file contains everything needed for a fresh database setup
 -- Version: 1.0.0
 -- Date: 2025-01-23
 -- =====================================================
 
 -- Create database (if not exists)
-CREATE DATABASE IF NOT EXISTS archivartv3;
+CREATE DATABASE IF NOT EXISTS archivartv3 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Use the database
+USE archivartv3;
 
 -- =====================================================
 -- CORE TABLES
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_users_last_activity (last_activity_at),
     INDEX idx_users_two_factor (two_factor_enabled),
     INDEX idx_users_notifications (notifications_enabled)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Media table
 CREATE TABLE IF NOT EXISTS media (
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS media (
     INDEX idx_media_is_active (is_active),
     INDEX idx_media_created_at (created_at),
     INDEX idx_media_view_count (view_count)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- User sessions table (Enhanced for JWT token management)
 CREATE TABLE IF NOT EXISTS user_sessions (
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
     INDEX idx_sessions_expires (expires_at),
     INDEX idx_sessions_last_activity (last_activity_at),
     INDEX idx_sessions_ip (ip_address)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- RBAC TABLES
@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS modules (
     INDEX idx_modules_name (name),
     INDEX idx_modules_active (is_active),
     INDEX idx_modules_order (order_index)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Module actions table
 CREATE TABLE IF NOT EXISTS module_actions (
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS module_actions (
     INDEX idx_module_actions_module (module_id),
     INDEX idx_module_actions_name (name),
     INDEX idx_module_actions_active (is_active)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Roles table
 CREATE TABLE IF NOT EXISTS roles (
@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS roles (
     INDEX idx_roles_name (name),
     INDEX idx_roles_active (is_active),
     INDEX idx_roles_system (is_system_role)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Permissions table
 CREATE TABLE IF NOT EXISTS permissions (
@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS permissions (
     INDEX idx_permissions_action (action_id),
     INDEX idx_permissions_active (is_active),
     INDEX idx_permissions_system (is_system_permission)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Role permissions junction table
 CREATE TABLE IF NOT EXISTS role_permissions (
@@ -212,7 +212,7 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     INDEX idx_role_permissions_role (role_id),
     INDEX idx_role_permissions_permission (permission_id),
     INDEX idx_role_permissions_active (is_active)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- User roles table
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
     INDEX idx_user_roles_user (user_id),
     INDEX idx_user_roles_role (role_id),
     INDEX idx_user_roles_active (is_active)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- SECURITY TABLES
@@ -252,8 +252,7 @@ CREATE TABLE IF NOT EXISTS blacklisted_tokens (
     INDEX idx_user_id (user_id),
     INDEX idx_expires_at (expires_at),
     INDEX idx_reason (reason)
-);
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Failed login attempts table
 CREATE TABLE IF NOT EXISTS failed_login_attempts (
@@ -273,7 +272,7 @@ CREATE TABLE IF NOT EXISTS failed_login_attempts (
     INDEX idx_is_blocked (is_blocked),
     INDEX idx_blocked_until (blocked_until),
     INDEX idx_last_attempt (last_attempt)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- API usage tracking table
 CREATE TABLE IF NOT EXISTS api_usage (
@@ -299,7 +298,7 @@ CREATE TABLE IF NOT EXISTS api_usage (
     INDEX idx_ip_address (ip_address),
     INDEX idx_created_at (created_at),
     INDEX idx_response_status (response_status)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- SETTINGS TABLE
@@ -327,7 +326,7 @@ CREATE TABLE IF NOT EXISTS settings (
     
     -- Indexes
     INDEX idx_settings_site_name (site_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
 -- INSERT SYSTEM DATA
@@ -470,6 +469,13 @@ VALUES ('ArchivArt', 'Your Digital Archive Solution', '#4f46e5', 100, 50, 24, 24
 -- CASCADE DELETION STORED PROCEDURES
 -- =====================================================
 
+-- Drop existing procedures if they exist
+DROP PROCEDURE IF EXISTS DeleteModuleWithCascade;
+DROP PROCEDURE IF EXISTS DeleteModuleActionWithCascade;
+DROP PROCEDURE IF EXISTS DeletePermissionWithCascade;
+DROP PROCEDURE IF EXISTS DeleteRoleWithCascade;
+DROP PROCEDURE IF EXISTS DeleteUserWithCascade;
+
 -- Procedure to delete a module and all its related data
 DELIMITER //
 CREATE PROCEDURE DeleteModuleWithCascade(IN target_module_id INT)
@@ -595,14 +601,13 @@ BEGIN
     -- 3. Delete all media uploaded by this user
     DELETE FROM media WHERE uploaded_by = user_id;
     
-    
-    -- 5. Delete all API usage records for this user
+    -- 4. Delete all API usage records for this user
     DELETE FROM api_usage WHERE user_id = user_id;
     
-    -- 6. Delete all blacklisted tokens for this user
+    -- 5. Delete all blacklisted tokens for this user
     DELETE FROM blacklisted_tokens WHERE user_id = user_id;
     
-    -- 7. Finally, delete the user itself
+    -- 6. Finally, delete the user itself
     DELETE FROM users WHERE id = user_id;
     
     COMMIT;
@@ -610,15 +615,12 @@ END //
 DELIMITER ;
 
 -- =====================================================
--- FINAL SETUP
+-- MIGRATION SUMMARY
 -- =====================================================
-
--- Commit all changes
-COMMIT;
 
 -- Show migration summary
 SELECT '=====================================================' as info;
-SELECT 'ArchivArt Production Migration Completed Successfully!' as status;
+SELECT 'ArchivArt Migration Completed Successfully!' as status;
 SELECT '=====================================================' as info;
 
 -- Show table counts
@@ -664,23 +666,6 @@ INNER JOIN roles r ON ur.role_id = r.id
 LEFT JOIN role_permissions rp ON r.id = rp.role_id AND rp.is_active = 1
 WHERE u.email = 'admin@archivart.com'
 GROUP BY u.id, u.name, u.email, u.username, r.display_name;
-
--- Show admin permissions by module
-SELECT '=====================================================' as info;
-SELECT 'ADMIN PERMISSIONS BY MODULE:' as info;
-SELECT '=====================================================' as info;
-SELECT 
-    m.display_name as 'Module',
-    COUNT(p.id) as 'Permissions'
-FROM users u
-INNER JOIN user_roles ur ON u.id = ur.user_id
-INNER JOIN roles r ON ur.role_id = r.id
-INNER JOIN role_permissions rp ON r.id = rp.role_id AND rp.is_active = 1
-INNER JOIN permissions p ON rp.permission_id = p.id AND p.is_active = 1
-INNER JOIN modules m ON p.module_id = m.id
-WHERE u.email = 'admin@archivart.com'
-GROUP BY m.id, m.display_name
-ORDER BY m.order_index;
 
 -- Show admin credentials
 SELECT '=====================================================' as info;
