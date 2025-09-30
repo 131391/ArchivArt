@@ -63,8 +63,7 @@ async function restoreDatabase() {
             { name: 'users', display_name: 'User Management', description: 'User management module', order_index: 2 },
             { name: 'media', display_name: 'Media Management', description: 'Media management module', order_index: 3 },
             { name: 'rbac', display_name: 'Role & Permissions', description: 'RBAC management module', order_index: 4 },
-            { name: 'settings', display_name: 'System Settings', description: 'System settings module', order_index: 5 },
-            { name: 'security', display_name: 'Security', description: 'Security management module', order_index: 6 }
+            { name: 'settings', display_name: 'System Settings', description: 'System settings module', order_index: 5 }
         ];
         
         const moduleIds = {};
@@ -127,13 +126,7 @@ async function restoreDatabase() {
             
             // Settings
             { module: 'settings', action: 'view', display_name: 'View Settings', description: 'View system settings' },
-            { module: 'settings', action: 'update', display_name: 'Update Settings', description: 'Update system settings' },
-            
-            // Security
-            { module: 'security', action: 'view', display_name: 'View Security', description: 'View security management' },
-            { module: 'security', action: 'sessions_view', display_name: 'View Sessions', description: 'View user sessions' },
-            { module: 'security', action: 'sessions_revoke', display_name: 'Revoke Sessions', description: 'Revoke user sessions' },
-            { module: 'security', action: 'logs_view', display_name: 'View Logs', description: 'View security logs' }
+            { module: 'settings', action: 'update', display_name: 'Update Settings', description: 'Update system settings' }
         ];
         
         const permissionIds = {};

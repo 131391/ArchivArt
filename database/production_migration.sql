@@ -254,27 +254,6 @@ CREATE TABLE IF NOT EXISTS blacklisted_tokens (
     INDEX idx_reason (reason)
 );
 
--- Security events log table
-CREATE TABLE IF NOT EXISTS security_events (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    event_type VARCHAR(100) NOT NULL,
-    user_id INT,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    event_data JSON,
-    severity ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    -- Foreign Keys
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    
-    -- Indexes
-    INDEX idx_event_type (event_type),
-    INDEX idx_user_id (user_id),
-    INDEX idx_ip_address (ip_address),
-    INDEX idx_created_at (created_at),
-    INDEX idx_severity (severity)
-);
 
 -- Failed login attempts table
 CREATE TABLE IF NOT EXISTS failed_login_attempts (
@@ -360,8 +339,7 @@ INSERT IGNORE INTO modules (name, display_name, description, icon, route, order_
 ('users', 'User Management', 'Manage users and their accounts', 'fas fa-users', '/admin/users', 2),
 ('media', 'Media Management', 'Upload and manage media files', 'fas fa-images', '/admin/media', 3),
 ('rbac', 'Role & Permissions', 'Manage roles, permissions, and access control', 'fas fa-shield-alt', '/admin/rbac', 4),
-('settings', 'System Settings', 'Configure system settings and preferences', 'fas fa-cog', '/admin/settings', 5),
-('security', 'Security', 'Security logs and monitoring', 'fas fa-lock', '/admin/security', 6);
+('settings', 'System Settings', 'Configure system settings and preferences', 'fas fa-cog', '/admin/settings', 5);
 
 -- Insert module actions
 INSERT IGNORE INTO module_actions (module_id, name, display_name, description, route) VALUES
@@ -391,13 +369,7 @@ INSERT IGNORE INTO module_actions (module_id, name, display_name, description, r
 
 -- Settings actions
 ((SELECT id FROM modules WHERE name = 'settings'), 'view', 'View Settings', 'View system settings', '/admin/settings'),
-((SELECT id FROM modules WHERE name = 'settings'), 'update', 'Update Settings', 'Update system settings', '/admin/settings/update'),
-
--- Security actions
-((SELECT id FROM modules WHERE name = 'security'), 'view', 'View Security', 'View security logs and events', '/admin/security'),
-((SELECT id FROM modules WHERE name = 'security'), 'logs_view', 'View Logs', 'View security event logs', '/admin/security/logs'),
-((SELECT id FROM modules WHERE name = 'security'), 'sessions_view', 'View Sessions', 'View active user sessions', '/admin/security/sessions'),
-((SELECT id FROM modules WHERE name = 'security'), 'sessions_revoke', 'Revoke Sessions', 'Revoke user sessions', '/admin/security/sessions/revoke');
+((SELECT id FROM modules WHERE name = 'settings'), 'update', 'Update Settings', 'Update system settings', '/admin/settings/update');
 
 -- Insert system roles
 INSERT IGNORE INTO roles (name, display_name, description, is_system_role) VALUES
@@ -472,21 +444,7 @@ INSERT IGNORE INTO permissions (name, display_name, description, module_id, acti
  (SELECT id FROM module_actions WHERE name = 'view' AND module_id = (SELECT id FROM modules WHERE name = 'settings')), 1),
 ('settings.update', 'Update Settings', 'Update system settings', 
  (SELECT id FROM modules WHERE name = 'settings'), 
- (SELECT id FROM module_actions WHERE name = 'update' AND module_id = (SELECT id FROM modules WHERE name = 'settings')), 1),
-
--- Security permissions
-('security.view', 'View Security', 'View security logs and events', 
- (SELECT id FROM modules WHERE name = 'security'), 
- (SELECT id FROM module_actions WHERE name = 'view' AND module_id = (SELECT id FROM modules WHERE name = 'security')), 1),
-('security.logs.view', 'View Logs', 'View security event logs', 
- (SELECT id FROM modules WHERE name = 'security'), 
- (SELECT id FROM module_actions WHERE name = 'logs_view' AND module_id = (SELECT id FROM modules WHERE name = 'security')), 1),
-('security.sessions.view', 'View Sessions', 'View active user sessions', 
- (SELECT id FROM modules WHERE name = 'security'), 
- (SELECT id FROM module_actions WHERE name = 'sessions_view' AND module_id = (SELECT id FROM modules WHERE name = 'security')), 1),
-('security.sessions.revoke', 'Revoke Sessions', 'Revoke user sessions', 
- (SELECT id FROM modules WHERE name = 'security'), 
- (SELECT id FROM module_actions WHERE name = 'sessions_revoke' AND module_id = (SELECT id FROM modules WHERE name = 'security')), 1);
+ (SELECT id FROM module_actions WHERE name = 'update' AND module_id = (SELECT id FROM modules WHERE name = 'settings')), 1);
 
 -- Assign ALL permissions to super_admin role
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
@@ -637,8 +595,6 @@ BEGIN
     -- 3. Delete all media uploaded by this user
     DELETE FROM media WHERE uploaded_by = user_id;
     
-    -- 4. Delete all security events for this user
-    DELETE FROM security_events WHERE user_id = user_id;
     
     -- 5. Delete all API usage records for this user
     DELETE FROM api_usage WHERE user_id = user_id;
@@ -685,8 +641,6 @@ UNION ALL
 SELECT 'USER_SESSIONS' as table_name, COUNT(*) as record_count FROM user_sessions
 UNION ALL
 SELECT 'BLACKLISTED_TOKENS' as table_name, COUNT(*) as record_count FROM blacklisted_tokens
-UNION ALL
-SELECT 'SECURITY_EVENTS' as table_name, COUNT(*) as record_count FROM security_events
 UNION ALL
 SELECT 'FAILED_LOGIN_ATTEMPTS' as table_name, COUNT(*) as record_count FROM failed_login_attempts
 UNION ALL
