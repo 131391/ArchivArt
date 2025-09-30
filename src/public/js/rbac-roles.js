@@ -140,7 +140,12 @@ function viewRole(roleId) {
     fetch(`/admin/api/rbac/roles/${roleId}`, {
         credentials: 'same-origin'
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             // Hide loader
             if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
@@ -276,7 +281,12 @@ function editRole(roleId) {
     fetch(`/admin/api/rbac/roles/${roleId}`, {
         credentials: 'same-origin'
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             // Hide loader
             if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
@@ -342,25 +352,50 @@ function performDeleteRole(roleId) {
         method: 'DELETE',
         credentials: 'same-origin'
     })
-    .then(response => response.json())
-    .then(data => {
-        // Hide loader
+    .then(response => {
+        // Hide loader first
         if (typeof window.GlobalLoader !== 'undefined' && window.GlobalLoader) {
             window.GlobalLoader.hide();
         }
         
-        if (data.success) {
-            showSuccessToast('Role deleted successfully');
-            // Refresh the table
-            if (typeof refreshTable === 'function') {
-                refreshTable();
-            } else if (typeof TableUtils !== 'undefined' && typeof TableUtils.loadTableData === 'function') {
-                TableUtils.loadTableData();
+        // Check if response is ok (status 200-299)
+        if (!response.ok) {
+            // Handle non-2xx responses
+            if (response.status === 401 || response.status === 403) {
+                showErrorToast('Access denied. Please log in again.');
+                // Redirect to login page
+                setTimeout(() => {
+                    window.location.href = '/admin/login';
+                }, 2000);
+                return;
+            } else if (response.status === 404) {
+                showErrorToast('Role not found');
+                return;
             } else {
-                location.reload();
+                showErrorToast(`Server error: ${response.status} ${response.statusText}`);
+                return;
             }
-        } else {
-            showErrorToast('Error: ' + (data.message || 'Unknown error'));
+        }
+        
+        // Try to parse JSON response
+        return response.json();
+    })
+    .then(data => {
+        // Only process if data exists (response was ok and JSON was parsed)
+        if (data && typeof data === 'object') {
+            if (data.success) {
+                showSuccessToast('Role deleted successfully');
+                // Refresh the table
+                if (typeof loadTableData === 'function') {
+                    loadTableData();
+                } else if (typeof TableUtils !== 'undefined' && typeof TableUtils.loadTableData === 'function') {
+                    TableUtils.loadTableData();
+                } else {
+                    location.reload();
+                }
+            } else {
+                showErrorToast('Error: ' + (data.message || 'Unknown error'));
+            }
         }
     })
     .catch(error => {
@@ -369,7 +404,7 @@ function performDeleteRole(roleId) {
             window.GlobalLoader.hide();
         }
         console.error('Error:', error);
-        showErrorToast('Error deleting role');
+        showErrorToast('Error deleting role: ' + error.message);
     });
 }
 
@@ -642,19 +677,24 @@ if (document.readyState === 'loading') {
                     is_active: formData.get('is_active') === 'on' ? 1 : 0
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     showSuccessToast('Role updated successfully');
                     closeEditModal();
                     // Refresh the table
-                    if (typeof refreshTable === 'function') {
-                        refreshTable();
-                    } else if (typeof TableUtils !== 'undefined' && typeof TableUtils.loadTableData === 'function') {
-                        TableUtils.loadTableData();
-                    } else {
-                        location.reload();
-                    }
+            if (typeof loadTableData === 'function') {
+                loadTableData();
+            } else if (typeof TableUtils !== 'undefined' && typeof TableUtils.loadTableData === 'function') {
+                TableUtils.loadTableData();
+            } else {
+                location.reload();
+            }
                 } else {
                     showErrorToast('Error: ' + (data.message || 'Unknown error'));
                 }
@@ -685,19 +725,24 @@ if (document.readyState === 'loading') {
                     is_active: formData.get('is_active') === 'on' ? 1 : 0
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     showSuccessToast('Role created successfully');
                     closeCreateModal();
                     // Refresh the table
-                    if (typeof refreshTable === 'function') {
-                        refreshTable();
-                    } else if (typeof TableUtils !== 'undefined' && typeof TableUtils.loadTableData === 'function') {
-                        TableUtils.loadTableData();
-                    } else {
-                        location.reload();
-                    }
+            if (typeof loadTableData === 'function') {
+                loadTableData();
+            } else if (typeof TableUtils !== 'undefined' && typeof TableUtils.loadTableData === 'function') {
+                TableUtils.loadTableData();
+            } else {
+                location.reload();
+            }
                 } else {
                     showErrorToast('Error: ' + (data.message || 'Unknown error'));
                 }
