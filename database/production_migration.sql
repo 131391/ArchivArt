@@ -11,7 +11,7 @@
 -- =====================================================
 
 -- Create database (if not exists)
-CREATE DATABASE IF NOT EXISTS archivartv2;
+CREATE DATABASE IF NOT EXISTS archivartv3;
 
 -- =====================================================
 -- CORE TABLES
