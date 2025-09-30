@@ -44,11 +44,17 @@ function initTable(options = {}) {
     // Set current filter values on page load
     setFilterValues();
     
-    // Apply custom formatters immediately and with delay
+    // Apply custom formatters immediately and with multiple delays to ensure they load
     applyCustomFormatters();
     setTimeout(() => {
         applyCustomFormatters();
+    }, 100);
+    setTimeout(() => {
+        applyCustomFormatters();
     }, 500);
+    setTimeout(() => {
+        applyCustomFormatters();
+    }, 1000);
 }
 
 // Set up all event listeners
@@ -292,11 +298,17 @@ function updateTableContent(data) {
             // Generate table rows from the data
             tbody.innerHTML = generateTableRows(data.data);
             
-            // Apply custom formatters after rendering
+            // Apply custom formatters after rendering with multiple attempts
             applyCustomFormatters();
             setTimeout(() => {
                 applyCustomFormatters();
+            }, 100);
+            setTimeout(() => {
+                applyCustomFormatters();
             }, 300);
+            setTimeout(() => {
+                applyCustomFormatters();
+            }, 600);
         } else if (data.tableRows && typeof data.tableRows === 'string' && data.tableRows.trim() !== '') {
             // Fallback for pre-rendered HTML (if any endpoints still use this)
             tbody.innerHTML = data.tableRows;

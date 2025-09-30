@@ -230,13 +230,33 @@
                                                 <!-- Custom formatter will be applied by JavaScript -->
                                             </div>
                                             <script>
-                                                // Apply formatter immediately if available
+                                                // Apply formatter immediately if available, otherwise retry with limits
                                                 (function() {
                                                     const formatterName = '<%= column.formatter %>';
                                                     const itemData = <%- JSON.stringify(item) %>;
-                                                    if (typeof window[formatterName] === 'function') {
-                                                        const element = document.currentScript.previousElementSibling;
-                                                        element.innerHTML = window[formatterName](itemData);
+                                                    const element = document.currentScript.previousElementSibling;
+                                                    let retryCount = 0;
+                                                    const maxRetries = 20; // 20 retries * 100ms = 2 seconds max wait
+                                                    
+                                                    function applyFormatter() {
+                                                        if (typeof window[formatterName] === 'function') {
+                                                            element.innerHTML = window[formatterName](itemData);
+                                                        } else if (retryCount < maxRetries) {
+                                                            retryCount++;
+                                                            setTimeout(applyFormatter, 100);
+                                                        } else {
+                                                            // Fallback: show raw data if formatter never loads
+                                                            const fallbackValue = itemData[column.key] || 'N/A';
+                                                            element.innerHTML = `<span class="text-gray-900">${fallbackValue}</span>`;
+                                                        }
+                                                    }
+                                                    
+                                                    // Try immediately
+                                                    applyFormatter();
+                                                    
+                                                    // Also try when DOM is fully loaded
+                                                    if (document.readyState === 'loading') {
+                                                        document.addEventListener('DOMContentLoaded', applyFormatter);
                                                     }
                                                 })();
                                             </script>
@@ -251,18 +271,24 @@
                                                 <!-- Custom formatter will be applied by JavaScript -->
                                             </div>
                                             <script>
-                                                // Apply formatter immediately if available, otherwise retry
+                                                // Apply formatter immediately if available, otherwise retry with limits
                                                 (function() {
                                                     const formatterName = '<%= column.formatter %>';
                                                     const itemData = <%- JSON.stringify(item) %>;
                                                     const element = document.currentScript.previousElementSibling;
+                                                    let retryCount = 0;
+                                                    const maxRetries = 20; // 20 retries * 100ms = 2 seconds max wait
                                                     
                                                     function applyFormatter() {
                                                         if (typeof window[formatterName] === 'function') {
                                                             element.innerHTML = window[formatterName](itemData);
+                                                        } else if (retryCount < maxRetries) {
+                                                            retryCount++;
+                                                            setTimeout(applyFormatter, 100);
                                                         } else {
-                                                            // Retry after a short delay, but limit retries
-                                                            setTimeout(applyFormatter, 50);
+                                                            // Fallback: show raw data if formatter never loads
+                                                            const fallbackValue = itemData[column.key] || 'N/A';
+                                                            element.innerHTML = `<span class="text-gray-900">${fallbackValue}</span>`;
                                                         }
                                                     }
                                                     
