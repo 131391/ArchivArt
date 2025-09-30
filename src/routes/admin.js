@@ -628,7 +628,16 @@ router.get('/rbac/permissions', addUserPermissions, hasModuleActionPermissionWeb
       permissionActions.push({ name: 'edit', label: 'Edit', icon: 'fas fa-edit', class: 'text-indigo-600 hover:text-indigo-900', title: 'Edit Permission', onclick: (item) => `editPermission(${item.id})` });
     }
     if (req.userPermissions && req.userPermissions.some(p => p.name === 'rbac.delete')) {
-      permissionActions.push({ name: 'delete', label: 'Delete', icon: 'fas fa-trash', class: 'text-red-600 hover:text-red-900', title: 'Delete Permission', onclick: (item) => `deletePermission(${item.id})` });
+      // Only show delete button for non-system permissions
+      permissionActions.push({ 
+        name: 'delete', 
+        label: 'Delete', 
+        icon: 'fas fa-trash', 
+        class: 'text-red-600 hover:text-red-900', 
+        title: 'Delete Permission', 
+        onclick: (item) => `deletePermission(${item.id})`,
+        condition: (item) => !item.is_system_permission // Hide for system permissions
+      });
     }
 
     res.render('admin/rbac/permissions', {
