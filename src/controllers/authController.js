@@ -174,11 +174,33 @@ class AuthController {
         }
       }
 
-      // Insert new user
+      // Insert new user (without role column - roles are handled via user_roles table)
       const [result] = await db.execute(
-        'INSERT INTO users (name, username, email, password, mobile, role, auth_provider, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [name, finalUsername, email, hashedPassword, mobile, role, 'local', false]
+        'INSERT INTO users (name, username, email, password, mobile, auth_provider, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [name, finalUsername, email, hashedPassword, mobile, 'local', false]
       );
+
+      // Assign default user role
+      try {
+        // Find the 'user' role
+        const [roles] = await db.execute(
+          'SELECT id FROM roles WHERE name = ? AND is_active = 1',
+          ['user']
+        );
+        
+        if (roles.length > 0) {
+          // Assign the user role
+          await db.execute(
+            'INSERT INTO user_roles (user_id, role_id, is_active, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+            [result.insertId, roles[0].id, 1]
+          );
+        } else {
+          console.warn('Warning: No "user" role found. User created without role assignment.');
+        }
+      } catch (roleError) {
+        console.error('Error assigning user role:', roleError);
+        // Don't fail registration if role assignment fails
+      }
 
       // Log security event
       await SecurityService.logSecurityEvent('user_registered', req, {
@@ -189,7 +211,7 @@ class AuthController {
 
       // Generate JWT access token (short-lived)
       const accessToken = jwt.sign(
-        { userId: result.insertId, email, role, username: finalUsername },
+        { userId: result.insertId, email, username: finalUsername },
         process.env.JWT_SECRET,
         { expiresIn: '15m' } // Short-lived access token
       );
@@ -219,7 +241,6 @@ class AuthController {
           username: finalUsername,
           email,
           mobile,
-          role,
           is_verified: false
         }
       });
@@ -265,7 +286,7 @@ class AuthController {
 
       // Find user by email
       const [users] = await db.execute(
-        'SELECT id, name, email, password, username, mobile, role, profile_picture, is_active, is_blocked, is_verified FROM users WHERE email = ?',
+        'SELECT id, name, email, password, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE email = ?',
         [email]
       );
 
@@ -486,7 +507,7 @@ class AuthController {
 
       // Check if user exists with this provider
       const [existingUsers] = await db.execute(
-        'SELECT id, name, username, email, mobile, role, is_active, is_blocked, is_verified FROM users WHERE provider_id = ? AND auth_provider = ?',
+        'SELECT id, name, username, email, mobile, is_active, is_blocked, is_verified FROM users WHERE provider_id = ? AND auth_provider = ?',
         [providerId, provider]
       );
 
@@ -522,7 +543,7 @@ class AuthController {
           );
 
           const [updatedUsers] = await db.execute(
-            'SELECT id, name, username, email, mobile, role, profile_picture, is_active, is_blocked, is_verified FROM users WHERE email = ?',
+            'SELECT id, name, username, email, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE email = ?',
             [email]
           );
           user = updatedUsers[0];
@@ -554,9 +575,26 @@ class AuthController {
           };
 
           const [result] = await db.execute(
-            'INSERT INTO users (name, username, email, mobile, auth_provider, provider_id, provider_data, profile_picture, role, is_verified, last_login_at, login_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1)',
-            [name, finalUsername, email, mobile, provider, providerId, JSON.stringify(providerData), profilePicture, 'user', true]
+            'INSERT INTO users (name, username, email, mobile, auth_provider, provider_id, provider_data, profile_picture, is_verified, last_login_at, login_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1)',
+            [name, finalUsername, email, mobile, provider, providerId, JSON.stringify(providerData), profilePicture, true]
           );
+
+          // Assign default user role for social login
+          try {
+            const [roles] = await db.execute(
+              'SELECT id FROM roles WHERE name = ? AND is_active = 1',
+              ['user']
+            );
+            
+            if (roles.length > 0) {
+              await db.execute(
+                'INSERT INTO user_roles (user_id, role_id, is_active, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+                [result.insertId, roles[0].id, 1]
+              );
+            }
+          } catch (roleError) {
+            console.error('Error assigning user role for social login:', roleError);
+          }
 
           user = {
             id: result.insertId,
@@ -564,7 +602,6 @@ class AuthController {
             username: finalUsername,
             email,
             mobile,
-            role: 'user',
             is_active: true,
             is_blocked: false,
             is_verified: true
@@ -662,7 +699,7 @@ class AuthController {
 
       // Get user information
       const [users] = await db.execute(
-        'SELECT id, name, email, role, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
+        'SELECT id, name, email, username, mobile, profile_picture, is_active, is_blocked, is_verified FROM users WHERE id = ?',
         [session.user_id]
       );
 
@@ -745,7 +782,7 @@ class AuthController {
   async getProfile(req, res) {
     try {
       const [users] = await db.execute(
-        'SELECT id, name, email, username, mobile, role, profile_picture, created_at FROM users WHERE id = ?',
+        'SELECT id, name, email, username, mobile, profile_picture, created_at FROM users WHERE id = ?',
         [req.user.id]
       );
 
@@ -897,7 +934,7 @@ class AuthController {
 
       // Get updated user data
       const [users] = await db.execute(
-        'SELECT id, name, username, email, mobile, role, profile_picture, is_verified FROM users WHERE id = ?',
+        'SELECT id, name, username, email, mobile, profile_picture, is_verified FROM users WHERE id = ?',
         [userId]
       );
 
