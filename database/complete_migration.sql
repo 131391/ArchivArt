@@ -477,7 +477,6 @@ DROP PROCEDURE IF EXISTS DeleteRoleWithCascade;
 DROP PROCEDURE IF EXISTS DeleteUserWithCascade;
 
 -- Procedure to delete a module and all its related data
-DELIMITER //
 CREATE PROCEDURE DeleteModuleWithCascade(IN target_module_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -503,11 +502,9 @@ BEGIN
     DELETE FROM modules WHERE id = target_module_id;
     
     COMMIT;
-END //
-DELIMITER ;
+END;
 
 -- Procedure to delete a module action and all its related data
-DELIMITER //
 CREATE PROCEDURE DeleteModuleActionWithCascade(IN action_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -530,11 +527,9 @@ BEGIN
     DELETE FROM module_actions WHERE id = action_id;
     
     COMMIT;
-END //
-DELIMITER ;
+END;
 
 -- Procedure to delete a permission and all its related data
-DELIMITER //
 CREATE PROCEDURE DeletePermissionWithCascade(IN permission_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -552,11 +547,9 @@ BEGIN
     DELETE FROM permissions WHERE id = permission_id;
     
     COMMIT;
-END //
-DELIMITER ;
+END;
 
 -- Procedure to delete a role and all its related data
-DELIMITER //
 CREATE PROCEDURE DeleteRoleWithCascade(IN role_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -577,11 +570,9 @@ BEGIN
     DELETE FROM roles WHERE id = role_id AND is_system_role = 0;
     
     COMMIT;
-END //
-DELIMITER ;
+END;
 
 -- Procedure to delete a user and all their related data
-DELIMITER //
 CREATE PROCEDURE DeleteUserWithCascade(IN user_id INT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -611,8 +602,7 @@ BEGIN
     DELETE FROM users WHERE id = user_id;
     
     COMMIT;
-END //
-DELIMITER ;
+END;
 
 -- =====================================================
 -- MIGRATION SUMMARY
