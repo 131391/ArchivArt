@@ -41,7 +41,7 @@ const commonUploadConfig = {
   storage: memoryStorage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB limit
+    fileSize: 800 * 1024 * 1024 // 800MB limit
   }
 };
 
@@ -112,7 +112,7 @@ const scanningImageUpload = multer({
 const combinedUpload = multer({
   storage: memoryStorage,
   limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB limit for media files
+    fileSize: 800 * 1024 * 1024 // 800MB limit for media files
   },
   fileFilter: function (req, file, cb) {
     

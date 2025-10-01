@@ -81,7 +81,7 @@ function updateContentForMediaType(mediaType) {
         const configs = {
             video: {
                 title: 'Upload Video',
-                subtitle: 'Supported formats: MP4, AVI, MOV (Max: 100MB)',
+                subtitle: 'Supported formats: MP4, AVI, MOV (Max: 800MB)',
                 icon: 'fas fa-camera',
                 accept: 'video/*',
                 detailsTitle: 'Video Details',
@@ -90,7 +90,7 @@ function updateContentForMediaType(mediaType) {
             },
             audio: {
                 title: 'Upload Audio',
-                subtitle: 'Supported formats: MP3, WAV, M4A, OGG (Max: 100MB)',
+                subtitle: 'Supported formats: MP3, WAV, M4A, OGG (Max: 800MB)',
                 icon: 'fas fa-music',
                 accept: 'audio/*',
                 detailsTitle: 'Audio Details',
@@ -99,7 +99,7 @@ function updateContentForMediaType(mediaType) {
             },
             image: {
                 title: 'Upload Image',
-                subtitle: 'Supported formats: JPEG, PNG, GIF, WebP (Max: 100MB)',
+                subtitle: 'Supported formats: JPEG, PNG, GIF, WebP (Max: 800MB)',
                 icon: 'fas fa-image',
                 accept: 'image/*',
                 detailsTitle: 'Image Details',
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mediaConfigs = {
         video: {
             title: 'Upload Video',
-            subtitle: 'Supported formats: MP4, AVI, MOV (Max: 100MB)',
+            subtitle: 'Supported formats: MP4, AVI, MOV (Max: 800MB)',
             icon: 'fas fa-camera',
             accept: 'video/*',
             detailsTitle: 'Video Details',
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         audio: {
             title: 'Upload Audio',
-            subtitle: 'Supported formats: MP3, WAV, M4A, OGG (Max: 100MB)',
+            subtitle: 'Supported formats: MP3, WAV, M4A, OGG (Max: 800MB)',
             icon: 'fas fa-music',
             accept: 'audio/*',
             detailsTitle: 'Audio Details',
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Image configuration removed - only video and audio are needed
         // image: {
         //     title: 'Upload Image',
-        //     subtitle: 'Supported formats: JPEG, PNG, GIF, WebP (Max: 100MB)',
+        //     subtitle: 'Supported formats: JPEG, PNG, GIF, WebP (Max: 800MB)',
         //     icon: 'fas fa-image',
         //     accept: 'image/*',
         //     detailsTitle: 'Image Details',
@@ -493,10 +493,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Validate file size (100MB)
-        const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+        // Validate file size (800MB)
+        const maxSize = 800 * 1024 * 1024; // 800MB in bytes
         if (file.size > maxSize) {
-            showErrorToast('File size must be less than 100MB.');
+            showErrorToast('File size must be less than 800MB.');
             return;
         }
 
@@ -687,14 +687,22 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('scanning_image', selectedScanningImage);
         
         try {
+            // Create AbortController for timeout handling
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30 * 60 * 1000); // 30 minutes timeout
+            
             const response = await fetch('/admin/media/upload', {
                 method: 'POST',
                 body: formData,
                 credentials: 'same-origin',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                signal: controller.signal
             });
+            
+            // Clear timeout if request completes successfully
+            clearTimeout(timeoutId);
             
             // Hide loader immediately after API response
             if (typeof hideLoader === 'function') {
@@ -744,7 +752,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 hideLoader();
             }
             
-            showErrorToast('Error uploading media. Please try again.');
+            // Handle specific error types
+            if (error.name === 'AbortError') {
+                showErrorToast('Upload timeout. The file may be too large or connection is slow. Please try again.');
+            } else if (error.message && error.message.includes('fetch')) {
+                showErrorToast('Network error during upload. Please check your connection and try again.');
+            } else {
+                showErrorToast('Error uploading media. Please try again.');
+            }
+            
+            console.error('Upload error:', error);
         } finally {
             // Reset button state
             submitButton.disabled = false;

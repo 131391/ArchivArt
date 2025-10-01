@@ -207,7 +207,7 @@ const validateFileUpload = (req, res, next) => {
   
   const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
   const allowedMediaTypes = ['video/mp4', 'video/webm', 'video/ogg', 'audio/mpeg', 'audio/wav', 'audio/ogg'];
-  const maxFileSize = 50 * 1024 * 1024; // 50MB
+  const maxFileSize = 800 * 1024 * 1024; // 800MB
   
   for (const [fieldName, files] of Object.entries(req.files)) {
     const fileArray = Array.isArray(files) ? files : [files];
@@ -216,7 +216,7 @@ const validateFileUpload = (req, res, next) => {
       // Check file size
       if (file.size > maxFileSize) {
         return res.status(400).json({ 
-          error: `File ${file.originalname} is too large. Maximum size is 50MB` 
+          error: `File ${file.originalname} is too large. Maximum size is 800MB` 
         });
       }
       

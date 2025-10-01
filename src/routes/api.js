@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { mediaUpload, profileUpload } = require('../config/multer');
+const { mediaUpload, profileUpload, textOnlyParser } = require('../config/multer');
 const authController = require('../controllers/authController');
 const mediaController = require('../controllers/mediaController');
 const { body } = require('express-validator');
@@ -76,8 +76,15 @@ router.get('/auth/profile', [
 
 router.put('/auth/profile', [
   authenticateToken,
+  textOnlyParser, // Parse FormData fields without file uploads
   preventSQLInjection,
-  commonValidations.name,
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z0-9\s\-'\.]+$/)
+    .withMessage('Name can only contain letters, numbers, spaces, hyphens, apostrophes, and periods'),
   body('profile_picture').optional().isString().withMessage('Profile picture must be a valid base64 string'),
   body('mobile').optional().isMobilePhone().withMessage('Invalid mobile number format'),
   validateInput

@@ -667,5 +667,31 @@ SELECT 'Password: admin123' as credential;
 SELECT '=====================================================' as info;
 
 -- =====================================================
+-- SECURITY TABLES
+-- =====================================================
+
+-- Security events table for logging security-related activities
+CREATE TABLE IF NOT EXISTS security_events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    event_type VARCHAR(100) NOT NULL COMMENT 'Type of security event (login, logout, failed_login, etc.)',
+    user_id INT NULL COMMENT 'User ID if event is user-related',
+    ip_address VARCHAR(45) NULL COMMENT 'IP address of the event source',
+    user_agent TEXT NOT NULL COMMENT 'User agent string from the request',
+    event_data JSON NULL COMMENT 'Additional event data in JSON format',
+    severity ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium' COMMENT 'Event severity level',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Event timestamp',
+    
+    -- Indexes for performance
+    INDEX idx_event_type (event_type),
+    INDEX idx_user_id (user_id),
+    INDEX idx_ip_address (ip_address),
+    INDEX idx_severity (severity),
+    INDEX idx_created_at (created_at),
+    
+    -- Foreign key constraints
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Security events logging table';
+
+-- =====================================================
 -- MIGRATION COMPLETE
 -- =====================================================

@@ -44,8 +44,8 @@ app.use(requestLogger);
 app.set('trust proxy', 1);
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '800mb' }));
+app.use(express.urlencoded({ extended: true, limit: '800mb' }));
 
 // Security middleware
 app.use(mongoSanitize);
@@ -209,8 +209,8 @@ app.use((req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server with timeout configurations for large file uploads
+const server = app.listen(PORT, () => {
   // Start keep-alive service for production
   if (process.env.NODE_ENV === 'production') {
     const keepAlive = () => {
@@ -225,5 +225,14 @@ app.listen(PORT, () => {
     setTimeout(keepAlive, 60000); // Start after 1 minute
   }
 });
+
+// Configure server timeouts for large file uploads
+server.timeout = 30 * 60 * 1000; // 30 minutes timeout
+server.keepAliveTimeout = 30 * 60 * 1000; // 30 minutes keep-alive timeout
+server.headersTimeout = 35 * 60 * 1000; // 35 minutes headers timeout
+
+console.log(`Server started on port ${PORT}`);
+console.log(`Server timeout configured: ${server.timeout / 1000 / 60} minutes`);
+console.log(`Keep-alive timeout configured: ${server.keepAliveTimeout / 1000 / 60} minutes`);
 
 module.exports = app;
