@@ -199,7 +199,12 @@ const requireAuth = (req, res, next) => {
 
 // Middleware for admin web routes - use RBAC system
 const requireAdminWeb = async (req, res, next) => {
+  const isAjax = req.xhr || req.headers.accept?.indexOf('json') > -1;
+  
   if (!req.session.user) {
+    if (isAjax) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
     req.flash('error_msg', 'Admin panel access required');
     return res.redirect('/admin/login');
   }
@@ -210,6 +215,9 @@ const requireAdminWeb = async (req, res, next) => {
     const primaryRole = await UserRole.getUserPrimaryRole(req.session.user.id);
     
     if (!primaryRole) {
+      if (isAjax) {
+        return res.status(403).json({ success: false, error: 'Admin panel access required' });
+      }
       req.flash('error_msg', 'Admin panel access required');
       return res.redirect('/admin/login');
     }
@@ -218,6 +226,9 @@ const requireAdminWeb = async (req, res, next) => {
     const hasDashboardPermission = await UserRole.hasPermission(req.session.user.id, 'dashboard.view');
     
     if (!hasDashboardPermission) {
+      if (isAjax) {
+        return res.status(403).json({ success: false, error: 'You don\'t have permission to access the admin panel' });
+      }
       req.flash('error_msg', 'You don\'t have permission to access the admin panel');
       return res.redirect('/admin/login');
     }
@@ -228,6 +239,9 @@ const requireAdminWeb = async (req, res, next) => {
     
   } catch (error) {
     console.error('Error checking user role:', error);
+    if (isAjax) {
+      return res.status(500).json({ success: false, error: 'Admin panel access required' });
+    }
     req.flash('error_msg', 'Admin panel access required');
     return res.redirect('/admin/login');
   }
@@ -235,6 +249,9 @@ const requireAdminWeb = async (req, res, next) => {
   // Check if user is still active (handle existing sessions that might not have these fields)
   if (req.session.user.is_active === false || req.session.user.is_blocked === true) {
     req.session.destroy();
+    if (isAjax) {
+      return res.status(403).json({ success: false, error: 'Your account has been deactivated' });
+    }
     req.flash('error_msg', 'Your account has been deactivated');
     return res.redirect('/admin/login');
   }

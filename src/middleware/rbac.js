@@ -86,14 +86,18 @@ const hasModuleActionPermission = (moduleName, actionName) => {
     };
 };
 
-// Check if user has permission for a specific module and action (Web version - redirects to login)
+// Check if user has permission for a specific module and action (Web version - redirects to login or returns JSON for AJAX)
 const hasModuleActionPermissionWeb = (moduleName, actionName) => {
     return async (req, res, next) => {
         try {
+            const isAjax = req.xhr || req.headers.accept?.indexOf('json') > -1;
             console.log(`🔒 Permission check: ${moduleName}.${actionName} for user ${req.session?.userId}`);
             
             if (!req.session || !req.session.userId) {
                 console.log('❌ No session or userId found');
+                if (isAjax) {
+                    return res.status(401).json({ success: false, error: 'Authentication required' });
+                }
                 req.flash('error_msg', 'Authentication required');
                 return res.redirect('/admin/login');
             }
@@ -106,6 +110,13 @@ const hasModuleActionPermissionWeb = (moduleName, actionName) => {
             
             if (!hasAccess) {
                 console.log(`❌ Access denied for ${permissionName}`);
+                if (isAjax) {
+                    return res.status(403).json({ 
+                        success: false, 
+                        error: `Access denied. You don't have permission to ${actionName} ${moduleName}.`,
+                        required: permissionName 
+                    });
+                }
                 req.flash('error_msg', `Access denied. You don't have permission to access ${moduleName}. Required permission: ${permissionName}`);
                 return res.redirect('/admin/profile');
             }
@@ -114,6 +125,10 @@ const hasModuleActionPermissionWeb = (moduleName, actionName) => {
             next();
         } catch (error) {
             console.error('Permission check error:', error);
+            const isAjax = req.xhr || req.headers.accept?.indexOf('json') > -1;
+            if (isAjax) {
+                return res.status(500).json({ success: false, error: 'Permission check failed' });
+            }
             req.flash('error_msg', 'Permission check failed');
             return res.redirect('/admin/profile');
         }
