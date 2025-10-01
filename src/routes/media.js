@@ -109,7 +109,9 @@ router.get('/:id', [
 
 // Update media text fields only (title and description) - no file uploads
 router.put('/:id/text', [
-  requireAdminWeb, 
+  requireAdmin,
+  addUserPermissions,
+  hasModuleActionPermission('media', 'edit'),
   strictRateLimit,
   textOnlyParser, // Parse form data but reject any files
   preventSQLInjection,
@@ -131,9 +133,9 @@ router.put('/:id/text', [
 
 // Update media (rejects file uploads - use /:id/text for text-only updates)
 router.put('/:id', [
-  requireAdminWeb,
+  requireAdmin,
   addUserPermissions,
-  hasModuleActionPermissionWeb('media', 'edit'),
+  hasModuleActionPermission('media', 'edit'),
   strictRateLimit,
   preventSQLInjection,
   (req, res, next) => {
@@ -154,7 +156,9 @@ router.put('/:id', [
 
 // Toggle media status
 router.patch('/:id/toggle', [
-  requireAdminWeb, 
+  requireAdmin,
+  addUserPermissions,
+  hasModuleActionPermission('media', 'edit'),
   strictRateLimit,
   preventSQLInjection,
   (req, res, next) => {
@@ -172,9 +176,9 @@ router.patch('/:id/toggle', [
 
 // Delete media
 router.delete('/:id', [
-  requireAdminWeb,
+  requireAdmin,
   addUserPermissions,
-  hasModuleActionPermissionWeb('media', 'delete'),
+  hasModuleActionPermission('media', 'delete'),
   strictRateLimit,
   preventSQLInjection,
   (req, res, next) => {
