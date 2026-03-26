@@ -314,22 +314,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tab switching functionality
     function switchTab(activeTab) {
         const mediaType = activeTab.getAttribute('data-type');
-        currentMediaType = mediaType;
-        
-        
-        // Update tab appearance - remove active class from all tabs
-        mediaTabs.forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        // Add active class to clicked tab
-        activeTab.classList.add('active');
-        
-        // Update content based on media type
-        updateContentForMediaType(mediaType);
-        
-        // Update form placeholders based on media type
-        updateFormPlaceholders(mediaType);
+        if (mediaType && typeof switchMediaType === 'function') {
+            switchMediaType(mediaType);
+        }
     }
 
     // Update form placeholders based on media type
@@ -403,53 +390,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Add click event listeners to tabs - Simplified approach
+    // Add click event listeners to tabs
     mediaTabs.forEach((tab, index) => {
         
         // Remove any existing event listeners
         tab.onclick = null;
         
-        // Add simple click handler
+        // Use the shared switchMediaType logic so active styling always matches
         tab.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             
-            // Simple tab switching
             const mediaType = this.getAttribute('data-type');
-            
-            // Remove active from all tabs
-            mediaTabs.forEach(t => t.classList.remove('active'));
-            
-            // Add active to clicked tab
-            this.classList.add('active');
-            
-            // Update content
-            updateContentForMediaType(mediaType);
-            updateFormPlaceholders(mediaType);
-            
+            if (mediaType && typeof switchMediaType === 'function') {
+                switchMediaType(mediaType);
+            }
         };
     });
 
-    // Set video as default active tab
-    setTimeout(() => {
-        const videoTab = document.querySelector('[data-type="video"]');
-        if (videoTab) {
-            // Remove active class from all tabs first
-            mediaTabs.forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Add active class to video tab
-            videoTab.classList.add('active');
-            
-            // Update content
-            updateContentForMediaType('video');
-            // Update form placeholders
-            updateFormPlaceholders('video');
-            
-        } else {
-        }
-    }, 200);
+    // Set video as default active tab with the same visual theme logic
+    if (typeof switchMediaType === 'function') {
+        switchMediaType('video');
+    }
 
     // Add keyboard navigation for tabs
     mediaTabs.forEach((tab, index) => {
