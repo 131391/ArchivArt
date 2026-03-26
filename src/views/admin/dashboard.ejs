@@ -1,211 +1,168 @@
 <!-- Dashboard Content -->
-<div class="space-y-4">
+<div class="space-y-6">
     <!-- Welcome Section -->
-    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-4 sm:p-6 lg:p-8 text-white relative overflow-hidden">
-        <div class="absolute inset-0 bg-black opacity-10"></div>
-        <div class="relative z-10">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <div class="flex-1">
-                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Welcome back, Admin! 👋</h1>
-                    <p class="text-indigo-100 text-base sm:text-lg">Here's what's happening with your ArchivART platform today.</p>
-                </div>
-                <div class="hidden sm:block">
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <i class="fas fa-chart-line text-2xl sm:text-3xl lg:text-4xl text-white"></i>
-                    </div>
-                </div>
+    <section class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 px-5 py-6 text-white shadow-sm sm:px-6 lg:px-8">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.25),transparent_45%)]"></div>
+        <div class="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold sm:text-3xl">Welcome back, Admin</h1>
+                <p class="mt-1.5 text-sm text-indigo-100 sm:text-base">Here is a quick overview of your ArchivArt platform today.</p>
+            </div>
+            <div class="hidden sm:flex h-14 w-14 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+                <i class="fas fa-chart-line text-xl text-white"></i>
             </div>
         </div>
-        <!-- Decorative elements -->
-        <div class="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-white opacity-5 rounded-full -translate-y-8 sm:-translate-y-12 lg:-translate-y-16 translate-x-8 sm:translate-x-12 lg:translate-x-16"></div>
-        <div class="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 lg:w-24 lg:h-24 bg-white opacity-5 rounded-full translate-y-6 sm:translate-y-8 lg:translate-y-12 -translate-x-6 sm:-translate-x-8 lg:-translate-x-12"></div>
-    </div>
+    </section>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <!-- Total Users -->
-        <div class="group bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-4 sm:p-6 hover:shadow-xl hover:shadow-blue-200/50 transition-all duration-300 hover:-translate-y-1">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fas fa-users text-white text-xl"></i>
+        <div class="admin-surface-card admin-surface-card-hover p-5">
+            <div class="mb-4 flex items-start justify-between">
+                <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                    <i class="fas fa-users text-lg"></i>
                 </div>
-                <div class="text-left sm:text-right">
-                    <div class="text-2xl sm:text-3xl font-bold text-gray-800"><%= stats.totalUsers || 0 %></div>
-                    <div class="text-sm text-blue-600 font-medium">Total Users</div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold text-slate-900"><%= stats.totalUsers || 0 %></p>
+                    <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Total Users</p>
                 </div>
             </div>
-            <div class="flex items-center justify-between">
-                <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('users.'))) { %>
-                <a href="/admin/users" class="text-blue-600 hover:text-blue-700 font-medium text-sm group-hover:underline transition-all">
-                    View all users
-                </a>
-                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                    <i class="fas fa-arrow-right text-blue-600 text-sm"></i>
-                </div>
-                <% } else { %>
-                <span class="text-gray-400 font-medium text-sm">
-                    View all users
-                </span>
-                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-lock text-gray-400 text-sm"></i>
-                </div>
-                <% } %>
-            </div>
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('users.'))) { %>
+            <a href="/admin/users" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
+                View all users
+                <i class="fas fa-arrow-right ml-2 text-xs"></i>
+            </a>
+            <% } else { %>
+            <span class="inline-flex items-center text-sm font-medium text-slate-400">
+                <i class="fas fa-lock mr-2 text-xs"></i>
+                View all users
+            </span>
+            <% } %>
         </div>
 
         <!-- Total Media -->
-        <div class="group bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-2xl p-6 hover:shadow-xl hover:shadow-emerald-200/50 transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fas fa-images text-white text-xl"></i>
-                    </div>
+        <div class="admin-surface-card admin-surface-card-hover p-5">
+            <div class="mb-4 flex items-start justify-between">
+                <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                    <i class="fas fa-images text-lg"></i>
+                </div>
                 <div class="text-right">
-                    <div class="text-3xl font-bold text-gray-800"><%= stats.totalMedia || 0 %></div>
-                    <div class="text-sm text-emerald-600 font-medium">Total Media</div>
+                    <p class="text-2xl font-bold text-slate-900"><%= stats.totalMedia || 0 %></p>
+                    <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Total Media</p>
                 </div>
             </div>
-            <div class="flex items-center justify-between">
-                <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.view'))) { %>
-                <a href="/admin/media" class="text-emerald-600 hover:text-emerald-700 font-medium text-sm group-hover:underline transition-all">
-                        View all media
-                    </a>
-                <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
-                    <i class="fas fa-arrow-right text-emerald-600 text-sm"></i>
-                </div>
-                <% } else { %>
-                <span class="text-gray-400 font-medium text-sm">
-                    View all media
-                </span>
-                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-lock text-gray-400 text-sm"></i>
-                </div>
-                <% } %>
-            </div>
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.view'))) { %>
+            <a href="/admin/media" class="inline-flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-700">
+                View all media
+                <i class="fas fa-arrow-right ml-2 text-xs"></i>
+            </a>
+            <% } else { %>
+            <span class="inline-flex items-center text-sm font-medium text-slate-400">
+                <i class="fas fa-lock mr-2 text-xs"></i>
+                View all media
+            </span>
+            <% } %>
         </div>
 
         <!-- Videos -->
-        <div class="group bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-2xl p-6 hover:shadow-xl hover:shadow-purple-200/50 transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fas fa-video text-white text-xl"></i>
-                    </div>
+        <div class="admin-surface-card admin-surface-card-hover p-5">
+            <div class="mb-4 flex items-start justify-between">
+                <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
+                    <i class="fas fa-video text-lg"></i>
+                </div>
                 <div class="text-right">
-                    <div class="text-3xl font-bold text-gray-800"><%= stats.totalVideos || 0 %></div>
-                    <div class="text-sm text-purple-600 font-medium">Videos</div>
+                    <p class="text-2xl font-bold text-slate-900"><%= stats.totalVideos || 0 %></p>
+                    <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Videos</p>
                 </div>
             </div>
-            <div class="flex items-center justify-between">
-                <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.view'))) { %>
-                <a href="/admin/media?type=video" class="text-purple-600 hover:text-purple-700 font-medium text-sm group-hover:underline transition-all">
-                        View videos
-                    </a>
-                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                    <i class="fas fa-arrow-right text-purple-600 text-sm"></i>
-                </div>
-                <% } else { %>
-                <span class="text-gray-400 font-medium text-sm">
-                    View videos
-                </span>
-                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-lock text-gray-400 text-sm"></i>
-                </div>
-                <% } %>
-            </div>
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.view'))) { %>
+            <a href="/admin/media?type=video" class="inline-flex items-center text-sm font-medium text-violet-600 hover:text-violet-700">
+                View videos
+                <i class="fas fa-arrow-right ml-2 text-xs"></i>
+            </a>
+            <% } else { %>
+            <span class="inline-flex items-center text-sm font-medium text-slate-400">
+                <i class="fas fa-lock mr-2 text-xs"></i>
+                View videos
+            </span>
+            <% } %>
         </div>
 
         <!-- Audio -->
-        <div class="group bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-2xl p-6 hover:shadow-xl hover:shadow-orange-200/50 transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fas fa-music text-white text-xl"></i>
-                    </div>
+        <div class="admin-surface-card admin-surface-card-hover p-5">
+            <div class="mb-4 flex items-start justify-between">
+                <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                    <i class="fas fa-music text-lg"></i>
+                </div>
                 <div class="text-right">
-                    <div class="text-3xl font-bold text-gray-800"><%= stats.totalAudio || 0 %></div>
-                    <div class="text-sm text-orange-600 font-medium">Audio</div>
+                    <p class="text-2xl font-bold text-slate-900"><%= stats.totalAudio || 0 %></p>
+                    <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Audio</p>
                 </div>
             </div>
-            <div class="flex items-center justify-between">
-                <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.view'))) { %>
-                <a href="/admin/media?type=audio" class="text-orange-600 hover:text-orange-700 font-medium text-sm group-hover:underline transition-all">
-                        View audio
-                    </a>
-                <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
-                    <i class="fas fa-arrow-right text-orange-600 text-sm"></i>
-                </div>
-                <% } else { %>
-                <span class="text-gray-400 font-medium text-sm">
-                    View audio
-                </span>
-                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-lock text-gray-400 text-sm"></i>
-                </div>
-                <% } %>
-            </div>
+            <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.view'))) { %>
+            <a href="/admin/media?type=audio" class="inline-flex items-center text-sm font-medium text-amber-600 hover:text-amber-700">
+                View audio
+                <i class="fas fa-arrow-right ml-2 text-xs"></i>
+            </a>
+            <% } else { %>
+            <span class="inline-flex items-center text-sm font-medium text-slate-400">
+                <i class="fas fa-lock mr-2 text-xs"></i>
+                View audio
+            </span>
+            <% } %>
         </div>
-    </div>
+    </section>
 
     <!-- Recent Activity -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <section class="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <!-- Recent Users -->
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
-            <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+        <div class="admin-surface-card overflow-hidden">
+            <div class="admin-surface-header bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white flex items-center">
-                        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-user-plus text-white text-sm"></i>
-                        </div>
+                    <h3 class="text-lg font-semibold text-slate-900 flex items-center">
+                        <span class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                            <i class="fas fa-user-plus text-sm"></i>
+                        </span>
                         Recent Users
-                </h3>
-                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-users text-white text-sm"></i>
-                    </div>
+                    </h3>
                 </div>
             </div>
-            <div class="p-6">
-                <div class="space-y-4">
-                        <% if (recentUsers && recentUsers.length > 0) { %>
-                        <% recentUsers.forEach((user, index) => { %>
-                            <div class="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group">
-                                <div class="relative">
-                                    <img class="h-12 w-12 rounded-full ring-2 ring-white shadow-md" src="https://ui-avatars.com/api/?name=<%= user.name %>&background=random&size=48" alt="<%= user.name %>">
-                                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                                                <%= user.name %>
-                                            </p>
-                                    <p class="text-xs text-gray-500 truncate">
-                                                <%= user.email %>
-                                            </p>
-                                        </div>
-                                <div class="text-right">
-                                    <div class="text-xs text-gray-400 font-medium">
-                                            <%= new Date(user.created_at).toLocaleDateString() %>
-                                        </div>
-                                    <div class="text-xs text-blue-500 font-medium">
-                                        New
-                                    </div>
-                                </div>
-                            </div>
-                            <% }); %>
-                        <% } else { %>
-                        <div class="text-center py-8">
-                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-user-plus text-gray-400 text-xl"></i>
-                            </div>
-                            <p class="text-gray-500 text-sm">No recent users</p>
+            <div class="p-5 sm:p-6">
+                <div class="space-y-3">
+                    <% if (recentUsers && recentUsers.length > 0) { %>
+                    <% recentUsers.forEach((user, index) => { %>
+                    <div class="flex items-center gap-3 rounded-xl border border-slate-100 p-3">
+                        <div class="relative">
+                            <img class="h-11 w-11 rounded-full object-cover" src="https://ui-avatars.com/api/?name=<%= user.name %>&background=random&size=48" alt="<%= user.name %>">
+                            <span class="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-400"></span>
                         </div>
-                        <% } %>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-semibold text-slate-900"><%= user.name %></p>
+                            <p class="truncate text-xs text-slate-500"><%= user.email %></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-slate-400"><%= new Date(user.created_at).toLocaleDateString() %></p>
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-600">New</p>
+                        </div>
+                    </div>
+                    <% }); %>
+                    <% } else { %>
+                    <div class="py-8 text-center">
+                        <div class="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <p class="text-sm text-slate-500">No recent users</p>
+                    </div>
+                    <% } %>
                 </div>
-                <div class="mt-6 pt-4 border-t border-gray-100">
+                <div class="mt-5 border-t border-slate-100 pt-4">
                     <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('users.'))) { %>
-                    <a href="/admin/users" class="w-full flex justify-center items-center px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg">
-                        <i class="fas fa-arrow-right mr-2"></i>
+                    <a href="/admin/users" class="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
                         View all users
                     </a>
                     <% } else { %>
-                    <div class="w-full flex justify-center items-center px-4 py-3 bg-gray-300 text-gray-500 text-sm font-medium rounded-xl cursor-not-allowed">
-                        <i class="fas fa-lock mr-2"></i>
+                    <div class="inline-flex w-full items-center justify-center rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-500">
+                        <i class="fas fa-lock mr-2 text-xs"></i>
                         View all users
                     </div>
                     <% } %>
@@ -214,207 +171,135 @@
         </div>
 
         <!-- Recent Media -->
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
-            <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white flex items-center">
-                        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-upload text-white text-sm"></i>
-                        </div>
-                        Recent Media
+        <div class="admin-surface-card overflow-hidden">
+            <div class="admin-surface-header bg-gradient-to-r from-emerald-50 to-teal-50">
+                <h3 class="text-lg font-semibold text-slate-900 flex items-center">
+                    <span class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                        <i class="fas fa-photo-video text-sm"></i>
+                    </span>
+                    Recent Media
                 </h3>
-                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-images text-white text-sm"></i>
-                    </div>
-                </div>
             </div>
-            <div class="p-6">
-                <div class="space-y-4">
-                        <% if (recentMedia && recentMedia.length > 0) { %>
-                        <% recentMedia.forEach((media, index) => { %>
-                            <div class="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group">
-                                <div class="relative">
-                                    <% if (media.scanning_image && media.scanning_image.trim() !== '') { %>
-                                        <img class="h-12 w-12 rounded-xl object-cover ring-2 ring-white shadow-md" src="<%= media.scanning_image.startsWith('/') ? media.scanning_image : '/uploads/scanning-images/' + media.scanning_image %>" alt="Media thumbnail" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
-                                        <div class="hidden h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 items-center justify-center ring-2 ring-white shadow-md">
-                                            <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %> text-emerald-600 text-lg"></i>
-                                        </div>
-                                    <% } else { %>
-                                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center ring-2 ring-white shadow-md">
-                                            <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %> text-emerald-600 text-lg"></i>
-                                        </div>
-                                    <% } %>
-                                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 border-2 border-white rounded-full"></div>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">
-                                                <%= media.title || 'Untitled' %>
-                                            </p>
-                                    <p class="text-xs text-gray-500 truncate flex items-center">
-                                        <i class="fas fa-<%= media.media_type === 'video' ? 'video' : 'music' %> mr-1 text-emerald-500"></i>
-                                                <%= media.media_type %>
-                                            </p>
-                                        </div>
-                                <div class="text-right">
-                                    <div class="text-xs text-gray-400 font-medium">
-                                            <%= media.created_at ? new Date(media.created_at).toLocaleDateString() : '-' %>
-                                        </div>
-                                    <div class="text-xs text-emerald-500 font-medium">
-                                        New
-                                    </div>
-                                </div>
+            <div class="p-5 sm:p-6">
+                <div class="space-y-3">
+                    <% if (recentMedia && recentMedia.length > 0) { %>
+                    <% recentMedia.forEach((media, index) => { %>
+                    <div class="flex items-center gap-3 rounded-xl border border-slate-100 p-3">
+                        <div class="relative">
+                            <% if (media.scanning_image && media.scanning_image.trim() !== '') { %>
+                            <img class="h-11 w-11 rounded-lg object-cover" src="<%= media.scanning_image.startsWith('/') ? media.scanning_image : '/uploads/scanning-images/' + media.scanning_image %>" alt="Media thumbnail" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                            <div class="hidden h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                                <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %>"></i>
                             </div>
-                            <% }); %>
-                        <% } else { %>
-                        <div class="text-center py-8">
-                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-upload text-gray-400 text-xl"></i>
+                            <% } else { %>
+                            <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                                <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %>"></i>
                             </div>
-                            <p class="text-gray-500 text-sm">No recent media</p>
+                            <% } %>
                         </div>
-                        <% } %>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-semibold text-slate-900"><%= media.title || 'Untitled' %></p>
+                            <p class="truncate text-xs text-slate-500"><%= media.media_type %></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-slate-400"><%= media.created_at ? new Date(media.created_at).toLocaleDateString() : '-' %></p>
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-600">New</p>
+                        </div>
+                    </div>
+                    <% }); %>
+                    <% } else { %>
+                    <div class="py-8 text-center">
+                        <div class="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <p class="text-sm text-slate-500">No recent media</p>
+                    </div>
+                    <% } %>
                 </div>
-                <div class="mt-6 pt-4 border-t border-gray-100">
+                <div class="mt-5 border-t border-slate-100 pt-4">
                     <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('media.view'))) { %>
-                    <a href="/admin/media" class="w-full flex justify-center items-center px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm font-medium rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg">
-                        <i class="fas fa-arrow-right mr-2"></i>
+                    <a href="/admin/media" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors">
                         View all media
                     </a>
                     <% } else { %>
-                    <div class="w-full flex justify-center items-center px-4 py-3 bg-gray-300 text-gray-500 text-sm font-medium rounded-xl cursor-not-allowed">
-                        <i class="fas fa-lock mr-2"></i>
+                    <div class="inline-flex w-full items-center justify-center rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-500">
+                        <i class="fas fa-lock mr-2 text-xs"></i>
                         View all media
                     </div>
                     <% } %>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-white flex items-center">
-                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                        <i class="fas fa-bolt text-white text-sm"></i>
-                    </div>
-                    Quick Actions
+    <section class="admin-surface-card overflow-hidden">
+        <div class="admin-surface-header bg-gradient-to-r from-violet-50 to-fuchsia-50">
+            <h3 class="text-lg font-semibold text-slate-900 flex items-center">
+                <span class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
+                    <i class="fas fa-bolt text-sm"></i>
+                </span>
+                Quick Actions
             </h3>
-                <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-rocket text-white text-sm"></i>
-                </div>
-            </div>
         </div>
-        <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Upload Media -->
+        <div class="p-5 sm:p-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'media.upload')) { %>
-                <a href="/admin/media/upload" class="group relative bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white hover:shadow-xl hover:shadow-indigo-200/50 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                    <div class="absolute inset-0 bg-black opacity-10 group-hover:opacity-20 transition-opacity"></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-upload text-white text-xl"></i>
-                        </div>
-                        <h4 class="text-lg font-semibold mb-2">Upload Media</h4>
-                        <p class="text-indigo-100 text-sm">Add new videos, audio, and images to your archive</p>
-                        <div class="mt-4 flex items-center text-sm font-medium">
-                            <span>Get Started</span>
-                            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
+                <a href="/admin/media/upload" class="admin-surface-card admin-surface-card-hover p-4">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                        <i class="fas fa-upload"></i>
                     </div>
-                    <!-- Decorative elements -->
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-white opacity-5 rounded-full -translate-y-10 translate-x-10"></div>
+                    <h4 class="text-sm font-semibold text-slate-900">Upload Media</h4>
+                    <p class="mt-1 text-xs text-slate-500">Add new videos, audio, and trigger images.</p>
                 </a>
                 <% } else { %>
-                <div class="group relative bg-gradient-to-br from-gray-400 to-gray-500 rounded-2xl p-6 text-white cursor-not-allowed opacity-60">
-                    <div class="absolute inset-0 bg-black opacity-10"></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-4">
-                            <i class="fas fa-lock text-white text-xl"></i>
-                        </div>
-                        <h4 class="text-lg font-semibold mb-2">Upload Media</h4>
-                        <p class="text-gray-100 text-sm">Add new videos, audio, and images to your archive</p>
-                        <div class="mt-4 flex items-center text-sm font-medium">
-                            <span>Access Denied</span>
-                            <i class="fas fa-lock ml-2"></i>
-                        </div>
+                <div class="admin-surface-card p-4 opacity-60">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                        <i class="fas fa-lock"></i>
                     </div>
+                    <h4 class="text-sm font-semibold text-slate-700">Upload Media</h4>
+                    <p class="mt-1 text-xs text-slate-500">Access denied.</p>
                 </div>
                 <% } %>
 
-                <!-- Manage Users -->
                 <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name && p.name.startsWith('users.'))) { %>
-                <a href="/admin/users" class="group relative bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white hover:shadow-xl hover:shadow-emerald-200/50 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                    <div class="absolute inset-0 bg-black opacity-10 group-hover:opacity-20 transition-opacity"></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-users text-white text-xl"></i>
-                        </div>
-                        <h4 class="text-lg font-semibold mb-2">Manage Users</h4>
-                        <p class="text-emerald-100 text-sm">View, edit, and manage user accounts and permissions</p>
-                        <div class="mt-4 flex items-center text-sm font-medium">
-                            <span>Manage</span>
-                            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
+                <a href="/admin/users" class="admin-surface-card admin-surface-card-hover p-4">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                        <i class="fas fa-users"></i>
                     </div>
-                    <!-- Decorative elements -->
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-white opacity-5 rounded-full -translate-y-10 translate-x-10"></div>
+                    <h4 class="text-sm font-semibold text-slate-900">Manage Users</h4>
+                    <p class="mt-1 text-xs text-slate-500">View and manage user accounts.</p>
                 </a>
                 <% } else { %>
-                <div class="group relative bg-gradient-to-br from-gray-400 to-gray-500 rounded-2xl p-6 text-white cursor-not-allowed opacity-60">
-                    <div class="absolute inset-0 bg-black opacity-10"></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-4">
-                            <i class="fas fa-lock text-white text-xl"></i>
-                        </div>
-                        <h4 class="text-lg font-semibold mb-2">Manage Users</h4>
-                        <p class="text-gray-100 text-sm">View, edit, and manage user accounts and permissions</p>
-                        <div class="mt-4 flex items-center text-sm font-medium">
-                            <span>Access Denied</span>
-                            <i class="fas fa-lock ml-2"></i>
-                        </div>
+                <div class="admin-surface-card p-4 opacity-60">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                        <i class="fas fa-lock"></i>
                     </div>
+                    <h4 class="text-sm font-semibold text-slate-700">Manage Users</h4>
+                    <p class="mt-1 text-xs text-slate-500">Access denied.</p>
                 </div>
                 <% } %>
 
-                <!-- RBAC Management -->
                 <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.view')) { %>
-                <a href="/admin/rbac" class="group relative bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 text-white hover:shadow-xl hover:shadow-purple-200/50 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                    <div class="absolute inset-0 bg-black opacity-10 group-hover:opacity-20 transition-opacity"></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-shield-alt text-white text-xl"></i>
-                        </div>
-                        <h4 class="text-lg font-semibold mb-2">RBAC Management</h4>
-                        <p class="text-purple-100 text-sm">Manage roles, permissions, and access control</p>
-                        <div class="mt-4 flex items-center text-sm font-medium">
-                            <span>Manage</span>
-                            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
+                <a href="/admin/rbac" class="admin-surface-card admin-surface-card-hover p-4">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
+                        <i class="fas fa-shield-alt"></i>
                     </div>
-                    <!-- Decorative elements -->
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-white opacity-5 rounded-full -translate-y-10 translate-x-10"></div>
+                    <h4 class="text-sm font-semibold text-slate-900">RBAC Management</h4>
+                    <p class="mt-1 text-xs text-slate-500">Manage roles and permissions.</p>
                 </a>
                 <% } else { %>
-                <div class="group relative bg-gradient-to-br from-gray-400 to-gray-500 rounded-2xl p-6 text-white cursor-not-allowed opacity-60">
-                    <div class="absolute inset-0 bg-black opacity-10"></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-4">
-                            <i class="fas fa-lock text-white text-xl"></i>
-                        </div>
-                        <h4 class="text-lg font-semibold mb-2">RBAC Management</h4>
-                        <p class="text-gray-100 text-sm">Manage roles, permissions, and access control</p>
-                        <div class="mt-4 flex items-center text-sm font-medium">
-                            <span>Access Denied</span>
-                            <i class="fas fa-lock ml-2"></i>
-                        </div>
+                <div class="admin-surface-card p-4 opacity-60">
+                    <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                        <i class="fas fa-lock"></i>
                     </div>
+                    <h4 class="text-sm font-semibold text-slate-700">RBAC Management</h4>
+                    <p class="mt-1 text-xs text-slate-500">Access denied.</p>
                 </div>
                 <% } %>
             </div>
         </div>
-    </div>
+    </section>
 </div>
 
 <% if (success_msg && success_msg.length > 0) { %>

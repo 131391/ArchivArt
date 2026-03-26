@@ -207,82 +207,99 @@ function viewUser(userId) {
                     return;
                 }
                 
+                const userStatus = getStatusText(user);
+                const isActive = userStatus === 'Active';
+                const isBlocked = userStatus === 'Blocked';
+                const statusTone = isActive
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : (isBlocked ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-100 text-slate-700 border-slate-200');
+                const statusDotTone = isActive ? 'bg-emerald-500' : (isBlocked ? 'bg-rose-500' : 'bg-slate-500');
+                const statusIcon = isActive ? 'fa-check' : (isBlocked ? 'fa-ban' : 'fa-pause');
+                const createdDate = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A';
+                const updatedDate = user.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'N/A';
+                const daysSince = user.created_at ? Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24)) : 0;
+
                 const userDetails = `
-                    <div class="space-y-8">
-                        <!-- User Profile Header -->
-                        <div class="text-center">
-                            <div class="relative inline-block">
-                                <img class="h-24 w-24 rounded-full mx-auto shadow-lg" src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=ffffff&size=96" alt="${user.name}">
-                                <div class="absolute -bottom-2 -right-2 w-8 h-8 ${getStatusText(user) === 'Active' ? 'bg-green-500' : 'bg-red-500'} border-4 border-white rounded-full flex items-center justify-center">
-                                    <i class="fas fa-check text-white text-xs"></i>
+                    <div class="space-y-3.5">
+                        <div class="rounded-xl border border-slate-200 bg-gradient-to-b from-indigo-50/70 to-white p-3.5 sm:p-4">
+                            <div class="flex flex-col items-center text-center">
+                                <div class="relative inline-flex">
+                                    <img class="h-16 w-16 rounded-full ring-2 ring-white shadow-sm" src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=ffffff&size=96" alt="${user.name}">
+                                    <div class="absolute -bottom-0.5 -right-0.5 h-5 w-5 ${statusDotTone} border border-white rounded-full flex items-center justify-center">
+                                        <i class="fas ${statusIcon} text-white text-[10px]"></i>
+                                    </div>
                                 </div>
+                                <h3 class="text-lg font-bold text-slate-900 mt-2">${user.name}</h3>
+                                <p class="text-xs text-slate-600 mt-0.5 break-all">${user.email}</p>
+                                <span class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${statusTone}">
+                                    <span class="h-1.5 w-1.5 rounded-full ${statusDotTone}"></span>
+                                    ${userStatus}
+                                </span>
                             </div>
-                            <h3 class="text-2xl font-bold text-gray-900 mt-4 mb-1">${user.name}</h3>
-                            <p class="text-gray-600 mb-4">${user.email}</p>
-                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusText(user) === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                <div class="w-2 h-2 rounded-full mr-2 ${getStatusText(user) === 'Active' ? 'bg-green-500' : 'bg-red-500'}"></div>
-                                ${getStatusText(user)}
-                            </span>
                         </div>
 
-                        <!-- User Information -->
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between py-3 border-b border-gray-100">
-                                <div class="flex items-center">
-                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                                        <i class="fas fa-user-tag text-blue-600 text-sm"></i>
+                        <div class="rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3">
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between gap-3 rounded-lg px-2 py-2 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-6 w-6 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center">
+                                            <i class="fas fa-user-tag text-xs"></i>
+                                        </div>
+                                        <span class="text-xs font-medium text-slate-600">Role</span>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-700">Role</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
                                     ${user.role_display_name ? `
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-700">
                                             ${user.role_display_name}
                                         </span>
                                     ` : `
-                                        <span class="text-sm font-semibold text-gray-500 italic">No Role Assigned</span>
+                                        <span class="text-xs font-semibold text-slate-400 italic">No Role Assigned</span>
                                     `}
                                 </div>
-                            </div>
 
-                            <div class="flex items-center justify-between py-3 border-b border-gray-100">
-                                <div class="flex items-center">
-                                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                                        <i class="fas fa-calendar-plus text-green-600 text-sm"></i>
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-700">Created</span>
-                                </div>
-                                <span class="text-sm font-semibold text-gray-900">${new Date(user.created_at).toLocaleDateString()}</span>
-                            </div>
+                                <div class="h-px bg-slate-100"></div>
 
-                            <div class="flex items-center justify-between py-3 border-b border-gray-100">
-                                <div class="flex items-center">
-                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                                        <i class="fas fa-clock text-purple-600 text-sm"></i>
+                                <div class="flex items-center justify-between gap-3 rounded-lg px-2 py-2 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-6 w-6 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                            <i class="fas fa-calendar-plus text-xs"></i>
+                                        </div>
+                                        <span class="text-xs font-medium text-slate-600">Created</span>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-700">Last Updated</span>
+                                    <span class="text-xs font-semibold text-slate-900">${createdDate}</span>
                                 </div>
-                                <span class="text-sm font-semibold text-gray-900">${new Date(user.updated_at).toLocaleDateString()}</span>
-                            </div>
 
-                            <div class="flex items-center justify-between py-3">
-                                <div class="flex items-center">
-                                    <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-                                        <i class="fas fa-hashtag text-gray-600 text-sm"></i>
+                                <div class="h-px bg-slate-100"></div>
+
+                                <div class="flex items-center justify-between gap-3 rounded-lg px-2 py-2 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-6 w-6 rounded-md bg-violet-100 text-violet-600 flex items-center justify-center">
+                                            <i class="fas fa-clock text-xs"></i>
+                                        </div>
+                                        <span class="text-xs font-medium text-slate-600">Last Updated</span>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-700">User ID</span>
+                                    <span class="text-xs font-semibold text-slate-900">${updatedDate}</span>
                                 </div>
-                                <span class="text-sm font-semibold text-gray-900">#${user.id}</span>
+
+                                <div class="h-px bg-slate-100"></div>
+
+                                <div class="flex items-center justify-between gap-3 rounded-lg px-2 py-2 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-6 w-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center">
+                                            <i class="fas fa-hashtag text-xs"></i>
+                                        </div>
+                                        <span class="text-xs font-medium text-slate-600">User ID</span>
+                                    </div>
+                                    <span class="text-xs font-semibold text-slate-900">#${user.id}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Member Since Info -->
-                        <div class="bg-gray-50 rounded-lg p-4 text-center">
-                            <div class="flex items-center justify-center mb-2">
-                                <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
-                                <span class="text-sm font-medium text-gray-700">Member Since</span>
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-center">
+                            <div class="inline-flex items-center text-slate-500 text-[10px] font-semibold uppercase tracking-wide">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                Member Since
                             </div>
-                            <p class="text-lg font-bold text-gray-900">${Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24))} days</p>
+                            <p class="text-base font-bold text-slate-900 mt-1">${daysSince} days</p>
                         </div>
                     </div>
                 `;

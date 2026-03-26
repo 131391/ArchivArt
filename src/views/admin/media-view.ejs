@@ -13,10 +13,10 @@
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to Media List
                     </a>
-                    <button data-media-id="<%= media.id %>" class="edit-media-btn inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    <a href="/admin/media/edit/<%= media.id %>" class="edit-media-btn inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                         <i class="fas fa-edit mr-2"></i>
                         Edit Media
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -373,14 +373,6 @@
         }
 
         // Edit media button event listener
-        const editMediaBtn = document.querySelector('.edit-media-btn');
-        if (editMediaBtn) {
-            editMediaBtn.addEventListener('click', function() {
-                const mediaId = this.getAttribute('data-media-id');
-                editMedia(mediaId);
-            });
-        }
-
         // Toggle status button event listener
         const toggleStatusBtn = document.querySelector('.toggle-status-btn');
         if (toggleStatusBtn) {
