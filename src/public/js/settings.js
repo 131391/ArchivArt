@@ -93,6 +93,21 @@ function validateForm(form, type) {
         if (smtpUser && !smtpUser.includes('@')) {
             errors.push('SMTP username must be a valid email address');
         }
+    } else if (type === 'ocr') {
+        const activeProvider = form.querySelector('#ocr_provider').value;
+        const fallbackProvider = form.querySelector('#ocr_fallback_provider').value;
+
+        if (!['google', 'tesseract'].includes(activeProvider)) {
+            errors.push('Please select a valid active OCR provider');
+        }
+
+        if (!['none', 'google', 'tesseract'].includes(fallbackProvider)) {
+            errors.push('Please select a valid fallback OCR provider');
+        }
+
+        if (fallbackProvider !== 'none' && fallbackProvider === activeProvider) {
+            errors.push('Fallback provider must be different from active provider');
+        }
     }
     
     return errors;
@@ -135,17 +150,18 @@ async function handleFormSubmission(form, type) {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
     
-    // Create FormData
-    const formData = new FormData(form);
+    const isBrandForm = type === 'brand';
+    const payload = isBrandForm ? new FormData(form) : new URLSearchParams(new FormData(form));
     
     try {
         const response = await fetch('/admin/settings', {
             method: 'POST',
-            body: formData,
+            body: payload,
             credentials: 'same-origin',
             headers: {
                 'X-Settings-Type': type,
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(isBrandForm ? {} : { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' })
             }
         });
         
@@ -237,4 +253,5 @@ document.addEventListener('DOMContentLoaded', function() {
     bindSettingsForm('awsForm', 'aws');
     bindSettingsForm('securityForm', 'security');
     bindSettingsForm('emailForm', 'email');
+    bindSettingsForm('ocrForm', 'ocr');
 });

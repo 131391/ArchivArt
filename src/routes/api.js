@@ -4,6 +4,8 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const { mediaUpload, profileUpload, textOnlyParser } = require('../config/multer');
 const authController = require('../controllers/authController');
 const mediaController = require('../controllers/mediaController');
+const ocrProviderService = require('../services/ocrProviderService');
+const db = require('../config/database');
 const { body } = require('express-validator');
 const { 
   authRateLimit, 
@@ -110,5 +112,64 @@ router.get('/media/:id', [
 router.get('/media', [
   preventSQLInjection
 ], mediaController.getAllActiveMedia);
+
+// OCR provider-aware test endpoint (uses selected provider from admin settings/runtime env)
+router.post('/ocr/extract-auto', [
+  apiRateLimit,
+  preventSQLInjection,
+  body('image_path').isString().notEmpty().withMessage('image_path is required'),
+  body('language').optional().isString(),
+  body('preprocess').optional().isBoolean(),
+  body('auto_rotate').optional().isBoolean(),
+  body('improve_readability').optional().isBoolean(),
+  body('post_process').optional().isBoolean(),
+  validateInput
+], async (req, res) => {
+  try {
+    const { image_path, language, preprocess, auto_rotate, improve_readability, post_process } = req.body;
+    const options = {};
+
+    // Sync runtime provider config from persisted settings for reliable API behavior.
+    try {
+      const [rows] = await db.execute(
+        'SELECT ocr_provider, ocr_fallback_provider FROM settings ORDER BY id ASC LIMIT 1'
+      );
+      if (rows.length) {
+        process.env.OCR_PROVIDER = (rows[0].ocr_provider || process.env.OCR_PROVIDER || 'tesseract').trim().toLowerCase();
+        process.env.OCR_FALLBACK_PROVIDER = (rows[0].ocr_fallback_provider || '').trim().toLowerCase();
+      }
+    } catch (settingsError) {
+      // Non-fatal: continue with current runtime values.
+    }
+
+    if (language !== undefined) options.language = language;
+    if (preprocess !== undefined) options.preprocess = preprocess;
+    if (auto_rotate !== undefined) options.auto_rotate = auto_rotate;
+    if (improve_readability !== undefined) options.improve_readability = improve_readability;
+    if (post_process !== undefined) options.post_process = post_process;
+
+    const result = await ocrProviderService.extractText(image_path, options);
+    const providerConfig = ocrProviderService.getConfig();
+
+    return res.status(result?.success ? 200 : 400).json({
+      success: Boolean(result?.success),
+      provider: result?.provider || providerConfig.provider,
+      provider_config: providerConfig,
+      text: result?.text || '',
+      confidence: result?.confidence || 0,
+      language: result?.language || (language || null),
+      word_count: result?.wordCount || 0,
+      character_count: result?.characterCount || 0,
+      processing_time: result?.processingTime || null,
+      error: result?.error || null,
+      fallback_error: result?.fallbackError || null
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'OCR extraction failed'
+    });
+  }
+});
 
 module.exports = router;

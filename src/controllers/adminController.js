@@ -5,6 +5,24 @@ const { checkPermission, checkModulePermission, getUserRoleName } = require('../
 const TableUtils = require('../utils/tableUtils');
 const S3Service = require('../services/s3Service');
 
+async function ensureSettingsOcrColumns() {
+  const [existing] = await db.execute(
+    `SELECT COLUMN_NAME
+     FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME = 'settings'
+       AND COLUMN_NAME IN ('ocr_provider', 'ocr_fallback_provider')`
+  );
+
+  const columns = new Set(existing.map((row) => row.COLUMN_NAME));
+  if (!columns.has('ocr_provider')) {
+    await db.execute("ALTER TABLE settings ADD COLUMN ocr_provider VARCHAR(20) DEFAULT 'tesseract' AFTER smtp_password");
+  }
+  if (!columns.has('ocr_fallback_provider')) {
+    await db.execute("ALTER TABLE settings ADD COLUMN ocr_fallback_provider VARCHAR(20) DEFAULT NULL AFTER ocr_provider");
+  }
+}
+
 class AdminController {
   // Dashboard
   async dashboard(req, res) {
@@ -566,6 +584,50 @@ class AdminController {
     try {
       const settingsType = req.headers['x-settings-type'] || 'general';
       const { logoUpload } = require('../config/multer');
+      
+      if (settingsType === 'ocr') {
+        const activeProviderRaw = (req.body.active_provider || '').trim().toLowerCase();
+        const fallbackProviderRaw = (req.body.fallback_provider || '').trim().toLowerCase();
+
+        if (!['google', 'tesseract'].includes(activeProviderRaw)) {
+          return res.status(400).json({ success: false, message: 'Invalid active OCR provider selected' });
+        }
+
+        if (!['none', 'google', 'tesseract', ''].includes(fallbackProviderRaw)) {
+          return res.status(400).json({ success: false, message: 'Invalid fallback OCR provider selected' });
+        }
+
+        const fallbackProvider = fallbackProviderRaw === 'none' ? '' : fallbackProviderRaw;
+        if (fallbackProvider && fallbackProvider === activeProviderRaw) {
+          return res.status(400).json({ success: false, message: 'Fallback provider must be different from active provider' });
+        }
+
+        await ensureSettingsOcrColumns();
+        const [existingSettings] = await db.execute('SELECT id FROM settings LIMIT 1');
+
+        if (existingSettings.length > 0) {
+          await db.execute(
+            `UPDATE settings
+             SET ocr_provider = ?, ocr_fallback_provider = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE id = ?`,
+            [activeProviderRaw, fallbackProvider || null, existingSettings[0].id]
+          );
+        } else {
+          await db.execute(
+            `INSERT INTO settings (ocr_provider, ocr_fallback_provider, created_at, updated_at)
+             VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+            [activeProviderRaw, fallbackProvider || null]
+          );
+        }
+
+        process.env.OCR_PROVIDER = activeProviderRaw;
+        process.env.OCR_FALLBACK_PROVIDER = fallbackProvider;
+
+        return res.json({
+          success: true,
+          message: 'OCR provider settings saved successfully'
+        });
+      }
       
       
       // Handle different settings types

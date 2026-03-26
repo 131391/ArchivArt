@@ -90,6 +90,13 @@ class Metrics:
 
 metrics = Metrics() if config.ENABLE_METRICS else None
 
+
+def with_ocr_provider(result: Dict[str, Any], provider: str = "tesseract") -> Dict[str, Any]:
+    """Attach OCR provider name for client-side clarity."""
+    if isinstance(result, dict):
+        result.setdefault("provider", provider)
+    return result
+
 def extract_features(image_path: str) -> Optional[List[List[int]]]:
     """
     Extract ORB features from an image with enhanced error handling and logging
@@ -240,8 +247,10 @@ def get_info():
             "compare": "POST /compare",
             "ocr_extract": "POST /ocr/extract",
             "ocr_extract_with_boxes": "POST /ocr/extract-with-boxes",
+            "ocr_extract_auto": "POST /ocr/extract-auto",
             "ocr_upload_extract": "POST /ocr/upload-extract",
             "ocr_upload_extract_with_boxes": "POST /ocr/upload-extract-with-boxes",
+            "ocr_upload_extract_auto": "POST /ocr/upload-extract-auto",
             "ocr_languages": "GET /ocr/languages",
             "ocr_info": "GET /ocr/info"
         },
@@ -430,6 +439,7 @@ def ocr_extract():
         logger.info(f"OCR text extraction request for: {os.path.basename(image_path)} (lang: {language}, auto_rotate: {auto_rotate}, readability: {improve_readability})")
         
         result = ocr_service.extract_text(image_path, language, preprocess, config, auto_rotate, improve_readability, post_process)
+        result = with_ocr_provider(result)
         success = result.get('success', False)
         
         processing_time = time.time() - start_time
@@ -472,6 +482,7 @@ def ocr_extract_with_boxes():
         logger.info(f"OCR text extraction with boxes request for: {os.path.basename(image_path)} (lang: {language}, auto_rotate: {auto_rotate}, readability: {improve_readability})")
         
         result = ocr_service.extract_text_with_boxes(image_path, language, preprocess, config, auto_rotate, improve_readability, post_process)
+        result = with_ocr_provider(result)
         success = result.get('success', False)
         
         processing_time = time.time() - start_time
@@ -556,6 +567,7 @@ def ocr_upload_extract():
             
             # Process with OCR
             result = ocr_service.extract_text(temp_path, language, preprocess, config, auto_rotate, improve_readability, post_process)
+            result = with_ocr_provider(result)
             success = result.get('success', False)
             
             processing_time = time.time() - start_time
@@ -625,6 +637,7 @@ def ocr_upload_extract_with_boxes():
             
             # Process with OCR
             result = ocr_service.extract_text_with_boxes(temp_path, language, preprocess, config, auto_rotate, improve_readability, post_process)
+            result = with_ocr_provider(result)
             success = result.get('success', False)
             
             processing_time = time.time() - start_time
@@ -680,6 +693,7 @@ def ocr_extract_auto():
         result = ocr_service.extract_text_auto_language(
             image_path, preprocess, auto_rotate, improve_readability, post_process
         )
+        result = with_ocr_provider(result)
         success = result.get('success', False)
         
         if success:
@@ -737,6 +751,7 @@ def ocr_upload_extract_auto():
             result = ocr_service.extract_text_auto_language(
                 temp_path, preprocess, auto_rotate, improve_readability, post_process
             )
+            result = with_ocr_provider(result)
             success = result.get('success', False)
             
             # Add original filename to result
