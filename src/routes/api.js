@@ -6,6 +6,9 @@ const authController = require('../controllers/authController');
 const mediaController = require('../controllers/mediaController');
 const ocrProviderService = require('../services/ocrProviderService');
 const db = require('../config/database');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { body } = require('express-validator');
 const { 
   authRateLimit, 
@@ -117,7 +120,8 @@ router.get('/media', [
 router.post('/ocr/extract-auto', [
   apiRateLimit,
   preventSQLInjection,
-  body('image_path').isString().notEmpty().withMessage('image_path is required'),
+  body('image_path').optional().isString().notEmpty().withMessage('image_path must be a non-empty string'),
+  body('image_url').optional().isURL({ require_protocol: true }).withMessage('image_url must be a valid URL'),
   body('language').optional().isString(),
   body('preprocess').optional().isBoolean(),
   body('auto_rotate').optional().isBoolean(),
@@ -125,9 +129,42 @@ router.post('/ocr/extract-auto', [
   body('post_process').optional().isBoolean(),
   validateInput
 ], async (req, res) => {
+  let tempImagePath = null;
   try {
-    const { image_path, language, preprocess, auto_rotate, improve_readability, post_process } = req.body;
+    const { image_path, image_url, language, preprocess, auto_rotate, improve_readability, post_process } = req.body;
     const options = {};
+    let imagePathToProcess = image_path;
+
+    if (!image_path && !image_url) {
+      return res.status(400).json({
+        success: false,
+        error: 'Either image_path or image_url is required'
+      });
+    }
+
+    if (image_url) {
+      const response = await fetch(image_url);
+      if (!response.ok) {
+        return res.status(400).json({
+          success: false,
+          error: `Unable to download image_url (status: ${response.status})`
+        });
+      }
+
+      const contentType = (response.headers.get('content-type') || '').toLowerCase();
+      if (!contentType.startsWith('image/')) {
+        return res.status(400).json({
+          success: false,
+          error: 'image_url must point to an image resource'
+        });
+      }
+
+      const tempFileName = `ocr-url-${Date.now()}-${Math.random().toString(36).slice(2)}.img`;
+      tempImagePath = path.join(os.tmpdir(), tempFileName);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      fs.writeFileSync(tempImagePath, buffer);
+      imagePathToProcess = tempImagePath;
+    }
 
     // Sync runtime provider config from persisted settings for reliable API behavior.
     try {
@@ -148,7 +185,7 @@ router.post('/ocr/extract-auto', [
     if (improve_readability !== undefined) options.improve_readability = improve_readability;
     if (post_process !== undefined) options.post_process = post_process;
 
-    const result = await ocrProviderService.extractText(image_path, options);
+    const result = await ocrProviderService.extractText(imagePathToProcess, options);
     const providerConfig = ocrProviderService.getConfig();
 
     return res.status(result?.success ? 200 : 400).json({
@@ -169,6 +206,14 @@ router.post('/ocr/extract-auto', [
       success: false,
       error: error.message || 'OCR extraction failed'
     });
+  } finally {
+    if (tempImagePath && fs.existsSync(tempImagePath)) {
+      try {
+        fs.unlinkSync(tempImagePath);
+      } catch (_) {
+        // Non-fatal temp file cleanup failure.
+      }
+    }
   }
 });
 
