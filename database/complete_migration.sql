@@ -345,6 +345,8 @@ CREATE TABLE IF NOT EXISTS settings (
     smtp_port INT DEFAULT NULL,
     smtp_user VARCHAR(255) DEFAULT NULL,
     smtp_password VARCHAR(255) DEFAULT NULL,
+    ocr_provider VARCHAR(20) DEFAULT 'tesseract',
+    ocr_fallback_provider VARCHAR(20) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     

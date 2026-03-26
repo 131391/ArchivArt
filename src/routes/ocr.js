@@ -12,4 +12,11 @@ router.get('/', [
     preventSQLInjection
 ], OcrController.getOcrList);
 
+router.post('/provider-config', [
+    requireAdminWeb,
+    addUserPermissions,
+    hasModuleActionPermissionWeb('media', 'edit'),
+    preventSQLInjection
+], OcrController.updateProviderConfig);
+
 module.exports = router;

@@ -796,6 +796,14 @@ class OCRService:
         start_time = time.time()
         
         try:
+            def is_low_quality(result: Dict[str, Any]) -> bool:
+                """Guardrail for pathological OCR outputs like '=' with high confidence."""
+                text = (result.get("text") or "").strip()
+                char_count = int(result.get("character_count") or len(text))
+                word_count = int(result.get("word_count") or (len(text.split()) if text else 0))
+                # Treat very short outputs as low quality even if confidence is high.
+                return not result.get("success") or char_count < 20 or word_count < 3
+
             # Auto-detect language
             detected_language = self.detect_language(image_path, preprocess, auto_rotate, improve_readability)
             
@@ -803,11 +811,34 @@ class OCRService:
             result = self.extract_text(image_path, language=detected_language, preprocess=preprocess,
                                      auto_rotate=auto_rotate, improve_readability=improve_readability,
                                      post_process=post_process)
+
+            # Safety fallback: if the auto pipeline returns abnormally short output,
+            # retry with a less aggressive path that often performs better on dense documents.
+            if is_low_quality(result):
+                logger.warning(
+                    f"Low-quality auto OCR output detected (chars={result.get('character_count', 0)}, "
+                    f"words={result.get('word_count', 0)}). Retrying with preprocess=False and default language."
+                )
+                fallback_result = self.extract_text(
+                    image_path,
+                    language=self.default_language,
+                    preprocess=False,
+                    auto_rotate=auto_rotate,
+                    improve_readability=False,
+                    post_process=post_process
+                )
+                if fallback_result.get("success") and not is_low_quality(fallback_result):
+                    fallback_result["detected_language"] = self.default_language
+                    fallback_result["language_auto_detected"] = False
+                    fallback_result["fallback_strategy"] = "auto_low_quality_retry_preprocess_false"
+                    result = fallback_result
             
             # Add detected language info to result
             if result.get("success", False):
-                result["detected_language"] = detected_language
-                result["language_auto_detected"] = True
+                if "detected_language" not in result:
+                    result["detected_language"] = detected_language
+                if "language_auto_detected" not in result:
+                    result["language_auto_detected"] = True
                 logger.info(f"Text extracted using auto-detected language '{detected_language}': "
                            f"{result.get('character_count', 0)} characters, "
                            f"confidence: {result.get('confidence', 0):.1f}%")
