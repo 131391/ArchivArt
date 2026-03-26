@@ -214,89 +214,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Form submissions - prevent default and use AJAX
-    const brandForm = document.getElementById('brandForm');
-    const systemForm = document.getElementById('systemForm');
-    const awsForm = document.getElementById('awsForm');
-    const securityForm = document.getElementById('securityForm');
-    const emailForm = document.getElementById('emailForm');
-    
-    if (brandForm) {
-        brandForm.addEventListener('submit', async function(e) {
+    function bindSettingsForm(formId, type) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
-            // Check if form is disabled (no permission)
+
             if (this.classList.contains('form-disabled')) {
                 showErrorToast('You do not have permission to update settings');
                 return false;
             }
-            
-            await handleFormSubmission(this, 'brand');
+
+            await handleFormSubmission(this, type);
             return false;
         });
     }
-    
-    if (systemForm) {
-        systemForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Check if form is disabled (no permission)
-            if (this.classList.contains('form-disabled')) {
-                showErrorToast('You do not have permission to update settings');
-                return false;
-            }
-            
-            await handleFormSubmission(this, 'system');
-            return false;
-        });
-    }
-    
-    if (awsForm) {
-        awsForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Check if form is disabled (no permission)
-            if (this.classList.contains('form-disabled')) {
-                showErrorToast('You do not have permission to update settings');
-                return false;
-            }
-            
-            await handleFormSubmission(this, 'aws');
-            return false;
-        });
-    }
-    
-    if (securityForm) {
-        securityForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Check if form is disabled (no permission)
-            if (this.classList.contains('form-disabled')) {
-                showErrorToast('You do not have permission to update settings');
-                return false;
-            }
-            
-            await handleFormSubmission(this, 'security');
-            return false;
-        });
-    }
-    
-    if (emailForm) {
-        emailForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Check if form is disabled (no permission)
-            if (this.classList.contains('form-disabled')) {
-                showErrorToast('You do not have permission to update settings');
-                return false;
-            }
-            
-            await handleFormSubmission(this, 'email');
-            return false;
-        });
-    }
+
+    bindSettingsForm('brandForm', 'brand');
+    bindSettingsForm('systemForm', 'system');
+    bindSettingsForm('awsForm', 'aws');
+    bindSettingsForm('securityForm', 'security');
+    bindSettingsForm('emailForm', 'email');
 });

@@ -235,8 +235,8 @@
                             <div class="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group">
                                 <div class="relative">
                                     <% if (media.scanning_image && media.scanning_image.trim() !== '') { %>
-                                        <img class="h-12 w-12 rounded-xl object-cover ring-2 ring-white shadow-md" src="<%= media.scanning_image.startsWith('/') ? media.scanning_image : '/uploads/scanning-images/' + media.scanning_image %>" alt="Media thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center ring-2 ring-white shadow-md" style="display: none;">
+                                        <img class="h-12 w-12 rounded-xl object-cover ring-2 ring-white shadow-md" src="<%= media.scanning_image.startsWith('/') ? media.scanning_image : '/uploads/scanning-images/' + media.scanning_image %>" alt="Media thumbnail" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                                        <div class="hidden h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 items-center justify-center ring-2 ring-white shadow-md">
                                             <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %> text-emerald-600 text-lg"></i>
                                         </div>
                                     <% } else { %>

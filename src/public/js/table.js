@@ -4,6 +4,109 @@ let currentSearch = '';
 let currentFilters = {};
 let isLoading = false;
 
+function getTablePageType(pathname = window.location.pathname) {
+    if (pathname.includes('/rbac/modules') && pathname.includes('/actions')) return 'moduleActions';
+    if (pathname.includes('/rbac/roles')) return 'roles';
+    if (pathname.includes('/rbac/permissions')) return 'permissions';
+    if (pathname.includes('/rbac/modules')) return 'modules';
+    if (pathname.includes('/media')) return 'media';
+    if (pathname.includes('/users')) return 'users';
+    return 'users';
+}
+
+function getTablePageUi(pageType) {
+    const uiByType = {
+        moduleActions: {
+            loadingTitle: 'Loading Module Actions...',
+            loadingMessage: 'Fetching module actions data from server',
+            loadingText: 'Loading module actions...',
+            emptyIcon: 'fas fa-cogs',
+            emptyTitle: 'No Module Actions Found',
+            emptyMessage: 'No module actions match your current search criteria.'
+        },
+        media: {
+            loadingTitle: 'Loading Media...',
+            loadingMessage: 'Fetching media data from server',
+            loadingText: 'Loading media...',
+            emptyIcon: 'fas fa-images',
+            emptyTitle: 'No Media Found',
+            emptyMessage: 'No media files have been uploaded yet.'
+        },
+        users: {
+            loadingTitle: 'Loading Users...',
+            loadingMessage: 'Fetching user data from server',
+            loadingText: 'Loading users...',
+            emptyIcon: 'fas fa-users',
+            emptyTitle: 'No Users Found',
+            emptyMessage: 'No users match your current filter criteria.'
+        },
+        roles: {
+            loadingTitle: 'Loading Roles...',
+            loadingMessage: 'Fetching roles data from server',
+            loadingText: 'Loading roles...',
+            emptyIcon: 'fas fa-user-tag',
+            emptyTitle: 'No Roles Found',
+            emptyMessage: 'No roles match your current filter criteria.'
+        },
+        permissions: {
+            loadingTitle: 'Loading Permissions...',
+            loadingMessage: 'Fetching permissions data from server',
+            loadingText: 'Loading permissions...',
+            emptyIcon: 'fas fa-key',
+            emptyTitle: 'No Permissions Found',
+            emptyMessage: 'No permissions match your current filter criteria.'
+        },
+        modules: {
+            loadingTitle: 'Loading Modules...',
+            loadingMessage: 'Fetching modules data from server',
+            loadingText: 'Loading modules...',
+            emptyIcon: 'fas fa-cube',
+            emptyTitle: 'No Modules Found',
+            emptyMessage: 'No modules match your current filter criteria.'
+        }
+    };
+
+    return uiByType[pageType] || uiByType.users;
+}
+
+function getTableEndpoint(pathname, pageType) {
+    if (pageType === 'moduleActions') {
+        const pathParts = pathname.split('/');
+        const moduleIdIndex = pathParts.findIndex(part => part === 'modules') + 1;
+        const moduleId = pathParts[moduleIdIndex];
+        return `/admin/rbac/modules/${moduleId}/actions/data`;
+    }
+
+    const endpointByType = {
+        media: '/admin/media/data',
+        roles: '/admin/rbac/roles/data',
+        permissions: '/admin/rbac/permissions/data',
+        modules: '/admin/rbac/modules/data',
+        users: '/admin/users/data'
+    };
+
+    return endpointByType[pageType] || endpointByType.users;
+}
+
+function hasPermission(permissionName) {
+    return Array.isArray(window.userPermissions) && window.userPermissions.some(p => p.name === permissionName);
+}
+
+function renderActionButton({ onclick, icon, className, title, extraAttributes = '' }) {
+    return `<button onclick="${onclick}" ${extraAttributes} class="${className}" title="${title}">
+        <i class="${icon}"></i>
+    </button>`;
+}
+
+const ACTION_BTN_BASE = 'inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2';
+const ACTION_BTN_TONE = {
+    blue: `${ACTION_BTN_BASE} text-blue-600 hover:text-blue-900`,
+    indigo: `${ACTION_BTN_BASE} text-indigo-600 hover:text-indigo-900`,
+    green: `${ACTION_BTN_BASE} text-green-600 hover:text-green-900`,
+    yellow: `${ACTION_BTN_BASE} text-yellow-600 hover:text-yellow-900`,
+    red: `${ACTION_BTN_BASE} text-red-600 hover:text-red-900`
+};
+
 // Debounce function
 function debounce(func, wait) {
     let timeout;
@@ -142,42 +245,13 @@ async function loadTableData() {
     
     // Show global loader for AJAX request
     const currentPath = window.location.pathname;
-    const isMediaPage = currentPath.includes('/media');
-    const isModuleActionsPage = currentPath.includes('/rbac/modules') && currentPath.includes('/actions');
-    const isUsersPage = currentPath.includes('/users');
-    const isRolesPage = currentPath.includes('/rbac/roles');
-    const isPermissionsPage = currentPath.includes('/rbac/permissions');
-    const isModulesPage = currentPath.includes('/rbac/modules');
-    
-    let loadingTitle, loadingMessage;
-    
-    if (isModuleActionsPage) {
-        loadingTitle = 'Loading Module Actions...';
-        loadingMessage = 'Fetching module actions data from server';
-    } else if (isMediaPage) {
-        loadingTitle = 'Loading Media...';
-        loadingMessage = 'Fetching media data from server';
-    } else if (isUsersPage) {
-        loadingTitle = 'Loading Users...';
-        loadingMessage = 'Fetching user data from server';
-    } else if (isRolesPage) {
-        loadingTitle = 'Loading Roles...';
-        loadingMessage = 'Fetching roles data from server';
-    } else if (isPermissionsPage) {
-        loadingTitle = 'Loading Permissions...';
-        loadingMessage = 'Fetching permissions data from server';
-    } else if (isModulesPage) {
-        loadingTitle = 'Loading Modules...';
-        loadingMessage = 'Fetching modules data from server';
-    } else {
-        loadingTitle = 'Loading Users...';
-        loadingMessage = 'Fetching user data from server';
-    }
+    const pageType = getTablePageType(currentPath);
+    const pageUi = getTablePageUi(pageType);
     
     if (typeof showAjaxLoader === 'function') {
         showAjaxLoader({
-            title: loadingTitle,
-            message: loadingMessage
+            title: pageUi.loadingTitle,
+            message: pageUi.loadingMessage
         });
     } else {
         showLoadingState();
@@ -198,27 +272,7 @@ async function loadTableData() {
             }
         });
 
-        // Determine the correct endpoint based on current page
-        const currentPath = window.location.pathname;
-        let endpoint;
-        
-        if (currentPath.includes('/media')) {
-            endpoint = '/admin/media/data';
-        } else if (currentPath.includes('/rbac/roles')) {
-            endpoint = '/admin/rbac/roles/data';
-        } else if (currentPath.includes('/rbac/permissions')) {
-            endpoint = '/admin/rbac/permissions/data';
-        } else if (currentPath.includes('/rbac/modules') && currentPath.includes('/actions')) {
-            // Extract module ID from URL for module actions
-            const pathParts = currentPath.split('/');
-            const moduleIdIndex = pathParts.findIndex(part => part === 'modules') + 1;
-            const moduleId = pathParts[moduleIdIndex];
-            endpoint = `/admin/rbac/modules/${moduleId}/actions/data`;
-        } else if (currentPath.includes('/rbac/modules')) {
-            endpoint = '/admin/rbac/modules/data';
-        } else {
-            endpoint = '/admin/users/data';
-        }
+        const endpoint = getTableEndpoint(currentPath, pageType);
         
         const response = await fetch(`${endpoint}?${params.toString()}`, {
             method: 'GET',
@@ -287,7 +341,6 @@ function updateTableContent(data) {
     // Update user permissions from API response if available
     if (data.success && data.userPermissions) {
         window.userPermissions = data.userPermissions;
-        console.log('Updated userPermissions from API:', window.userPermissions);
     }
     
     // Update table body
@@ -313,54 +366,15 @@ function updateTableContent(data) {
             // Fallback for pre-rendered HTML (if any endpoints still use this)
             tbody.innerHTML = data.tableRows;
         } else {
-            // Show empty state when no data - determine content based on current page
-            const currentPath = window.location.pathname;
-            const isMediaPage = currentPath.includes('/media');
-            const isModuleActionsPage = currentPath.includes('/rbac/modules') && currentPath.includes('/actions');
-            const isUsersPage = currentPath.includes('/users');
-            const isRolesPage = currentPath.includes('/rbac/roles');
-            const isPermissionsPage = currentPath.includes('/rbac/permissions');
-            const isModulesPage = currentPath.includes('/rbac/modules');
-            
-            let emptyIcon, emptyTitle, emptyMessage;
-            
-            if (isModuleActionsPage) {
-                emptyIcon = 'fas fa-cogs';
-                emptyTitle = 'No Module Actions Found';
-                emptyMessage = 'No module actions match your current search criteria.';
-            } else if (isMediaPage) {
-                emptyIcon = 'fas fa-images';
-                emptyTitle = 'No Media Found';
-                emptyMessage = 'No media files have been uploaded yet.';
-            } else if (isUsersPage) {
-                emptyIcon = 'fas fa-users';
-                emptyTitle = 'No Users Found';
-                emptyMessage = 'No users match your current filter criteria.';
-            } else if (isRolesPage) {
-                emptyIcon = 'fas fa-user-tag';
-                emptyTitle = 'No Roles Found';
-                emptyMessage = 'No roles match your current filter criteria.';
-            } else if (isPermissionsPage) {
-                emptyIcon = 'fas fa-key';
-                emptyTitle = 'No Permissions Found';
-                emptyMessage = 'No permissions match your current filter criteria.';
-            } else if (isModulesPage) {
-                emptyIcon = 'fas fa-cube';
-                emptyTitle = 'No Modules Found';
-                emptyMessage = 'No modules match your current filter criteria.';
-            } else {
-                emptyIcon = 'fas fa-users';
-                emptyTitle = 'No Users Found';
-                emptyMessage = 'No users match your current filter criteria.';
-            }
+            const pageUi = getTablePageUi(getTablePageType(window.location.pathname));
             
             tbody.innerHTML = `
                 <tr>
                     <td colspan="100%" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center">
-                            <i class="${emptyIcon} text-4xl text-gray-400 mb-4"></i>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">${emptyTitle}</h3>
-                            <p class="text-gray-500 text-center max-w-sm">${emptyMessage}</p>
+                            <i class="${pageUi.emptyIcon} text-4xl text-gray-400 mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">${pageUi.emptyTitle}</h3>
+                            <p class="text-gray-500 text-center max-w-sm">${pageUi.emptyMessage}</p>
                         </div>
                     </td>
                 </tr>
@@ -477,36 +491,14 @@ function updateTableContent(data) {
 function showLoadingState() {
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
-        const currentPath = window.location.pathname;
-        const isModuleActionsPage = currentPath.includes('/rbac/modules') && currentPath.includes('/actions');
-        const isUsersPage = currentPath.includes('/users');
-        const isMediaPage = currentPath.includes('/media');
-        const isRolesPage = currentPath.includes('/rbac/roles');
-        const isPermissionsPage = currentPath.includes('/rbac/permissions');
-        const isModulesPage = currentPath.includes('/rbac/modules');
-        
-        let loadingText = 'Loading...';
-        
-        if (isModuleActionsPage) {
-            loadingText = 'Loading module actions...';
-        } else if (isUsersPage) {
-            loadingText = 'Loading users...';
-        } else if (isMediaPage) {
-            loadingText = 'Loading media...';
-        } else if (isRolesPage) {
-            loadingText = 'Loading roles...';
-        } else if (isPermissionsPage) {
-            loadingText = 'Loading permissions...';
-        } else if (isModulesPage) {
-            loadingText = 'Loading modules...';
-        }
+        const pageUi = getTablePageUi(getTablePageType(window.location.pathname));
         
         tbody.innerHTML = `
             <tr>
                 <td colspan="100%" class="px-6 py-4 text-center">
                     <div class="flex items-center justify-center">
                         <i class="fas fa-spinner fa-spin text-indigo-600 mr-2"></i>
-                        ${loadingText}
+                        ${pageUi.loadingText}
                     </div>
                 </td>
             </tr>
@@ -545,17 +537,17 @@ function goToPage(page) {
 
 // Generate table rows from data
 function generateTableRows(data) {
-    const currentPath = window.location.pathname;
-    
-    if (currentPath.includes('/users')) {
+    const pageType = getTablePageType(window.location.pathname);
+
+    if (pageType === 'users') {
         return generateUserTableRows(data);
-    } else if (currentPath.includes('/rbac/roles')) {
+    } else if (pageType === 'roles') {
         return generateRoleTableRows(data);
-    } else if (currentPath.includes('/rbac/permissions')) {
+    } else if (pageType === 'permissions') {
         return generatePermissionTableRows(data);
-    } else if (currentPath.includes('/rbac/modules') && currentPath.includes('/actions')) {
+    } else if (pageType === 'moduleActions') {
         return generateModuleActionTableRows(data);
-    } else if (currentPath.includes('/rbac/modules')) {
+    } else if (pageType === 'modules') {
         return generateModuleTableRows(data);
     } else {
         return generateMediaTableRows(data);
@@ -564,63 +556,62 @@ function generateTableRows(data) {
 
 // Generate user table rows
 function generateUserTableRows(users) {
-    console.log('generateUserTableRows called with users:', users.length);
-    console.log('window.userPermissions:', window.userPermissions);
-    
     return users.map(user => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.view');
-        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.update');
-        const hasBlockPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.block');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'users.delete');
-        
-        console.log(`User ${user.id} permissions:`, {
-            hasViewPermission,
-            hasUpdatePermission,
-            hasBlockPermission,
-            hasDeletePermission
-        });
-        console.log(`User ${user.id} data:`, {
-            is_blocked: user.is_blocked,
-            is_active: user.is_active,
-            willShowBlockButton: hasBlockPermission && !user.is_blocked,
-            willShowUnblockButton: hasBlockPermission && user.is_blocked
-        });
+        const hasViewPermission = hasPermission('users.view');
+        const hasUpdatePermission = hasPermission('users.update');
+        const hasBlockPermission = hasPermission('users.block');
+        const hasDeletePermission = hasPermission('users.delete');
         
         // Generate action buttons based on permissions
         let actionButtons = '';
         
         if (hasViewPermission) {
-            actionButtons += `<button onclick="viewUser(${user.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-blue-600 hover:text-blue-900" title="View">
-                <i class="fas fa-eye"></i>
-            </button>`;
+            actionButtons += renderActionButton({
+                onclick: `viewUser(${user.id})`,
+                icon: 'fas fa-eye',
+                className: ACTION_BTN_TONE.blue,
+                title: 'View'
+            });
         }
         
         if (hasUpdatePermission) {
-            actionButtons += `<button onclick="editUser(${user.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-indigo-600 hover:text-indigo-900" title="Edit">
-                <i class="fas fa-edit"></i>
-            </button>`;
+            actionButtons += renderActionButton({
+                onclick: `editUser(${user.id})`,
+                icon: 'fas fa-edit',
+                className: ACTION_BTN_TONE.indigo,
+                title: 'Edit'
+            });
         }
         
         if (hasBlockPermission) {
             // Show only one button based on user status
             if (user.is_blocked == 1 || user.is_blocked === true) {
                 // User is blocked - show unblock button
-                actionButtons += `<button onclick="toggleUserStatus(${user.id}, 'unblock')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-green-600 hover:text-green-900" title="Unblock User">
-                    <i class="fas fa-check"></i>
-                </button>`;
+                actionButtons += renderActionButton({
+                    onclick: `toggleUserStatus(${user.id}, 'unblock')`,
+                    icon: 'fas fa-check',
+                    className: ACTION_BTN_TONE.green,
+                    title: 'Unblock User'
+                });
             } else {
                 // User is active - show block button
-                actionButtons += `<button onclick="toggleUserStatus(${user.id}, 'block')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-yellow-600 hover:text-yellow-900" title="Block User">
-                    <i class="fas fa-ban"></i>
-                </button>`;
+                actionButtons += renderActionButton({
+                    onclick: `toggleUserStatus(${user.id}, 'block')`,
+                    icon: 'fas fa-ban',
+                    className: ACTION_BTN_TONE.yellow,
+                    title: 'Block User'
+                });
             }
         }
         
         if (hasDeletePermission) {
-            actionButtons += `<button onclick="deleteUser(${user.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-red-600 hover:text-red-900" title="Delete">
-                <i class="fas fa-trash"></i>
-            </button>`;
+            actionButtons += renderActionButton({
+                onclick: `deleteUser(${user.id})`,
+                icon: 'fas fa-trash',
+                className: ACTION_BTN_TONE.red,
+                title: 'Delete'
+            });
         }
         
         return `
@@ -652,51 +643,59 @@ function generateUserTableRows(users) {
 
 // Generate media table rows
 function generateMediaTableRows(media) {
-    console.log('generateMediaTableRows called with media:', media.length);
-    console.log('window.userPermissions for media:', window.userPermissions);
-    
     return media.map(item => {
         // Check user permissions - use correct specific permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.view');
-        const hasEditPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.edit');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'media.delete');
-        
-        console.log(`Media ${item.id} permissions:`, {
-            hasViewPermission,
-            hasEditPermission,
-            hasDeletePermission
-        });
+        const hasViewPermission = hasPermission('media.view');
+        const hasEditPermission = hasPermission('media.edit');
+        const hasDeletePermission = hasPermission('media.delete');
         
         // Generate action buttons based on permissions - use correct specific permissions
         let actionButtons = '';
         
         if (hasViewPermission) {
-            actionButtons += `<button onclick="window.location.href='/admin/media/view/${item.id}'" data-no-loader="true" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-indigo-600 hover:text-indigo-900" title="View">
-                <i class="fas fa-eye"></i>
-            </button>`;
+            actionButtons += renderActionButton({
+                onclick: `window.location.href='/admin/media/view/${item.id}'`,
+                icon: 'fas fa-eye',
+                className: ACTION_BTN_TONE.indigo,
+                title: 'View',
+                extraAttributes: 'data-no-loader="true"'
+            });
         }
         
         if (hasEditPermission) {
-            actionButtons += `<button onclick="window.location.href='/admin/media/edit/${item.id}'" data-no-loader="true" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-blue-600 hover:text-blue-900" title="Edit">
-                <i class="fas fa-edit"></i>
-            </button>`;
+            actionButtons += renderActionButton({
+                onclick: `window.location.href='/admin/media/edit/${item.id}'`,
+                icon: 'fas fa-edit',
+                className: ACTION_BTN_TONE.blue,
+                title: 'Edit',
+                extraAttributes: 'data-no-loader="true"'
+            });
             
             // Add activate/deactivate button
             if (item.is_active == 1 || item.is_active === true) {
-                actionButtons += `<button onclick="toggleMediaStatus(${item.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-yellow-600 hover:text-yellow-900" title="Deactivate">
-                    <i class="fas fa-pause"></i>
-                </button>`;
+                actionButtons += renderActionButton({
+                    onclick: `toggleMediaStatus(${item.id})`,
+                    icon: 'fas fa-pause',
+                    className: ACTION_BTN_TONE.yellow,
+                    title: 'Deactivate'
+                });
             } else {
-                actionButtons += `<button onclick="toggleMediaStatus(${item.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-green-600 hover:text-green-900" title="Activate">
-                    <i class="fas fa-play"></i>
-                </button>`;
+                actionButtons += renderActionButton({
+                    onclick: `toggleMediaStatus(${item.id})`,
+                    icon: 'fas fa-play',
+                    className: ACTION_BTN_TONE.green,
+                    title: 'Activate'
+                });
             }
         }
         
         if (hasDeletePermission) {
-            actionButtons += `<button onclick="deleteMedia(${item.id})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 text-red-600 hover:text-red-900" title="Delete">
-                <i class="fas fa-trash"></i>
-            </button>`;
+            actionButtons += renderActionButton({
+                onclick: `deleteMedia(${item.id})`,
+                icon: 'fas fa-trash',
+                className: ACTION_BTN_TONE.red,
+                title: 'Delete'
+            });
         }
         
         return `
@@ -734,22 +733,12 @@ function generateMediaTableRows(media) {
 
 // Generate role table rows
 function generateRoleTableRows(roles) {
-    console.log('generateRoleTableRows called with roles:', roles.length);
-    console.log('window.userPermissions for roles:', window.userPermissions);
-    
     return roles.map(role => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.view');
-        const hasCreatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.create');
-        const hasAssignRolesPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.assign_roles');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.delete');
-        
-        console.log(`Role ${role.id} permissions:`, {
-            hasViewPermission,
-            hasCreatePermission,
-            hasAssignRolesPermission,
-            hasDeletePermission
-        });
+        const hasViewPermission = hasPermission('rbac.view');
+        const hasCreatePermission = hasPermission('rbac.create');
+        const hasAssignRolesPermission = hasPermission('rbac.assign_roles');
+        const hasDeletePermission = hasPermission('rbac.delete');
         
         // Generate action buttons based on permissions
         let actionButtons = '';
@@ -808,20 +797,11 @@ function generateRoleTableRows(roles) {
 
 // Generate permission table rows
 function generatePermissionTableRows(permissions) {
-    console.log('generatePermissionTableRows called with permissions:', permissions.length);
-    console.log('window.userPermissions for permissions:', window.userPermissions);
-    
     return permissions.map(permission => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.view');
-        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.update');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.delete');
-        
-        console.log(`Permission ${permission.id} permissions:`, {
-            hasViewPermission,
-            hasUpdatePermission,
-            hasDeletePermission
-        });
+        const hasViewPermission = hasPermission('rbac.view');
+        const hasUpdatePermission = hasPermission('rbac.update');
+        const hasDeletePermission = hasPermission('rbac.delete');
         
         // Generate action buttons based on permissions
         let actionButtons = '';
@@ -877,20 +857,11 @@ function generatePermissionTableRows(permissions) {
 
 // Generate module table rows
 function generateModuleTableRows(modules) {
-    console.log('generateModuleTableRows called with modules:', modules.length);
-    console.log('window.userPermissions for modules:', window.userPermissions);
-    
     return modules.map(module => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.view');
-        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.update');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.delete');
-        
-        console.log(`Module ${module.id} permissions:`, {
-            hasViewPermission,
-            hasUpdatePermission,
-            hasDeletePermission
-        });
+        const hasViewPermission = hasPermission('rbac.view');
+        const hasUpdatePermission = hasPermission('rbac.update');
+        const hasDeletePermission = hasPermission('rbac.delete');
         
         // Generate action buttons based on permissions
         let actionButtons = '';
@@ -952,20 +923,11 @@ function generateModuleTableRows(modules) {
 
 // Generate module action table rows
 function generateModuleActionTableRows(actions) {
-    console.log('generateModuleActionTableRows called with actions:', actions.length);
-    console.log('window.userPermissions for actions:', window.userPermissions);
-    
     return actions.map(action => {
         // Check user permissions
-        const hasViewPermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.view');
-        const hasUpdatePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.update');
-        const hasDeletePermission = window.userPermissions && window.userPermissions.some(p => p.name === 'rbac.delete');
-        
-        console.log(`Action ${action.id} permissions:`, {
-            hasViewPermission,
-            hasUpdatePermission,
-            hasDeletePermission
-        });
+        const hasViewPermission = hasPermission('rbac.view');
+        const hasUpdatePermission = hasPermission('rbac.update');
+        const hasDeletePermission = hasPermission('rbac.delete');
         
         // Generate action buttons based on permissions
         let actionButtons = '';

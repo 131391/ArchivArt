@@ -202,29 +202,3 @@ function savePermissions() {
     });
 }
 
-// Toast notification functions (fallback if not available globally)
-if (typeof showSuccessToast === 'undefined') {
-    window.showSuccessToast = function(message) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    };
-}
-
-if (typeof showErrorToast === 'undefined') {
-    window.showErrorToast = function(message) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    };
-}

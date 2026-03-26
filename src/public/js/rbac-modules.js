@@ -235,7 +235,7 @@ function viewModule(moduleId) {
                             <!-- Module Icon and Title Section -->
                             <div class="flex items-center space-x-6">
                                 <div class="flex-shrink-0">
-                                    <div class="h-20 w-20 rounded-full module-icon-container flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.3);">
+                                    <div class="h-20 w-20 rounded-full module-icon-container flex items-center justify-center">
                                         <i class="${module.icon || 'fas fa-tachometer-alt'} text-white text-3xl"></i>
                                     </div>
                                 </div>
@@ -249,15 +249,15 @@ function viewModule(moduleId) {
                             <div class="grid grid-cols-2 gap-8">
                                 <!-- Left Column -->
                                 <div class="space-y-4">
-                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <div class="detail-card rounded-xl p-4">
                                         <label class="block text-sm font-semibold text-gray-600 mb-2">Actions</label>
                                         <p class="text-2xl font-bold text-gray-900">${module.action_count || 0}</p>
                                     </div>
-                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <div class="detail-card rounded-xl p-4">
                                         <label class="block text-sm font-semibold text-gray-600 mb-2">Route</label>
                                         <p class="text-sm font-mono text-gray-700">${module.route || 'N/A'}</p>
                                     </div>
-                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <div class="detail-card rounded-xl p-4">
                                         <label class="block text-sm font-semibold text-gray-600 mb-2">Description</label>
                                         <p class="text-sm text-gray-700">${module.description || 'No description provided'}</p>
                                     </div>
@@ -265,11 +265,11 @@ function viewModule(moduleId) {
                                 
                                 <!-- Right Column -->
                                 <div class="space-y-4">
-                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <div class="detail-card rounded-xl p-4">
                                         <label class="block text-sm font-semibold text-gray-600 mb-2">Permissions</label>
                                         <p class="text-2xl font-bold text-gray-900">${module.permission_count || 0}</p>
                                     </div>
-                                    <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                    <div class="detail-card rounded-xl p-4">
                                         <label class="block text-sm font-semibold text-gray-600 mb-2">Order</label>
                                         <p class="text-2xl font-bold text-gray-900">${module.order_index || 0}</p>
                                     </div>
@@ -644,39 +644,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
-// Toast notification functions
-function showSuccessToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ease-out';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
-        toast.style.opacity = '0';
-    }, 2500);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
-
-function showErrorToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ease-out';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
-        toast.style.opacity = '0';
-    }, 2500);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
 
 // Additional formatter functions for module table
 function formatIcon(item) {

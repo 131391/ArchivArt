@@ -571,7 +571,7 @@ function viewPermission(permissionId) {
                         <div class="space-y-6">
                             <!-- Permission Icon and Title -->
                             <div class="flex items-center justify-center">
-                                <div class="h-20 w-20 rounded-full module-icon-container flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.3);">
+                                <div class="h-20 w-20 rounded-full module-icon-container flex items-center justify-center">
                                     <i class="${iconClass} text-white text-3xl"></i>
                                 </div>
                             </div>
@@ -583,26 +583,26 @@ function viewPermission(permissionId) {
                             
                             <!-- Permission Details Grid -->
                             <div class="grid grid-cols-2 gap-4">
-                                <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <div class="detail-card rounded-xl p-4">
                                     <label class="block text-sm font-semibold text-gray-600 mb-2">Module</label>
                                     <p class="text-lg font-bold text-gray-900">${permission.module || 'N/A'}</p>
                                 </div>
-                                <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <div class="detail-card rounded-xl p-4">
                                     <label class="block text-sm font-semibold text-gray-600 mb-2">Action</label>
                                     <p class="text-lg font-bold text-gray-900">${permission.action || 'N/A'}</p>
                                 </div>
-                                <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <div class="detail-card rounded-xl p-4">
                                     <label class="block text-sm font-semibold text-gray-600 mb-2">Resource</label>
                                     <p class="text-lg font-bold text-gray-900">${permission.resource || 'N/A'}</p>
                                 </div>
-                                <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                                <div class="detail-card rounded-xl p-4">
                                     <label class="block text-sm font-semibold text-gray-600 mb-2">Created</label>
                                     <p class="text-lg font-bold text-gray-900">${new Date(permission.created_at).toLocaleDateString()}</p>
                                 </div>
                             </div>
                             
                             <!-- Description -->
-                            <div class="detail-card rounded-xl p-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+                            <div class="detail-card rounded-xl p-4">
                                 <label class="block text-sm font-semibold text-gray-600 mb-2">Description</label>
                                 <p class="text-sm text-gray-700 leading-relaxed">${permission.description || 'No description provided'}</p>
                             </div>
@@ -959,33 +959,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
-// Toast notification functions (fallback if not available globally)
-if (typeof showSuccessToast === 'undefined') {
-    window.showSuccessToast = function(message) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    };
-}
-
-if (typeof showErrorToast === 'undefined') {
-    window.showErrorToast = function(message) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    };
-}
 
 // Click outside to close modals
 document.addEventListener('click', function(event) {
