@@ -203,28 +203,6 @@
                             </div>
 
                             <div class="flex items-start space-x-4">
-                                <div class="flex-shrink-0 w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-font text-amber-600 text-lg"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">OCR Extracted Text</h3>
-                                    <% if (media.ocr_extracted_text) { %>
-                                        <div class="mt-2 p-3 bg-white border border-gray-200 rounded-lg max-h-44 overflow-y-auto">
-                                            <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap"><%= media.ocr_extracted_text %></p>
-                                        </div>
-                                        <p class="mt-2 text-xs text-gray-500">
-                                            Language: <span class="font-medium"><%= media.ocr_language || 'n/a' %></span>
-                                            <% if (media.ocr_confidence !== null && media.ocr_confidence !== undefined) { %>
-                                                | Confidence: <span class="font-medium"><%= Number(media.ocr_confidence).toFixed(2) %>%</span>
-                                            <% } %>
-                                        </p>
-                                    <% } else { %>
-                                        <p class="mt-1 text-sm text-gray-400 italic">No OCR text captured yet.</p>
-                                    <% } %>
-                                </div>
-                            </div>
-
-                            <div class="flex items-start space-x-4">
                                 <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                                     <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %> text-purple-600 text-lg"></i>
                                 </div>

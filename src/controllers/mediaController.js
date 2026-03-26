@@ -209,8 +209,6 @@ class MediaController {
                 updated_at: media.updated_at
                 // Note: descriptors excluded from response
             }));
-            plainMedia = await MediaController.attachLatestOcrToMediaItems(plainMedia);
-
             res.render('admin/media', {
                 title: 'Media Management',
                 data: plainMedia, // Changed from 'media' to 'data' to match user controller
@@ -283,8 +281,6 @@ class MediaController {
                 updated_at: media.updated_at
                 // Note: descriptors excluded from response
             }));
-            plainMedia = await MediaController.attachLatestOcrToMediaItems(plainMedia);
-
             res.json({
                 success: true,
                 data: plainMedia,
@@ -626,10 +622,9 @@ class MediaController {
 
 
 
-            const latestOcr = await MediaOcrResult.findLatestByMediaId(media.id);
             res.render('admin/media-view', {
                 title: `Media: ${media.title}`,
-                media: MediaController.withOcrFields(media, latestOcr),
+                media,
                 user: req.session.user,
                 userPermissions: req.userPermissions || [],
                 userPrimaryRole: req.userPrimaryRole || null
@@ -652,10 +647,9 @@ class MediaController {
                 return res.redirect('/admin/media');
             }
 
-            const latestOcr = await MediaOcrResult.findLatestByMediaId(media.id);
             res.render('admin/media-edit', {
                 title: `Edit Media: ${media.title}`,
-                media: MediaController.withOcrFields(media, latestOcr),
+                media,
                 user: req.session.user,
                 userPermissions: req.userPermissions || [],
                 userPrimaryRole: req.userPrimaryRole || null
@@ -680,10 +674,9 @@ class MediaController {
                 });
             }
 
-            const latestOcr = await MediaOcrResult.findLatestByMediaId(media.id);
             res.json({
                 success: true,
-                media: MediaController.withOcrFields(media, latestOcr)
+                media
       });
     } catch (error) {
             console.error('Error getting media:', error);

@@ -140,6 +140,9 @@ router.delete('/users/:id', [
 // Media management routes
 router.use('/media', require('./media'));
 
+// OCR management routes (kept separate from AR media module)
+router.use('/ocr', require('./ocr'));
+
 // Settings
 router.get('/settings', [
   requireAdminWeb,
