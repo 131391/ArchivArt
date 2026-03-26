@@ -163,17 +163,12 @@ Latest OCR result per media is attached by controller responses/views.
 
 ---
 
-## 6) Schema Migrations for OCR
+## 6) Schema migrations (including OCR)
 
-- `database/create_media_ocr_results_table.sql`  
-  Creates OCR table and optionally backfills legacy OCR data.
+Use the single consolidated script:
 
-- `database/drop_legacy_ocr_columns_from_media.sql`  
-  Removes old OCR columns from `media`.
-
-Legacy compatibility migration (old approach):
-
-- `database/add_ocr_columns_to_media.sql` (not needed in new architecture)
+- `database/complete_migration.sql`  
+  Full schema, seeds, stored procedures, `media_ocr_results`, and idempotent super-admin RBAC repair blocks (`@target_email` near the end for assign).
 
 ---
 

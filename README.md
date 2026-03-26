@@ -87,7 +87,7 @@ A comprehensive platform for creating and managing augmented reality media exper
 
 4. **Database Setup**
    ```bash
-   mysql -u root -p < database/schema.sql
+   mysql -u root -p < database/complete_migration.sql
    ```
 
 5. **Start the application**
@@ -294,7 +294,7 @@ AWS_S3_BUCKET=your_production_bucket
 
 ### Database Setup
 1. Create production MySQL database
-2. Run the schema.sql file
+2. Run the `database/complete_migration.sql` file
 3. Update database connection settings
 
 ## Contributing

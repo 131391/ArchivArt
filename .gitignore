@@ -376,3 +376,7 @@ pids/
 secrets.json
 # APK files are now handled by Git LFS
 # src/public/builds/*.apk
+
+# Python cache artifacts
+__pycache__/
+*.pyc

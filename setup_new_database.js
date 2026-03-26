@@ -16,7 +16,7 @@ async function setupNewDatabase() {
         
         // 1. Read the fixed migration file
         console.log('1. Reading fixed migration file...');
-        const migrationSQL = fs.readFileSync('./database/production_migration_fixed.sql', 'utf8');
+        const migrationSQL = fs.readFileSync('./database/complete_migration.sql', 'utf8');
         console.log('   ✅ Migration file loaded');
         
         // 2. Execute the migration

@@ -94,6 +94,28 @@ CREATE TABLE IF NOT EXISTS media (
     INDEX idx_media_view_count (view_count)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- =====================================================
+-- OCR RESULTS (separate from AR media matching / playback metadata)
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS media_ocr_results (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    media_id INT NOT NULL,
+    provider VARCHAR(32) NULL COMMENT 'OCR provider (tesseract/google)',
+    extracted_text LONGTEXT NULL,
+    confidence DECIMAL(6,2) NULL,
+    language VARCHAR(16) NULL,
+    status ENUM('success', 'failed') NOT NULL DEFAULT 'success',
+    error_message TEXT NULL,
+    processed_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_media_ocr_media_id (media_id),
+    INDEX idx_media_ocr_processed_at (processed_at),
+    CONSTRAINT fk_media_ocr_media
+        FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- User sessions table (Enhanced for JWT token management)
 CREATE TABLE IF NOT EXISTS user_sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -632,6 +654,8 @@ SELECT 'USER_ROLES' as table_name, COUNT(*) as record_count FROM user_roles
 UNION ALL
 SELECT 'MEDIA' as table_name, COUNT(*) as record_count FROM media
 UNION ALL
+SELECT 'MEDIA_OCR_RESULTS' as table_name, COUNT(*) as record_count FROM media_ocr_results
+UNION ALL
 SELECT 'USER_SESSIONS' as table_name, COUNT(*) as record_count FROM user_sessions
 UNION ALL
 SELECT 'BLACKLISTED_TOKENS' as table_name, COUNT(*) as record_count FROM blacklisted_tokens
@@ -691,6 +715,91 @@ CREATE TABLE IF NOT EXISTS security_events (
     -- Foreign key constraints
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Security events logging table';
+
+-- =====================================================
+-- REPAIR: Super admin RBAC (idempotent)
+-- Aligns with schemas where permissions require module_actions: only UPDATE/INSERT role mappings,
+-- not raw permissions inserts (those need action_id).
+-- =====================================================
+
+START TRANSACTION;
+
+UPDATE roles
+SET is_active = 1
+WHERE name COLLATE utf8mb4_unicode_ci = 'super_admin' COLLATE utf8mb4_unicode_ci;
+
+UPDATE permissions
+SET is_active = 1
+WHERE name IN (
+  'dashboard.view',
+  'media.view',
+  'rbac.view',
+  'rbac.create',
+  'rbac.update',
+  'rbac.delete'
+);
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id, is_active)
+SELECT r.id, p.id, 1
+FROM roles r
+JOIN permissions p
+  ON p.name IN (
+    'dashboard.view',
+    'media.view',
+    'rbac.view',
+    'rbac.create',
+    'rbac.update',
+    'rbac.delete'
+  )
+WHERE r.name COLLATE utf8mb4_unicode_ci = 'super_admin' COLLATE utf8mb4_unicode_ci;
+
+UPDATE role_permissions rp
+JOIN roles r ON r.id = rp.role_id
+JOIN permissions p ON p.id = rp.permission_id
+SET rp.is_active = 1
+WHERE r.name COLLATE utf8mb4_unicode_ci = 'super_admin' COLLATE utf8mb4_unicode_ci
+  AND p.name IN (
+    'dashboard.view',
+    'media.view',
+    'rbac.view',
+    'rbac.create',
+    'rbac.update',
+    'rbac.delete'
+  );
+
+COMMIT;
+
+-- =====================================================
+-- REPAIR: Assign super_admin to user by email (idempotent)
+-- Edit @target_email if your bootstrap admin email differs.
+-- =====================================================
+
+SET @target_email := 'admin@archivart.com';
+
+START TRANSACTION;
+
+INSERT IGNORE INTO roles (name, display_name, description, is_active)
+VALUES ('super_admin', 'Super Administrator', 'Full system access', 1);
+
+UPDATE roles
+SET is_active = 1
+WHERE name COLLATE utf8mb4_unicode_ci = 'super_admin' COLLATE utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO user_roles (user_id, role_id, is_active, assigned_at)
+SELECT u.id, r.id, 1, NOW()
+FROM users u
+JOIN roles r ON r.name COLLATE utf8mb4_unicode_ci = 'super_admin' COLLATE utf8mb4_unicode_ci
+WHERE u.email COLLATE utf8mb4_unicode_ci = @target_email COLLATE utf8mb4_unicode_ci;
+
+UPDATE user_roles ur
+JOIN users u ON u.id = ur.user_id
+JOIN roles r ON r.id = ur.role_id
+SET ur.is_active = 1,
+    ur.assigned_at = NOW()
+WHERE u.email COLLATE utf8mb4_unicode_ci = @target_email COLLATE utf8mb4_unicode_ci
+  AND r.name COLLATE utf8mb4_unicode_ci = 'super_admin' COLLATE utf8mb4_unicode_ci;
+
+COMMIT;
 
 -- =====================================================
 -- MIGRATION COMPLETE
