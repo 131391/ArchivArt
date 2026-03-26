@@ -1,61 +1,61 @@
 <!-- Modern Details Form -->
-<div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-    <div class="p-6 border-b border-gray-100">
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-100">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <i class="fas fa-edit text-white"></i>
             </div>
             <div>
-                <h3 class="text-xl font-semibold text-gray-900" id="details-title">Content Details</h3>
-                <p class="text-sm text-gray-600" id="details-subtitle">Add information about your AR content</p>
+                <h3 class="text-xl font-semibold tracking-tight text-slate-900" id="details-title">Video Details</h3>
+                <p class="text-sm text-slate-600" id="details-subtitle">Additional information for your video</p>
             </div>
         </div>
     </div>
     
-    <div class="p-6">
-        <form id="media-form" class="space-y-6">
+    <div class="px-5 py-4">
+        <form id="media-form" class="space-y-4">
             <!-- Title Field -->
-            <div class="space-y-2">
-                <label for="media-title" class="block text-sm font-semibold text-gray-700">
+            <div class="space-y-1.5">
+                <label for="media-title" class="block text-sm font-semibold text-slate-700">
                     <i class="fas fa-tag mr-2 text-indigo-600"></i>Content Title
                 </label>
-                <input type="text" id="media-title" name="title" placeholder="Enter a descriptive title for your AR content" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-all duration-200 bg-white/50 backdrop-blur-sm">
+                <input type="text" id="media-title" name="title" placeholder="Enter video title" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-all duration-200 bg-white shadow-sm">
             </div>
             
             <!-- Description Field -->
-            <div class="space-y-2">
-                <label for="media-description" class="block text-sm font-semibold text-gray-700">
+            <div class="space-y-1.5">
+                <label for="media-description" class="block text-sm font-semibold text-slate-700">
                     <i class="fas fa-align-left mr-2 text-indigo-600"></i>Description
                 </label>
-                <textarea id="media-description" name="description" rows="4" placeholder="Describe your AR experience and what users will see..." class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-all duration-200 bg-white/50 backdrop-blur-sm resize-none"></textarea>
+                <textarea id="media-description" name="description" rows="3" placeholder="Enter video description" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-all duration-200 bg-white resize-none shadow-sm"></textarea>
             </div>
 
             <!-- AR Trigger Image Upload -->
-            <div class="space-y-2">
-                <label class="block text-sm font-semibold text-gray-700">
+            <div class="space-y-1.5">
+                <label class="block text-sm font-semibold text-slate-700">
                     <i class="fas fa-qrcode mr-2 text-purple-600"></i>AR Trigger Image *
                 </label>
-                <p class="text-xs text-gray-500 mb-3">This image will be used to trigger your AR content</p>
+                <p class="text-xs text-slate-500 mb-2">This image is used to trigger your AR content</p>
                 
                 <!-- Hidden Scanning Image Input -->
                 <input type="file" id="scanning-image-input" accept="image/*" style="display: none;">
                 
                 <!-- Scanning Image Drop Zone -->
-                <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-purple-400 hover:bg-purple-50/50 transition-all duration-300 cursor-pointer" id="scanning-image-drop-zone">
-                    <div class="space-y-2">
-                        <div class="mx-auto w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center">
+                <div class="border-2 border-dashed border-slate-300 rounded-xl p-3 text-center hover:border-purple-400 hover:bg-purple-50/50 transition-all duration-300 cursor-pointer bg-gradient-to-b from-white to-slate-50/40" id="scanning-image-drop-zone">
+                    <div class="space-y-1.5">
+                        <div class="mx-auto w-9 h-9 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-image text-purple-600" id="scanning-image-icon"></i>
                         </div>
                         <div>
-                            <h4 class="text-sm font-semibold text-gray-900" id="scanning-image-text">Upload AR Trigger</h4>
-                            <p class="text-xs text-gray-600">Drag & drop or click to browse</p>
-                            <div class="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-1">
+                            <h4 class="text-sm font-semibold text-slate-900" id="scanning-image-text">Upload AR Trigger</h4>
+                            <p class="text-xs text-slate-600">Drag & drop or click to browse</p>
+                            <div class="flex items-center justify-center space-x-2 text-[11px] text-slate-500 mt-0.5">
                                 <span>JPG, PNG, GIF</span>
                                 <span>•</span>
                                 <span>Max 10MB</span>
                             </div>
                         </div>
-                        <button type="button" class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl" id="choose-scanning-image-btn">
+                        <button type="button" class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg" id="choose-scanning-image-btn">
                             <i class="fas fa-upload mr-1"></i>
                             Choose Image
                         </button>
@@ -82,12 +82,12 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex space-x-4">
-                <button type="button" id="back-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold">
+            <div class="flex space-x-3 pt-1">
+                <button type="button" id="back-button" class="flex-1 bg-slate-500 hover:bg-slate-600 text-white py-2.5 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md font-semibold">
                     <i class="fas fa-arrow-left"></i>
                     <span id="back-text">Back</span>
                 </button>
-                <button type="submit" id="submit-button" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold">
+                <button type="submit" id="submit-button" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 px-4 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 font-semibold">
                     <i class="fas fa-rocket"></i>
                     <span id="submit-text">Create AR Experience</span>
                 </button>

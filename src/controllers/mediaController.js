@@ -1,5 +1,7 @@
 const Media = require('../models/Media');
+const MediaOcrResult = require('../models/MediaOcrResult');
 const smartImageService = require('../services/smartImageService');
+const ocrProviderService = require('../services/ocrProviderService');
 const S3Service = require('../services/s3Service');
 const ImageHash = require('../utils/imageHash');
 const PerceptualHash = require('../utils/perceptualHash');
@@ -14,6 +16,28 @@ const { mediaUpload } = require('../config/multer');
 const upload = mediaUpload;
 
 class MediaController {
+    static withOcrFields(media, ocrResult = null) {
+        return {
+            ...media,
+            ocr_extracted_text: ocrResult?.extracted_text || null,
+            ocr_confidence: ocrResult?.confidence ?? null,
+            ocr_language: ocrResult?.language || null,
+            ocr_processed_at: ocrResult?.processed_at || null,
+            ocr_provider: ocrResult?.provider || null,
+            ocr_status: ocrResult?.status || null
+        };
+    }
+
+    static async attachLatestOcrToMediaItems(mediaItems = []) {
+        if (!mediaItems.length) {
+            return mediaItems;
+        }
+
+        const ids = mediaItems.map(item => item.id).filter(Boolean);
+        const ocrByMediaId = await MediaOcrResult.findLatestByMediaIds(ids);
+        return mediaItems.map(item => MediaController.withOcrFields(item, ocrByMediaId.get(item.id)));
+    }
+
     // Public API: match scanning image using OpenCV feature matching
     static async matchScanningImage(req, res) {
         try {
@@ -74,6 +98,7 @@ class MediaController {
                 if (matchResult.success && matchResult.matchedMedia) {
                     // Found a match
                     const matchedMedia = matchResult.matchedMedia;
+                    const latestOcr = await MediaOcrResult.findLatestByMediaId(matchedMedia.id);
                     const result = {
                         id: matchedMedia.id,
                         title: matchedMedia.title,
@@ -83,6 +108,10 @@ class MediaController {
                         file_path: matchedMedia.file_path,
                         is_active: matchedMedia.is_active,
                         created_at: matchedMedia.created_at,
+                        ocr_extracted_text: latestOcr?.extracted_text || null,
+                        ocr_confidence: latestOcr?.confidence ?? null,
+                        ocr_language: latestOcr?.language || null,
+                        ocr_processed_at: latestOcr?.processed_at || null,
                         // Add full URLs for mobile apps - handle both S3 URLs and local paths
                         scanning_image_url: /^https?:\/\//i.test(matchedMedia.scanning_image) ? 
                             matchedMedia.scanning_image : 
@@ -163,7 +192,7 @@ class MediaController {
             const stats = await Media.getStats();
             
             // Convert Media objects to plain objects for EJS template (excluding descriptors)
-            const plainMedia = result.media.map(media => ({
+            let plainMedia = result.media.map(media => ({
                 id: media.id,
                 title: media.title,
                 description: media.description,
@@ -180,6 +209,7 @@ class MediaController {
                 updated_at: media.updated_at
                 // Note: descriptors excluded from response
             }));
+            plainMedia = await MediaController.attachLatestOcrToMediaItems(plainMedia);
 
             res.render('admin/media', {
                 title: 'Media Management',
@@ -236,7 +266,7 @@ class MediaController {
             const result = await Media.findAll(options);
 
             // Convert Media objects to plain objects for AJAX response (excluding descriptors)
-            const plainMedia = result.media.map(media => ({
+            let plainMedia = result.media.map(media => ({
                 id: media.id,
                 title: media.title,
                 description: media.description,
@@ -253,6 +283,7 @@ class MediaController {
                 updated_at: media.updated_at
                 // Note: descriptors excluded from response
             }));
+            plainMedia = await MediaController.attachLatestOcrToMediaItems(plainMedia);
 
             res.json({
                 success: true,
@@ -348,6 +379,12 @@ class MediaController {
                     let tempScanningPath = null;
                     let imageHash = null;
                     let perceptualHash = null;
+                    let ocrData = {
+                        text: null,
+                        confidence: null,
+                        language: null,
+                        processedAt: null
+                    };
                     
                     try {
                         // Create temporary file for scanning image processing
@@ -371,6 +408,38 @@ class MediaController {
                         } catch (hashError) {
                             console.error('Error generating hashes:', hashError);
                             // Continue without hashes - they're optional for duplicate detection
+                        }
+
+                        // OCR extraction is best-effort and does not block uploads
+                        const shouldRunOcr = process.env.OCR_ON_UPLOAD !== 'false';
+                        if (shouldRunOcr) {
+                            try {
+                                const ocrResult = await ocrProviderService.extractText(tempScanningPath, {
+                                    language: process.env.OCR_DEFAULT_LANGUAGE || 'eng',
+                                    preprocess: true,
+                                    auto_rotate: true,
+                                    improve_readability: true,
+                                    post_process: true
+                                });
+
+                                if (ocrResult.success) {
+                                    ocrData = {
+                                        text: (ocrResult.text || '').trim() || null,
+                                        confidence: ocrResult.confidence ?? null,
+                                        language: ocrResult.language || process.env.OCR_DEFAULT_LANGUAGE || 'eng',
+                                        processedAt: new Date()
+                                    };
+                                } else {
+                                    console.warn(
+                                        'OCR extraction failed for upload:',
+                                        ocrResult.error || 'Unknown OCR error',
+                                        'provider:',
+                                        ocrProviderService.getConfig().provider
+                                    );
+                                }
+                            } catch (ocrError) {
+                                console.warn('OCR extraction error during upload:', ocrError.message);
+                            }
                         }
                         
                         // Check for identical images using perceptual hash
@@ -515,11 +584,24 @@ class MediaController {
                     };
 
                     const newMedia = await Media.create(mediaData);
+                    if (ocrData.text || ocrData.confidence !== null) {
+                        await MediaOcrResult.create({
+                            media_id: newMedia.id,
+                            provider: ocrProviderService.getConfig().provider,
+                            extracted_text: ocrData.text,
+                            confidence: ocrData.confidence,
+                            language: ocrData.language,
+                            status: 'success',
+                            processed_at: ocrData.processedAt || new Date()
+                        });
+                    }
+                    const latestOcr = await MediaOcrResult.findLatestByMediaId(newMedia.id);
+                    const mediaWithOcr = MediaController.withOcrFields(newMedia, latestOcr);
 
             res.json({
                 success: true,
                 message: 'Media uploaded successfully',
-                media: newMedia
+                media: mediaWithOcr
             });
         } catch (error) {
             console.error('Upload error:', error);
@@ -544,9 +626,10 @@ class MediaController {
 
 
 
+            const latestOcr = await MediaOcrResult.findLatestByMediaId(media.id);
             res.render('admin/media-view', {
                 title: `Media: ${media.title}`,
-                media: media,
+                media: MediaController.withOcrFields(media, latestOcr),
                 user: req.session.user,
                 userPermissions: req.userPermissions || [],
                 userPrimaryRole: req.userPrimaryRole || null
@@ -569,9 +652,10 @@ class MediaController {
                 return res.redirect('/admin/media');
             }
 
+            const latestOcr = await MediaOcrResult.findLatestByMediaId(media.id);
             res.render('admin/media-edit', {
                 title: `Edit Media: ${media.title}`,
-                media: media,
+                media: MediaController.withOcrFields(media, latestOcr),
                 user: req.session.user,
                 userPermissions: req.userPermissions || [],
                 userPrimaryRole: req.userPrimaryRole || null
@@ -596,9 +680,10 @@ class MediaController {
                 });
             }
 
+            const latestOcr = await MediaOcrResult.findLatestByMediaId(media.id);
             res.json({
                 success: true,
-                media
+                media: MediaController.withOcrFields(media, latestOcr)
       });
     } catch (error) {
             console.error('Error getting media:', error);
@@ -627,7 +712,7 @@ class MediaController {
             const result = await Media.findAll(options);
 
             // Format response for mobile apps
-            const mediaList = result.media.map(media => ({
+            let mediaList = result.media.map(media => ({
                 id: media.id,
                 title: media.title,
                 description: media.description,
@@ -645,6 +730,7 @@ class MediaController {
                     media.file_path : 
                     `${process.env.IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/uploads/media/${media.file_path}`
             }));
+            mediaList = await MediaController.attachLatestOcrToMediaItems(mediaList);
 
             res.json({
                 success: true,

@@ -107,6 +107,14 @@
         .navbar-mobile-expanded {
             left: 0 !important;
         }
+        :root {
+            --admin-navbar-offset: 80px;
+        }
+
+        #main-content {
+            padding-top: var(--admin-navbar-offset) !important;
+        }
+
         @media (max-width: 1024px) {
             #navbar {
                 left: 0 !important;
@@ -114,9 +122,11 @@
         }
         
         @media (max-width: 768px) {
+            :root {
+                --admin-navbar-offset: 72px;
+            }
             #main-content {
-                padding: 1rem;
-                padding-top: 6rem;
+                padding: 0;
             }
             #navbar {
                 padding: 0 1rem;
@@ -127,9 +137,11 @@
         }
         
         @media (max-width: 640px) {
+            :root {
+                --admin-navbar-offset: 68px;
+            }
             #main-content {
-                padding: 0.5rem;
-                padding-top: 5rem;
+                padding: 0;
             }
             #navbar {
                 padding: 0 0.5rem;
@@ -518,7 +530,7 @@
     <div id="main-content" class="ml-64 sidebar-transition">
         <!-- Page Content -->
       <main
-        class="pt-24 p-8 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 min-h-screen"
+        class="pt-2 sm:pt-3 px-4 sm:px-6 lg:px-8 pb-6 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 min-h-screen"
       >
             <!-- Flash Messages (Hidden - converted to toasters) -->
             <% if (success_msg && success_msg.length > 0) { %>

@@ -131,6 +131,10 @@ src/
 
 ## API Documentation
 
+For the current consolidated API reference (Node AR/media APIs + Python OCR/OpenCV APIs), see:
+
+- `docs/API.md`
+
 ### Authentication Endpoints
 
 #### Register User

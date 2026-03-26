@@ -51,7 +51,7 @@ class Media {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
             `;
 
-            const [result] = await db.execute(query, [
+            const queryParams = [
                 title,
                 description,
                 scanning_image,
@@ -63,7 +63,9 @@ class Media {
                 uploaded_by,
                 image_hash,
                 perceptual_hash
-            ]);
+            ];
+
+            const [result] = await db.execute(query, queryParams);
 
             return await Media.findById(result.insertId);
         } catch (error) {
