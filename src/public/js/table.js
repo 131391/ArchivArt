@@ -98,7 +98,7 @@ function renderActionButton({ onclick, icon, className, title, extraAttributes =
     </button>`;
 }
 
-const ACTION_BTN_BASE = 'inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2';
+const ACTION_BTN_BASE = 'inline-flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2';
 const ACTION_BTN_TONE = {
     blue: `${ACTION_BTN_BASE} text-blue-600 hover:text-blue-900`,
     indigo: `${ACTION_BTN_BASE} text-indigo-600 hover:text-indigo-900`,
@@ -616,23 +616,23 @@ function generateUserTableRows(users) {
         
         return `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserName" data-item='${JSON.stringify(user)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatUserName" data-item='${JSON.stringify(user)}'>
                 <!-- User name will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserEmail" data-item='${JSON.stringify(user)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatUserEmail" data-item='${JSON.stringify(user)}'>
                 <!-- User email will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserRole" data-item='${JSON.stringify(user)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatUserRole" data-item='${JSON.stringify(user)}'>
                 <!-- Role will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserStatus" data-item='${JSON.stringify(user)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatUserStatus" data-item='${JSON.stringify(user)}'>
                 <!-- Status will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserDate" data-item='${JSON.stringify(user)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatUserDate" data-item='${JSON.stringify(user)}'>
                 <!-- Date will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex flex-wrap gap-2">
                     ${actionButtons}
                 </div>
             </td>
@@ -700,29 +700,29 @@ function generateMediaTableRows(media) {
         
         return `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaTitle" data-item='${JSON.stringify(item)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatMediaTitle" data-item='${JSON.stringify(item)}'>
                 <!-- Media title will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatScanningImage" data-item='${JSON.stringify(item)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatScanningImage" data-item='${JSON.stringify(item)}'>
                 <!-- Scanning image will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaType" data-item='${JSON.stringify(item)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatMediaType" data-item='${JSON.stringify(item)}'>
                 <!-- Media type will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatFileSize" data-item='${JSON.stringify(item)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatFileSize" data-item='${JSON.stringify(item)}'>
                 <!-- File size will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaStatus" data-item='${JSON.stringify(item)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatMediaStatus" data-item='${JSON.stringify(item)}'>
                 <!-- Status will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatMediaDate" data-item='${JSON.stringify(item)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatMediaDate" data-item='${JSON.stringify(item)}'>
                 <!-- Date will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUploadedBy" data-item='${JSON.stringify(item)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatUploadedBy" data-item='${JSON.stringify(item)}'>
                 <!-- Uploaded by will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex flex-wrap gap-2">
                     ${actionButtons}
                 </div>
             </td>
@@ -769,24 +769,24 @@ function generateRoleTableRows(roles) {
         
         return `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${role.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatRole" data-item='${JSON.stringify(role)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900">${role.id}</td>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatRole" data-item='${JSON.stringify(role)}'>
                 <!-- Role will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatDescription" data-item='${JSON.stringify(role)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatDescription" data-item='${JSON.stringify(role)}'>
                 <!-- Description will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserCount" data-item='${JSON.stringify(role)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatUserCount" data-item='${JSON.stringify(role)}'>
                 <!-- User count will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermissionCount" data-item='${JSON.stringify(role)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermissionCount" data-item='${JSON.stringify(role)}'>
                 <!-- Permission count will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatStatus" data-item='${JSON.stringify(role)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatStatus" data-item='${JSON.stringify(role)}'>
                 <!-- Status will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex flex-wrap gap-2">
                     ${actionButtons}
                 </div>
             </td>
@@ -826,27 +826,27 @@ function generatePermissionTableRows(permissions) {
         
         return `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${permission.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermission" data-item='${JSON.stringify(permission)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900">${permission.id}</td>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatPermission" data-item='${JSON.stringify(permission)}'>
                 <!-- Permission will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatPermissionName" data-item='${JSON.stringify(permission)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatPermissionName" data-item='${JSON.stringify(permission)}'>
                 <!-- Permission name will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModule" data-item='${JSON.stringify(permission)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatModule" data-item='${JSON.stringify(permission)}'>
                 <!-- Module will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatAction" data-item='${JSON.stringify(permission)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatAction" data-item='${JSON.stringify(permission)}'>
                 <!-- Action will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatResource" data-item='${JSON.stringify(permission)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatResource" data-item='${JSON.stringify(permission)}'>
                 <!-- Resource will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatDescription" data-item='${JSON.stringify(permission)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatDescription" data-item='${JSON.stringify(permission)}'>
                 <!-- Description will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex flex-wrap gap-2">
                     ${actionButtons}
                 </div>
             </td>
@@ -889,30 +889,30 @@ function generateModuleTableRows(modules) {
         
         return `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${module.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModule" data-item='${JSON.stringify(module)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900">${module.id}</td>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatModule" data-item='${JSON.stringify(module)}'>
                 <!-- Module will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleName" data-item='${JSON.stringify(module)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatModuleName" data-item='${JSON.stringify(module)}'>
                 <!-- Module name will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleIcon" data-item='${JSON.stringify(module)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatModuleIcon" data-item='${JSON.stringify(module)}'>
                 <!-- Icon will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleRoute" data-item='${JSON.stringify(module)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatModuleRoute" data-item='${JSON.stringify(module)}'>
                 <!-- Route will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleOrder" data-item='${JSON.stringify(module)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleOrder" data-item='${JSON.stringify(module)}'>
                 <!-- Order will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleActions" data-item='${JSON.stringify(module)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModuleActions" data-item='${JSON.stringify(module)}'>
                 <!-- Action count will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModulePermissions" data-item='${JSON.stringify(module)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatModulePermissions" data-item='${JSON.stringify(module)}'>
                 <!-- Permission count will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex flex-wrap gap-2">
                     ${actionButtons}
                 </div>
             </td>
@@ -952,21 +952,21 @@ function generateModuleActionTableRows(actions) {
         
         return `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${action.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionName" data-item='${JSON.stringify(action)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900">${action.id}</td>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatActionName" data-item='${JSON.stringify(action)}'>
                 <!-- Action name will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionDisplayName" data-item='${JSON.stringify(action)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatActionDisplayName" data-item='${JSON.stringify(action)}'>
                 <!-- Display name will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionDescription" data-item='${JSON.stringify(action)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 align-top table-cell-wrap" data-formatter="formatActionDescription" data-item='${JSON.stringify(action)}'>
                 <!-- Description will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionStatus" data-item='${JSON.stringify(action)}'>
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900" data-formatter="formatActionStatus" data-item='${JSON.stringify(action)}'>
                 <!-- Status will be formatted by JavaScript -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
+            <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex flex-wrap gap-2">
                     ${actionButtons}
                 </div>
             </td>

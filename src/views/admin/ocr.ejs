@@ -37,7 +37,7 @@
         </div>
 
         <form method="GET" action="/admin/ocr" class="bg-white border border-slate-200 rounded-xl p-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <input
                     type="text"
                     name="search"
@@ -55,7 +55,7 @@
                     <option value="success" <%= filters.status === 'success' ? 'selected' : '' %>>Success</option>
                     <option value="failed" <%= filters.status === 'failed' ? 'selected' : '' %>>Failed</option>
                 </select>
-                <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-indigo-700 transition-colors">
+                <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-indigo-700 transition-colors sm:col-span-2 lg:col-span-1">
                     Apply Filters
                 </button>
             </div>
@@ -117,7 +117,7 @@
         </div>
 
         <% if (pagination && pagination.totalPages > 1) { %>
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <p class="text-sm text-slate-600">
                     Page <%= pagination.currentPage %> of <%= pagination.totalPages %>
                 </p>

@@ -65,7 +65,7 @@
             border-radius: 4px;
         }
         .main-content-expanded {
-            margin-left: 0;
+            margin-left: 0 !important;
         }
         .main-content-collapsed {
             margin-left: 64px !important; /* Adjust for collapsed sidebar */
@@ -87,9 +87,9 @@
         #navbar {
             position: fixed !important;
             top: 0 !important;
-            left: 256px !important; /* 64 * 4 = 256px (w-64) */
+            left: 0 !important;
             right: 0 !important;
-            width: calc(100% - 256px) !important; /* Full width minus sidebar */
+            width: 100% !important;
             z-index: 40 !important; /* Lower than sidebar z-index */
             transform: none !important;
             transition: left 0.3s ease-in-out, width 0.3s ease-in-out !important;
@@ -107,26 +107,16 @@
         .navbar-mobile-expanded {
             left: 0 !important;
         }
-        :root {
-            --admin-navbar-offset: 80px;
-        }
+        :root { --admin-navbar-offset: 80px; }
 
         #main-content {
             padding-top: var(--admin-navbar-offset) !important;
-        }
-
-        @media (max-width: 1024px) {
-            #navbar {
-                left: 0 !important;
-            }
+            margin-left: 0 !important;
         }
         
         @media (max-width: 768px) {
             :root {
                 --admin-navbar-offset: 72px;
-            }
-            #main-content {
-                padding: 0;
             }
             #navbar {
                 padding: 0 1rem;
@@ -140,14 +130,22 @@
             :root {
                 --admin-navbar-offset: 68px;
             }
-            #main-content {
-                padding: 0;
-            }
             #navbar {
                 padding: 0 0.5rem;
             }
             .navbar-title {
                 font-size: 1.125rem;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            #navbar {
+                left: 256px !important;
+                width: calc(100% - 256px) !important;
+            }
+
+            #main-content {
+                margin-left: 256px !important;
             }
         }
         
@@ -192,7 +190,7 @@
     <!-- Sidebar -->
     <div
       id="sidebar"
-      class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 sidebar-transition shadow-2xl"
+      class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 sidebar-transition shadow-2xl sidebar-hidden lg:translate-x-0"
     >
         <!-- Sidebar Header -->
       <div
@@ -542,7 +540,7 @@
     </nav>
 
     <!-- Main Content -->
-    <div id="main-content" class="ml-64 sidebar-transition">
+    <div id="main-content" class="sidebar-transition">
         <!-- Page Content -->
       <main
         class="pt-2 sm:pt-3 px-4 sm:px-6 lg:px-8 pb-6 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 min-h-screen"
@@ -566,14 +564,27 @@
 
     <!-- JavaScript -->
     <script>
-        // Sidebar toggle for mobile
+      const sidebar = document.getElementById("sidebar");
+      const mainContent = document.getElementById("main-content");
+      const navbar = document.getElementById("navbar");
+      const mobileBreakpoint = 1024;
+
+      function syncResponsiveAdminLayout() {
+        if (window.innerWidth < mobileBreakpoint) {
+          sidebar.classList.add("sidebar-hidden");
+          mainContent.classList.add("main-content-expanded");
+          navbar.classList.add("navbar-mobile-expanded");
+        } else {
+          sidebar.classList.remove("sidebar-hidden");
+          mainContent.classList.remove("main-content-expanded");
+          navbar.classList.remove("navbar-mobile-expanded");
+        }
+      }
+
+      // Sidebar toggle for mobile
       document
         .getElementById("sidebar-toggle")
         .addEventListener("click", function () {
-          const sidebar = document.getElementById("sidebar");
-          const mainContent = document.getElementById("main-content");
-          const navbar = document.getElementById("navbar");
-
           sidebar.classList.toggle("sidebar-hidden");
           mainContent.classList.toggle("main-content-expanded");
           navbar.classList.toggle("navbar-mobile-expanded");
@@ -583,14 +594,13 @@
       document
         .getElementById("desktop-sidebar-toggle")
         .addEventListener("click", function () {
-          const sidebar = document.getElementById("sidebar");
-          const mainContent = document.getElementById("main-content");
-          const navbar = document.getElementById("navbar");
-
           sidebar.classList.toggle("sidebar-collapsed");
           mainContent.classList.toggle("main-content-collapsed");
           navbar.classList.toggle("navbar-collapsed");
         });
+        
+      window.addEventListener("resize", syncResponsiveAdminLayout);
+      syncResponsiveAdminLayout();
 
         // User menu toggle
       document

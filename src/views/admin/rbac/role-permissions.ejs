@@ -1,19 +1,19 @@
 <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <div class="bg-white shadow">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between">
+        <div class="w-full py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Role Permissions</h1>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Role Permissions</h1>
                     <p class="mt-1 text-sm text-gray-500">Manage permissions for role: <span id="roleName" class="font-medium text-indigo-600">Loading...</span></p>
                 </div>
-                <div class="flex space-x-3">
-                    <button onclick="window.location.href='/admin/rbac/roles'" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
+                    <button onclick="window.location.href='/admin/rbac/roles'" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to Roles
                     </button>
                     <% if (typeof userPermissions !== 'undefined' && userPermissions.some(p => p.name === 'rbac.assign_roles')) { %>
-                    <button onclick="savePermissions()" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <button onclick="savePermissions()" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         <i class="fas fa-save mr-2"></i>
                         Save Changes
                     </button>
@@ -24,19 +24,19 @@
     </div>
 
     <!-- Role Info -->
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div class="w-full py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
         <div class="bg-white shadow rounded-lg p-6 mb-6">
-            <div class="flex items-center">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div class="flex-shrink-0 h-12 w-12">
                     <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
                         <i class="fas fa-user-tag text-indigo-600 text-xl"></i>
                     </div>
                 </div>
-                <div class="ml-4">
+                <div class="sm:ml-4">
                     <h3 class="text-lg font-medium text-gray-900" id="roleDisplayName">Loading...</h3>
                     <p class="text-sm text-gray-500" id="roleDescription">Loading...</p>
                 </div>
-                <div class="ml-auto">
+                <div class="sm:ml-auto">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800" id="roleStatus">
                         Active
                     </span>
