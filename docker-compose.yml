@@ -4,19 +4,31 @@ services:
   # Node.js main application
   web:
     build: .
+    restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - PYTHON_SERVICE_URL=http://python-service:5001
+      # Internal Docker DNS name for Python OCR/OpenCV service
+      - OPENCV_SERVICE_URL=http://python-service:5001
     depends_on:
-      - python-service
+      python-service:
+        condition: service_healthy
     volumes:
       - ./src/public/uploads:/app/src/public/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/ > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   # Python OpenCV service
   python-service:
     build: ./python-service
+    restart: unless-stopped
     ports:
       - "5001:5001"
     environment:
