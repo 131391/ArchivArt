@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { mediaUpload, profileUpload, textOnlyParser } = require('../config/multer');
+const { mediaUpload, profileUpload, textOnlyParser, apiFileUpload } = require('../config/multer');
 const authController = require('../controllers/authController');
 const mediaController = require('../controllers/mediaController');
+const uploadController = require('../controllers/uploadController');
 const ocrProviderService = require('../services/ocrProviderService');
 const db = require('../config/database');
 const fs = require('fs');
@@ -216,5 +217,13 @@ router.post('/ocr/extract-auto', [
     }
   }
 });
+
+// File upload endpoint - upload image or video to S3 and get URL
+router.post('/upload', [
+  uploadRateLimit,
+  apiFileUpload,
+  validateSingleFileUpload,
+  preventSQLInjection
+], uploadController.uploadFile);
 
 module.exports = router;

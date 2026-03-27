@@ -157,6 +157,24 @@ const textOnlyParser = multer({
   }
 });
 
+// Simple file upload for API (images and videos)
+const apiFileUpload = multer({
+  storage: memoryStorage,
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /^(image|video|audio)\//;
+    const mimeType = file.mimetype;
+    
+    if (allowedTypes.test(mimeType)) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image, video, and audio files are allowed'));
+    }
+  },
+  limits: {
+    fileSize: 800 * 1024 * 1024 // 800MB limit
+  }
+});
+
 module.exports = {
   mediaUpload,
   logoUpload: logoUpload.single('logo'),
@@ -166,6 +184,7 @@ module.exports = {
     { name: 'media_file', maxCount: 1 },
     { name: 'scanning_image', maxCount: 1 }
   ]),
+  apiFileUpload: apiFileUpload.single('file'),
   textOnlyParser: textOnlyParser.none(), // Parse form data but expect no files
   commonUploadConfig
 };
