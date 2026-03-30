@@ -93,7 +93,7 @@
             z-index: 40 !important; /* Lower than sidebar z-index */
             transform: none !important;
             transition: left 0.3s ease-in-out, width 0.3s ease-in-out !important;
-            height: 80px !important; /* Match the h-20 class */
+            min-height: 80px !important; /* Match desktop h-20 */
             background: rgba(255, 255, 255, 0.95) !important;
             backdrop-filter: blur(10px) !important;
             border-bottom: 1px solid rgba(229, 231, 235, 0.5) !important;
@@ -118,6 +118,9 @@
                 --admin-navbar-offset: 72px;
             }
             #navbar {
+                min-height: 72px !important;
+            }
+            #navbar {
                 padding: 0 1rem;
             }
             .navbar-user-info {
@@ -128,6 +131,9 @@
         @media (max-width: 640px) {
             :root {
                 --admin-navbar-offset: 68px;
+            }
+            #navbar {
+                min-height: 68px !important;
             }
             #navbar {
                 padding: 0 0.5rem;

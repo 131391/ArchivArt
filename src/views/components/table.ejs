@@ -58,7 +58,7 @@
             <!-- Search, Filters and Action Buttons -->
             <div class="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 lg:items-center">
                 <!-- Search and Filters -->
-                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full">
                     <!-- Enhanced Search -->
                     <% if (showSearch) { %>
                     <div class="relative">
@@ -81,8 +81,8 @@
                     <!-- Enhanced Filters -->
                     <% if (typeof filters !== 'undefined' && filters && Object.keys(filters).length > 0) { %>
                         <% if (filters.statusFilter !== undefined) { %>
-                        <div class="relative">
-                            <select id="statusFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+                        <div class="relative w-full sm:w-auto">
+                            <select id="statusFilter" class="appearance-none w-full sm:min-w-[10rem] px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
                                 <option value="">All Status</option>
                                 <option value="active" <%= filters.statusFilter === 'active' ? 'selected' : '' %>>Active</option>
                                 <option value="blocked" <%= filters.statusFilter === 'blocked' ? 'selected' : '' %>>Blocked</option>
@@ -94,8 +94,8 @@
                         </div>
                         <% } %>
                         <% if (filters.roleFilter !== undefined) { %>
-                        <div class="relative">
-                            <select id="roleFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+                        <div class="relative w-full sm:w-auto">
+                            <select id="roleFilter" class="appearance-none w-full sm:min-w-[11rem] px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
                                 <option value="">All Roles</option>
                                 <% if (typeof roles !== 'undefined' && roles && roles.length > 0) { %>
                                     <% roles.forEach(role => { %>
@@ -112,8 +112,8 @@
                         </div>
                         <% } %>
                         <% if (filters.moduleFilter !== undefined) { %>
-                        <div class="relative">
-                            <select id="moduleFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+                        <div class="relative w-full sm:w-auto">
+                            <select id="moduleFilter" class="appearance-none w-full sm:min-w-[11rem] px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
                                 <option value="">All Modules</option>
                                 <% if (typeof modules !== 'undefined' && modules && modules.length > 0) { %>
                                     <% modules.forEach(module => { %>
