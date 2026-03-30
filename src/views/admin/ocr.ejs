@@ -1,24 +1,57 @@
-<div class="space-y-4">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div class="bg-white border border-slate-200 rounded-xl p-4">
-            <p class="text-xs text-slate-500">Total Runs</p>
-            <p class="text-2xl font-semibold text-slate-900"><%= stats.total || 0 %></p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4">
-            <p class="text-xs text-slate-500">Success</p>
-            <p class="text-2xl font-semibold text-emerald-600"><%= stats.success_count || 0 %></p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4">
-            <p class="text-xs text-slate-500">Failed</p>
-            <p class="text-2xl font-semibold text-rose-600"><%= stats.failed_count || 0 %></p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4">
-            <p class="text-xs text-slate-500">Google</p>
-            <p class="text-2xl font-semibold text-indigo-600"><%= stats.google_count || 0 %></p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4">
-            <p class="text-xs text-slate-500">Tesseract</p>
-            <p class="text-2xl font-semibold text-amber-600"><%= stats.tesseract_count || 0 %></p>
+<style>
+    .ocr-modern-page .ocr-table-shell {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 0.65rem;
+    }
+    .ocr-modern-page .ocr-manager-head {
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.13), rgba(168, 85, 247, 0.10));
+        border: 1px solid rgba(129, 140, 248, 0.24);
+        border-radius: 1rem;
+        padding: 1rem 1.15rem;
+        box-shadow: 0 14px 24px -20px rgba(79, 70, 229, 0.35);
+    }
+</style>
+
+<div class="space-y-6 ocr-modern-page">
+    <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-indigo-50/40 p-3 shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="rounded-xl border border-slate-200 bg-white p-4 min-h-[112px] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">Total Runs</span>
+                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-indigo-100 text-indigo-600 text-sm"><i class="fas fa-layer-group"></i></span>
+                </div>
+                <p class="text-3xl font-bold text-slate-900 leading-none"><%= stats.total || 0 %></p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 min-h-[112px] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">Success</span>
+                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 text-sm"><i class="fas fa-check"></i></span>
+                </div>
+                <p class="text-3xl font-bold text-emerald-600 leading-none"><%= stats.success_count || 0 %></p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 min-h-[112px] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">Failed</span>
+                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-rose-100 text-rose-600 text-sm"><i class="fas fa-xmark"></i></span>
+                </div>
+                <p class="text-3xl font-bold text-rose-600 leading-none"><%= stats.failed_count || 0 %></p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 min-h-[112px] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">Google</span>
+                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 text-blue-600 text-sm"><i class="fab fa-google"></i></span>
+                </div>
+                <p class="text-3xl font-bold text-blue-600 leading-none"><%= stats.google_count || 0 %></p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 min-h-[112px] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">Tesseract</span>
+                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-600 text-sm"><i class="fas fa-font"></i></span>
+                </div>
+                <p class="text-3xl font-bold text-amber-600 leading-none"><%= stats.tesseract_count || 0 %></p>
+            </div>
         </div>
     </div>
 </div>
@@ -74,6 +107,7 @@ const actions = [
 const tableFilters = [];
 %>
 
+<div class="ocr-table-shell ocr-modern-page mt-2">
 <%- include('../components/table', {
     title: title,
     data: data,
@@ -90,20 +124,30 @@ const tableFilters = [];
     emptyMessage: 'No OCR records are available yet.',
     emptySearchMessage: 'No OCR records match your search criteria.'
 }) %>
+</div>
 
 <script>
     (function () {
         const params = new URLSearchParams(window.location.search);
         const toolbar = document.querySelector('.bg-gradient-to-r.from-slate-50.to-gray-50');
         if (!toolbar) return;
+        const titleBlock = toolbar.querySelector('.flex.items-center.space-x-4');
+        if (titleBlock) {
+            const parent = titleBlock.closest('.bg-gradient-to-r.from-slate-50.to-gray-50');
+            if (parent) {
+                parent.classList.add('ocr-manager-head');
+                parent.classList.add('mb-2');
+            }
+        }
 
         const controlsWrap = toolbar.querySelector('.flex.flex-col.sm\\:flex-row.space-y-3');
         if (!controlsWrap) return;
+        controlsWrap.classList.add('lg:items-center');
 
         const providerSelectWrap = document.createElement('div');
         providerSelectWrap.className = 'relative';
         providerSelectWrap.innerHTML = `
-            <select id="ocrProviderFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+            <select id="ocrProviderFilter" class="appearance-none min-w-[170px] px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
                 <option value="">All Providers</option>
                 <option value="google">Google</option>
                 <option value="tesseract">Tesseract</option>
@@ -116,7 +160,7 @@ const tableFilters = [];
         const statusSelectWrap = document.createElement('div');
         statusSelectWrap.className = 'relative';
         statusSelectWrap.innerHTML = `
-            <select id="ocrStatusFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+            <select id="ocrStatusFilter" class="appearance-none min-w-[160px] px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
                 <option value="">All Status</option>
                 <option value="success">Success</option>
                 <option value="failed">Failed</option>
