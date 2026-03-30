@@ -69,21 +69,18 @@
             </div>
             <div class="flex items-center gap-3">
                 <a href="/admin/login" class="hidden sm:inline-flex bg-gradient-to-br from-[#c59aff] to-[#9547f7] text-[#1b0b33] font-headline text-xs font-bold px-4 py-2 rounded-xl transition-all duration-300 active:scale-95">Admin Portal</a>
-                <button
-                    id="mobile-menu-button"
-                    type="button"
-                    class="md:hidden text-slate-300 hover:text-white"
-                >
-                    <i id="mobile-menu-icon" class="fas fa-bars text-lg"></i>
-                </button>
+                <label for="mobile-nav-toggle" class="md:hidden text-slate-300 hover:text-white cursor-pointer">
+                    <i class="fas fa-bars text-lg"></i>
+                </label>
             </div>
         </div>
-        <div id="mobile-menu" class="hidden md:hidden px-4 pb-4 absolute top-full left-0 right-0 z-50">
+        <input id="mobile-nav-toggle" type="checkbox" class="peer sr-only md:hidden">
+        <div id="mobile-menu" class="hidden peer-checked:block md:hidden px-4 pb-4 absolute top-full left-0 right-0 z-50">
             <div class="glass-panel rounded-xl p-3 flex flex-col gap-2">
-                <a href="#features" class="text-sm text-slate-200 hover:text-white px-2 py-1">Features</a>
-                <a href="#how-it-works" class="text-sm text-slate-200 hover:text-white px-2 py-1">How It Works</a>
-                <a href="/builds/ArchivART-V2.apk" download="ArchivART-V2.apk" onclick="trackDownload()" class="text-sm text-slate-200 hover:text-white px-2 py-1">Download</a>
-                <a href="/admin/login" class="text-sm text-slate-200 hover:text-white px-2 py-1">Admin Portal</a>
+                <a href="#features" onclick="document.getElementById('mobile-nav-toggle').checked=false" class="text-sm text-slate-200 hover:text-white px-2 py-1">Features</a>
+                <a href="#how-it-works" onclick="document.getElementById('mobile-nav-toggle').checked=false" class="text-sm text-slate-200 hover:text-white px-2 py-1">How It Works</a>
+                <a href="/builds/ArchivART-V2.apk" download="ArchivART-V2.apk" onclick="trackDownload();document.getElementById('mobile-nav-toggle').checked=false" class="text-sm text-slate-200 hover:text-white px-2 py-1">Download</a>
+                <a href="/admin/login" onclick="document.getElementById('mobile-nav-toggle').checked=false" class="text-sm text-slate-200 hover:text-white px-2 py-1">Admin Portal</a>
             </div>
         </div>
     </nav>
@@ -241,52 +238,7 @@
             }
         }
 
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            const mobileMenuIcon = document.getElementById('mobile-menu-icon');
-            if (!mobileMenu) return;
-            const willOpen = mobileMenu.classList.contains('hidden');
-            mobileMenu.classList.toggle('hidden');
-            if (mobileMenuIcon) {
-                mobileMenuIcon.className = willOpen ? 'fas fa-times text-lg' : 'fas fa-bars text-lg';
-            }
-        }
-
-        function closeMobileMenu() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            const mobileMenuIcon = document.getElementById('mobile-menu-icon');
-            if (mobileMenu) {
-                mobileMenu.classList.add('hidden');
-            }
-            if (mobileMenuIcon) {
-                mobileMenuIcon.className = 'fas fa-bars text-lg';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-
-            if (mobileMenuButton && mobileMenu) {
-                mobileMenuButton.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleMobileMenu();
-                });
-
-                mobileMenu.querySelectorAll('a').forEach((link) => {
-                    link.addEventListener('click', function () {
-                        closeMobileMenu();
-                    });
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (!mobileMenuButton.contains(e.target) && !mobileMenu.contains(e.target)) {
-                        closeMobileMenu();
-                    }
-                });
-            }
-        });
+        // Menu uses CSS peer-checked toggle for reliability on mobile.
     </script>
 </body>
 </html>
