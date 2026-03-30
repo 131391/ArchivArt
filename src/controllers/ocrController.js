@@ -100,6 +100,34 @@ class OcrController {
         }
     }
 
+    static async getOcrDetail(req, res) {
+        try {
+            const id = Number(req.params.id);
+            if (!Number.isInteger(id) || id <= 0) {
+                req.flash('error_msg', 'Invalid OCR record ID.');
+                return res.redirect('/admin/ocr');
+            }
+
+            const record = await MediaOcrResult.findAdminDetailById(id);
+            if (!record) {
+                req.flash('error_msg', 'OCR record not found.');
+                return res.redirect('/admin/ocr');
+            }
+
+            return res.render('admin/ocr-detail', {
+                title: 'OCR Result Details',
+                record,
+                user: req.session.user,
+                userPermissions: req.userPermissions || [],
+                userPrimaryRole: req.userPrimaryRole || null
+            });
+        } catch (error) {
+            console.error('Error loading OCR detail:', error);
+            req.flash('error_msg', 'Failed to load OCR detail.');
+            return res.redirect('/admin/ocr');
+        }
+    }
+
     static async updateProviderConfig(req, res) {
         try {
             const activeProviderRaw = (req.body.active_provider || '').trim().toLowerCase();

@@ -6,6 +6,7 @@ const authController = require('../controllers/authController');
 const mediaController = require('../controllers/mediaController');
 const uploadController = require('../controllers/uploadController');
 const ocrProviderService = require('../services/ocrProviderService');
+const ocrUploadJobService = require('../services/ocrUploadJobService');
 const db = require('../config/database');
 const fs = require('fs');
 const os = require('os');
@@ -216,6 +217,93 @@ router.post('/ocr/extract-auto', [
       }
     }
   }
+});
+
+// Single API: upload image + OCR extraction (async job-based, fast response)
+router.post('/ocr/upload-and-extract', [
+  uploadRateLimit,
+  apiFileUpload,
+  validateSingleFileUpload,
+  preventSQLInjection,
+  body('language').optional().isString(),
+  body('preprocess').optional().isBoolean(),
+  body('auto_rotate').optional().isBoolean(),
+  body('improve_readability').optional().isBoolean(),
+  body('post_process').optional().isBoolean(),
+  validateInput
+], async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'Image file is required'
+      });
+    }
+
+    if (!req.file.mimetype || !req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Only image files are supported for OCR extraction'
+      });
+    }
+
+    const options = {};
+    const boolKeys = ['preprocess', 'auto_rotate', 'improve_readability', 'post_process'];
+    if (req.body.language !== undefined) options.language = req.body.language;
+    for (const key of boolKeys) {
+      if (req.body[key] !== undefined) {
+        options[key] = `${req.body[key]}` === 'true';
+      }
+    }
+
+    const job = await ocrUploadJobService.queueUploadAndExtract({
+      file: req.file,
+      options,
+      uploadedBy: null
+    });
+
+    return res.status(202).json({
+      success: true,
+      job_id: job.job_id,
+      image_url: job.image_url,
+      media_id: job.media_id,
+      status: job.status,
+      provider_config: ocrProviderService.getConfig(),
+      message: 'OCR job queued successfully'
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to queue OCR extraction'
+    });
+  }
+});
+
+// Poll OCR async job status
+router.get('/ocr/jobs/:jobId', [
+  apiRateLimit,
+  preventSQLInjection
+], async (req, res) => {
+  const { jobId } = req.params;
+  const job = ocrUploadJobService.getJob(jobId);
+
+  if (!job) {
+    return res.status(404).json({
+      success: false,
+      error: 'OCR job not found'
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    job_id: job.job_id,
+    status: job.status,
+    image_url: job.image_url,
+    media_id: job.media_id,
+    ocr_result_id: job.ocr_result_id,
+    result: job.result || null,
+    error: job.error || null
+  });
 });
 
 // File upload endpoint - upload image or video to S3 and get URL

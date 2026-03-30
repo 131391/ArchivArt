@@ -12,6 +12,13 @@ router.get('/', [
     preventSQLInjection
 ], OcrController.getOcrList);
 
+router.get('/:id', [
+    requireAdminWeb,
+    addUserPermissions,
+    hasModuleActionPermissionWeb('media', 'view'),
+    preventSQLInjection
+], OcrController.getOcrDetail);
+
 router.post('/provider-config', [
     requireAdminWeb,
     addUserPermissions,

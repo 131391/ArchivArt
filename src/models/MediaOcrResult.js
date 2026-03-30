@@ -159,6 +159,27 @@ class MediaOcrResult {
             tesseract_count: 0
         };
     }
+
+    static async findAdminDetailById(id) {
+        const [rows] = await db.execute(
+            `
+            SELECT
+                r.*,
+                m.title AS media_title,
+                m.media_type,
+                m.scanning_image,
+                m.file_path,
+                m.is_active AS media_is_active,
+                m.created_at AS media_created_at
+            FROM media_ocr_results r
+            INNER JOIN media m ON m.id = r.media_id
+            WHERE r.id = ?
+            LIMIT 1
+            `,
+            [id]
+        );
+        return rows[0] || null;
+    }
 }
 
 module.exports = MediaOcrResult;

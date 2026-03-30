@@ -61,7 +61,7 @@
             </div>
         </form>
 
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">
@@ -73,21 +73,24 @@
                             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Confidence</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Processed</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Preview</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         <% if (!data || !data.length) { %>
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-sm text-slate-500">No OCR records found.</td>
+                                <td colspan="8" class="px-4 py-8 text-center text-sm text-slate-500">No OCR records found.</td>
                             </tr>
                         <% } %>
                         <% (data || []).forEach(function(row) { %>
-                            <tr class="hover:bg-slate-50">
+                            <tr class="hover:bg-indigo-50/40 transition-colors">
                                 <td class="px-4 py-3 text-sm">
-                                    <a href="/admin/media/view/<%= row.media_id %>" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                    <a href="/admin/ocr/<%= row.id %>" class="text-indigo-600 hover:text-indigo-800 font-semibold">
                                         <%= row.media_title || ('Media #' + row.media_id) %>
                                     </a>
-                                    <div class="text-xs text-slate-500 capitalize"><%= row.media_type || '-' %></div>
+                                    <div class="text-xs text-slate-500 capitalize">
+                                        <%= row.media_type || '-' %> • OCR #<%= row.id %>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm capitalize text-slate-700"><%= row.provider || '-' %></td>
                                 <td class="px-4 py-3 text-sm">
@@ -108,6 +111,12 @@
                                     <% } else { %>
                                         -
                                     <% } %>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-right">
+                                    <a href="/admin/ocr/<%= row.id %>" class="inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors">
+                                        <i class="fas fa-arrow-up-right-from-square mr-1.5"></i>
+                                        View OCR
+                                    </a>
                                 </td>
                             </tr>
                         <% }) %>
