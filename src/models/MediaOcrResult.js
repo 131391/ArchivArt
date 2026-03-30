@@ -1,9 +1,60 @@
 const db = require('../config/database');
 
 class MediaOcrResult {
+    static async ensureDecoupledSchema() {
+        // Ensure OCR can exist independently from AR media records.
+        const [existingCols] = await db.execute(`
+            SELECT COLUMN_NAME
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'media_ocr_results'
+        `);
+        const colSet = new Set(existingCols.map((c) => c.COLUMN_NAME));
+
+        if (!colSet.has('source_title')) {
+            await db.execute('ALTER TABLE media_ocr_results ADD COLUMN source_title VARCHAR(255) NULL AFTER media_id');
+        }
+        if (!colSet.has('source_type')) {
+            await db.execute('ALTER TABLE media_ocr_results ADD COLUMN source_type VARCHAR(32) NULL AFTER source_title');
+        }
+        if (!colSet.has('source_image_url')) {
+            await db.execute('ALTER TABLE media_ocr_results ADD COLUMN source_image_url TEXT NULL AFTER source_type');
+        }
+        if (!colSet.has('source_file_url')) {
+            await db.execute('ALTER TABLE media_ocr_results ADD COLUMN source_file_url TEXT NULL AFTER source_image_url');
+        }
+
+        const [colRows] = await db.execute(`
+            SELECT IS_NULLABLE
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'media_ocr_results'
+              AND COLUMN_NAME = 'media_id'
+            LIMIT 1
+        `);
+        if (colRows.length && colRows[0].IS_NULLABLE === 'NO') {
+            await db.execute('ALTER TABLE media_ocr_results MODIFY COLUMN media_id INT NULL');
+        }
+
+        const [fkRows] = await db.execute(`
+            SELECT CONSTRAINT_NAME
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'media_ocr_results'
+              AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+        `);
+        for (const fk of fkRows) {
+            await db.execute(`ALTER TABLE media_ocr_results DROP FOREIGN KEY ${fk.CONSTRAINT_NAME}`);
+        }
+    }
+
     static async create(data) {
         const {
-            media_id,
+            media_id = null,
+            source_title = null,
+            source_type = null,
+            source_image_url = null,
+            source_file_url = null,
             provider = null,
             extracted_text = null,
             confidence = null,
@@ -12,15 +63,21 @@ class MediaOcrResult {
             error_message = null,
             processed_at = new Date()
         } = data;
+        await this.ensureDecoupledSchema();
 
         const query = `
             INSERT INTO media_ocr_results (
-                media_id, provider, extracted_text, confidence, language, status, error_message, processed_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                media_id, source_title, source_type, source_image_url, source_file_url,
+                provider, extracted_text, confidence, language, status, error_message, processed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const [result] = await db.execute(query, [
             media_id,
+            source_title,
+            source_type,
+            source_image_url,
+            source_file_url,
             provider,
             extracted_text,
             confidence,
@@ -76,6 +133,7 @@ class MediaOcrResult {
     }
 
     static async findAdminList(options = {}) {
+        await this.ensureDecoupledSchema();
         const page = Math.max(parseInt(options.page, 10) || 1, 1);
         const limit = Math.min(Math.max(parseInt(options.limit, 10) || 20, 1), 100);
         const offset = (page - 1) * limit;
@@ -87,7 +145,7 @@ class MediaOcrResult {
         const params = [];
 
         if (search) {
-            whereClauses.push('(m.title LIKE ? OR r.extracted_text LIKE ?)');
+            whereClauses.push('(COALESCE(m.title, r.source_title) LIKE ? OR r.extracted_text LIKE ?)');
             const likeSearch = `%${search}%`;
             params.push(likeSearch, likeSearch);
         }
@@ -105,7 +163,7 @@ class MediaOcrResult {
         const whereSql = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
         const fromSql = `
             FROM media_ocr_results r
-            INNER JOIN media m ON m.id = r.media_id
+            LEFT JOIN media m ON m.id = r.media_id
             ${whereSql}
         `;
 
@@ -121,8 +179,8 @@ class MediaOcrResult {
             `
             SELECT
                 r.*,
-                m.title AS media_title,
-                m.media_type,
+                COALESCE(m.title, r.source_title, CONCAT('OCR Upload #', r.id)) AS media_title,
+                COALESCE(m.media_type, r.source_type, 'image') AS media_type,
                 m.is_active AS media_is_active
             ${fromSql}
             ORDER BY r.processed_at DESC, r.id DESC
@@ -161,18 +219,19 @@ class MediaOcrResult {
     }
 
     static async findAdminDetailById(id) {
+        await this.ensureDecoupledSchema();
         const [rows] = await db.execute(
             `
             SELECT
                 r.*,
-                m.title AS media_title,
-                m.media_type,
-                m.scanning_image,
-                m.file_path,
+                COALESCE(m.title, r.source_title, CONCAT('OCR Upload #', r.id)) AS media_title,
+                COALESCE(m.media_type, r.source_type, 'image') AS media_type,
+                COALESCE(m.scanning_image, r.source_image_url) AS scanning_image,
+                COALESCE(m.file_path, r.source_file_url, r.source_image_url) AS file_path,
                 m.is_active AS media_is_active,
                 m.created_at AS media_created_at
             FROM media_ocr_results r
-            INNER JOIN media m ON m.id = r.media_id
+            LEFT JOIN media m ON m.id = r.media_id
             WHERE r.id = ?
             LIMIT 1
             `,

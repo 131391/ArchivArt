@@ -100,7 +100,11 @@ CREATE TABLE IF NOT EXISTS media (
 
 CREATE TABLE IF NOT EXISTS media_ocr_results (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    media_id INT NOT NULL,
+    media_id INT NULL COMMENT 'Optional link to AR media record (null for OCR-only uploads)',
+    source_title VARCHAR(255) NULL COMMENT 'OCR source title when not linked to media',
+    source_type VARCHAR(32) NULL COMMENT 'Source type (image/url/upload)',
+    source_image_url TEXT NULL COMMENT 'Uploaded or remote image URL used for OCR',
+    source_file_url TEXT NULL COMMENT 'Original source file URL if different',
     provider VARCHAR(32) NULL COMMENT 'OCR provider (tesseract/google)',
     extracted_text LONGTEXT NULL,
     confidence DECIMAL(6,2) NULL,
@@ -111,9 +115,7 @@ CREATE TABLE IF NOT EXISTS media_ocr_results (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_media_ocr_media_id (media_id),
-    INDEX idx_media_ocr_processed_at (processed_at),
-    CONSTRAINT fk_media_ocr_media
-        FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
+    INDEX idx_media_ocr_processed_at (processed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- User sessions table (Enhanced for JWT token management)

@@ -4,7 +4,6 @@ const os = require('os');
 const path = require('path');
 const S3Service = require('./s3Service');
 const ocrProviderService = require('./ocrProviderService');
-const Media = require('../models/Media');
 const MediaOcrResult = require('../models/MediaOcrResult');
 const db = require('../config/database');
 
@@ -55,33 +54,27 @@ class OcrUploadJobService {
       throw new Error(uploadResult.error || 'S3 upload failed');
     }
 
-    const mediaRecord = await Media.create({
-      title: `OCR Upload ${new Date().toISOString()}`,
-      description: 'Auto-created OCR upload record',
-      scanning_image: uploadResult.url,
-      media_type: 'image',
-      file_path: uploadResult.url,
-      file_size: file.size,
-      mime_type: file.mimetype,
-      uploaded_by: uploadedBy,
-      descriptors: null,
-      image_hash: null,
-      perceptual_hash: null
-    });
-
     const job = this.createJob();
     this.updateJob(job.job_id, {
       status: 'processing',
       image_url: uploadResult.url,
-      media_id: mediaRecord.id
+      media_id: null
     });
 
-    void this.processJob(job.job_id, uploadResult.url, mediaRecord.id, options);
+    const source = {
+      title: `OCR Upload ${new Date().toISOString()}`,
+      type: 'image',
+      image_url: uploadResult.url,
+      file_url: uploadResult.url,
+      uploaded_by: uploadedBy
+    };
+
+    void this.processJob(job.job_id, uploadResult.url, null, options, source);
 
     return this.getJob(job.job_id);
   }
 
-  async processJob(jobId, imagePathOrUrl, mediaId, options = {}) {
+  async processJob(jobId, imagePathOrUrl, mediaId, options = {}, source = {}) {
     let tempImagePath = null;
     try {
       this.syncProviderConfigFromSettings().catch(() => null);
@@ -96,6 +89,10 @@ class OcrUploadJobService {
 
       const saved = await MediaOcrResult.create({
         media_id: mediaId,
+        source_title: source.title || null,
+        source_type: source.type || null,
+        source_image_url: source.image_url || null,
+        source_file_url: source.file_url || null,
         provider: ocr?.provider || null,
         extracted_text: ocr?.text || null,
         confidence: ocr?.confidence ?? null,
@@ -140,7 +137,6 @@ class OcrUploadJobService {
   }
 
   async persistFailure(mediaId, error) {
-    if (!mediaId) return;
     try {
       await MediaOcrResult.create({
         media_id: mediaId,

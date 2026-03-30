@@ -1,150 +1,153 @@
-<div class="min-h-screen bg-slate-50">
-    <div class="w-full px-4 sm:px-6 lg:px-8 py-4 space-y-4">
-        <div class="bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 rounded-2xl p-5 shadow-lg text-white">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                <div>
-                    <h1 class="text-2xl font-semibold">OCR Management</h1>
-                    <p class="text-indigo-100 text-sm mt-1">Monitor OCR results separately from AR media management.</p>
-                </div>
-                <a href="/admin/settings" class="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-white/35 bg-white/10 text-sm font-semibold text-white hover:bg-white/20 transition-colors">
-                    <i class="fas fa-cog mr-2"></i>
-                    Manage in Settings
-                </a>
-            </div>
+<div class="space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+            <p class="text-xs text-slate-500">Total Runs</p>
+            <p class="text-2xl font-semibold text-slate-900"><%= stats.total || 0 %></p>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            <div class="bg-white border border-slate-200 rounded-xl p-4">
-                <p class="text-xs text-slate-500">Total Runs</p>
-                <p class="text-2xl font-semibold text-slate-900"><%= stats.total || 0 %></p>
-            </div>
-            <div class="bg-white border border-slate-200 rounded-xl p-4">
-                <p class="text-xs text-slate-500">Success</p>
-                <p class="text-2xl font-semibold text-emerald-600"><%= stats.success_count || 0 %></p>
-            </div>
-            <div class="bg-white border border-slate-200 rounded-xl p-4">
-                <p class="text-xs text-slate-500">Failed</p>
-                <p class="text-2xl font-semibold text-rose-600"><%= stats.failed_count || 0 %></p>
-            </div>
-            <div class="bg-white border border-slate-200 rounded-xl p-4">
-                <p class="text-xs text-slate-500">Google</p>
-                <p class="text-2xl font-semibold text-indigo-600"><%= stats.google_count || 0 %></p>
-            </div>
-            <div class="bg-white border border-slate-200 rounded-xl p-4">
-                <p class="text-xs text-slate-500">Tesseract</p>
-                <p class="text-2xl font-semibold text-amber-600"><%= stats.tesseract_count || 0 %></p>
-            </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+            <p class="text-xs text-slate-500">Success</p>
+            <p class="text-2xl font-semibold text-emerald-600"><%= stats.success_count || 0 %></p>
         </div>
-
-        <form method="GET" action="/admin/ocr" class="bg-white border border-slate-200 rounded-xl p-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <input
-                    type="text"
-                    name="search"
-                    value="<%= filters.search || '' %>"
-                    placeholder="Search media title or OCR text"
-                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                <select name="provider" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">All providers</option>
-                    <option value="google" <%= filters.provider === 'google' ? 'selected' : '' %>>Google</option>
-                    <option value="tesseract" <%= filters.provider === 'tesseract' ? 'selected' : '' %>>Tesseract</option>
-                </select>
-                <select name="status" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">All status</option>
-                    <option value="success" <%= filters.status === 'success' ? 'selected' : '' %>>Success</option>
-                    <option value="failed" <%= filters.status === 'failed' ? 'selected' : '' %>>Failed</option>
-                </select>
-                <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-indigo-700 transition-colors sm:col-span-2 lg:col-span-1">
-                    Apply Filters
-                </button>
-            </div>
-        </form>
-
-        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Media</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Provider</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Language</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Confidence</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Processed</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Preview</th>
-                            <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <% if (!data || !data.length) { %>
-                            <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-sm text-slate-500">No OCR records found.</td>
-                            </tr>
-                        <% } %>
-                        <% (data || []).forEach(function(row) { %>
-                            <tr class="hover:bg-indigo-50/40 transition-colors">
-                                <td class="px-4 py-3 text-sm">
-                                    <a href="/admin/ocr/<%= row.id %>" class="text-indigo-600 hover:text-indigo-800 font-semibold">
-                                        <%= row.media_title || ('Media #' + row.media_id) %>
-                                    </a>
-                                    <div class="text-xs text-slate-500 capitalize">
-                                        <%= row.media_type || '-' %> • OCR #<%= row.id %>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-sm capitalize text-slate-700"><%= row.provider || '-' %></td>
-                                <td class="px-4 py-3 text-sm">
-                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold <%= row.status === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' %>">
-                                        <%= row.status || '-' %>
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-slate-700"><%= row.language || '-' %></td>
-                                <td class="px-4 py-3 text-sm text-slate-700">
-                                    <%= row.confidence !== null && row.confidence !== undefined ? Number(row.confidence).toFixed(2) + '%' : '-' %>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-slate-700">
-                                    <%= row.processed_at ? new Date(row.processed_at).toLocaleString() : '-' %>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-slate-600 max-w-xs">
-                                    <% if (row.extracted_text) { %>
-                                        <span class="line-clamp-2"><%= row.extracted_text.substring(0, 120) %><%= row.extracted_text.length > 120 ? '...' : '' %></span>
-                                    <% } else { %>
-                                        -
-                                    <% } %>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-right">
-                                    <a href="/admin/ocr/<%= row.id %>" class="inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors">
-                                        <i class="fas fa-arrow-up-right-from-square mr-1.5"></i>
-                                        View OCR
-                                    </a>
-                                </td>
-                            </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
-            </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+            <p class="text-xs text-slate-500">Failed</p>
+            <p class="text-2xl font-semibold text-rose-600"><%= stats.failed_count || 0 %></p>
         </div>
-
-        <% if (pagination && pagination.totalPages > 1) { %>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <p class="text-sm text-slate-600">
-                    Page <%= pagination.currentPage %> of <%= pagination.totalPages %>
-                </p>
-                <div class="flex items-center gap-2">
-                    <% if (pagination.hasPrev) { %>
-                        <a
-                            href="/admin/ocr?page=<%= pagination.currentPage - 1 %>&search=<%= encodeURIComponent(filters.search || '') %>&provider=<%= encodeURIComponent(filters.provider || '') %>&status=<%= encodeURIComponent(filters.status || '') %>"
-                            class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-700 hover:bg-slate-50"
-                        >Previous</a>
-                    <% } %>
-                    <% if (pagination.hasNext) { %>
-                        <a
-                            href="/admin/ocr?page=<%= pagination.currentPage + 1 %>&search=<%= encodeURIComponent(filters.search || '') %>&provider=<%= encodeURIComponent(filters.provider || '') %>&status=<%= encodeURIComponent(filters.status || '') %>"
-                            class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-700 hover:bg-slate-50"
-                        >Next</a>
-                    <% } %>
-                </div>
-            </div>
-        <% } %>
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+            <p class="text-xs text-slate-500">Google</p>
+            <p class="text-2xl font-semibold text-indigo-600"><%= stats.google_count || 0 %></p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+            <p class="text-xs text-slate-500">Tesseract</p>
+            <p class="text-2xl font-semibold text-amber-600"><%= stats.tesseract_count || 0 %></p>
+        </div>
     </div>
 </div>
+
+<%
+const headerButtons = [
+    {
+        text: 'Manage in Settings',
+        href: '/admin/settings',
+        icon: 'fas fa-cog',
+        class: 'inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl'
+    }
+];
+
+const columns = [
+    { key: 'media_title', label: 'Media', sortable: false, type: 'custom', formatter: (item) => `
+        <a href="/admin/ocr/${item.id}" class="text-indigo-600 hover:text-indigo-800 font-semibold">
+            ${item.media_title || ('Media #' + item.media_id)}
+        </a>
+        <div class="text-xs text-slate-500 capitalize">${item.media_type || '-'} • OCR #${item.id}</div>
+    ` },
+    { key: 'provider', label: 'Provider', sortable: false, type: 'custom', formatter: (item) => `
+        <span class="capitalize text-sm text-slate-700">${item.provider || '-'}</span>
+    ` },
+    { key: 'status', label: 'Status', sortable: false, type: 'custom', formatter: (item) => `
+        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${item.status === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+            ${item.status || '-'}
+        </span>
+    ` },
+    { key: 'language', label: 'Language', sortable: false, type: 'custom', formatter: (item) => `
+        <span class="text-sm text-slate-700">${item.language || '-'}</span>
+    ` },
+    { key: 'confidence', label: 'Confidence', sortable: false, type: 'custom', formatter: (item) => `
+        <span class="text-sm text-slate-700">${item.confidence !== null && item.confidence !== undefined ? Number(item.confidence).toFixed(2) + '%' : '-'}</span>
+    ` },
+    { key: 'processed_at', label: 'Processed', sortable: false, type: 'custom', formatter: (item) => `
+        <span class="text-sm text-slate-700">${item.processed_at ? new Date(item.processed_at).toLocaleString() : '-'}</span>
+    ` },
+    { key: 'extracted_text', label: 'Preview', sortable: false, type: 'custom', formatter: (item) => `
+        <span class="text-sm text-slate-600">${item.extracted_text ? `${item.extracted_text.substring(0, 120)}${item.extracted_text.length > 120 ? '...' : ''}` : '-'}</span>
+    ` }
+];
+
+const actions = [
+    {
+        icon: () => 'fas fa-eye',
+        title: () => 'View OCR',
+        class: 'text-indigo-600 hover:text-indigo-900',
+        onclick: (item) => `window.location.href='/admin/ocr/${item.id}'`
+    }
+];
+
+const tableFilters = [];
+%>
+
+<%- include('../components/table', {
+    title: title,
+    data: data,
+    headerButtons: headerButtons,
+    columns: columns,
+    actions: actions,
+    pagination: pagination,
+    search: filters.search || '',
+    filters: tableFilters,
+    showSearch: true,
+    searchPlaceholder: 'Search media title or OCR text...',
+    emptyIcon: 'fas fa-file-signature',
+    emptyTitle: 'No OCR Records Found',
+    emptyMessage: 'No OCR records are available yet.',
+    emptySearchMessage: 'No OCR records match your search criteria.'
+}) %>
+
+<script>
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        const toolbar = document.querySelector('.bg-gradient-to-r.from-slate-50.to-gray-50');
+        if (!toolbar) return;
+
+        const controlsWrap = toolbar.querySelector('.flex.flex-col.sm\\:flex-row.space-y-3');
+        if (!controlsWrap) return;
+
+        const providerSelectWrap = document.createElement('div');
+        providerSelectWrap.className = 'relative';
+        providerSelectWrap.innerHTML = `
+            <select id="ocrProviderFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+                <option value="">All Providers</option>
+                <option value="google">Google</option>
+                <option value="tesseract">Tesseract</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <i class="fas fa-chevron-down text-gray-400"></i>
+            </div>
+        `;
+
+        const statusSelectWrap = document.createElement('div');
+        statusSelectWrap.className = 'relative';
+        statusSelectWrap.innerHTML = `
+            <select id="ocrStatusFilter" class="appearance-none px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md cursor-pointer">
+                <option value="">All Status</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <i class="fas fa-chevron-down text-gray-400"></i>
+            </div>
+        `;
+
+        controlsWrap.appendChild(providerSelectWrap);
+        controlsWrap.appendChild(statusSelectWrap);
+
+        const providerEl = document.getElementById('ocrProviderFilter');
+        const statusEl = document.getElementById('ocrStatusFilter');
+        const searchEl = document.getElementById('searchInput');
+
+        providerEl.value = params.get('provider') || '';
+        statusEl.value = params.get('status') || '';
+
+        function applyFilters() {
+            const q = new URLSearchParams();
+            const searchVal = (searchEl && searchEl.value || '').trim();
+            const providerVal = providerEl.value;
+            const statusVal = statusEl.value;
+            if (searchVal) q.set('search', searchVal);
+            if (providerVal) q.set('provider', providerVal);
+            if (statusVal) q.set('status', statusVal);
+            window.location.href = `/admin/ocr?${q.toString()}`;
+        }
+
+        providerEl.addEventListener('change', applyFilters);
+        statusEl.addEventListener('change', applyFilters);
+    })();
+</script>
