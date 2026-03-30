@@ -64,10 +64,10 @@
             object-fit: contain;
             border-radius: 4px;
         }
-        .main-content-expanded {
+        #main-content.main-content-expanded {
             margin-left: 0 !important;
         }
-        .main-content-collapsed {
+        #main-content.main-content-collapsed {
             margin-left: 64px !important; /* Adjust for collapsed sidebar */
         }
         #navbar.navbar-collapsed {
@@ -111,7 +111,6 @@
 
         #main-content {
             padding-top: var(--admin-navbar-offset) !important;
-            margin-left: 0 !important;
         }
         
         @media (max-width: 768px) {
@@ -568,6 +567,13 @@
       const mainContent = document.getElementById("main-content");
       const navbar = document.getElementById("navbar");
       const mobileBreakpoint = 1024;
+      const SIDEBAR_COLLAPSED_KEY = "adminSidebarCollapsed";
+
+      function applyDesktopSidebarState(isCollapsed) {
+        sidebar.classList.toggle("sidebar-collapsed", isCollapsed);
+        mainContent.classList.toggle("main-content-collapsed", isCollapsed);
+        navbar.classList.toggle("navbar-collapsed", isCollapsed);
+      }
 
       function syncResponsiveAdminLayout() {
         if (window.innerWidth < mobileBreakpoint) {
@@ -578,6 +584,8 @@
           sidebar.classList.remove("sidebar-hidden");
           mainContent.classList.remove("main-content-expanded");
           navbar.classList.remove("navbar-mobile-expanded");
+          const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
+          applyDesktopSidebarState(isCollapsed);
         }
       }
 
@@ -594,9 +602,9 @@
       document
         .getElementById("desktop-sidebar-toggle")
         .addEventListener("click", function () {
-          sidebar.classList.toggle("sidebar-collapsed");
-          mainContent.classList.toggle("main-content-collapsed");
-          navbar.classList.toggle("navbar-collapsed");
+          const isCollapsed = !sidebar.classList.contains("sidebar-collapsed");
+          applyDesktopSidebarState(isCollapsed);
+          localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCollapsed ? "true" : "false");
         });
         
       window.addEventListener("resize", syncResponsiveAdminLayout);

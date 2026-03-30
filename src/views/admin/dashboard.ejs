@@ -187,7 +187,7 @@
                     <div class="flex items-center gap-3 rounded-xl border border-slate-100 p-3">
                         <div class="relative">
                             <% if (media.scanning_image && media.scanning_image.trim() !== '') { %>
-                            <img class="h-11 w-11 rounded-lg object-cover" src="<%= media.scanning_image.startsWith('/') ? media.scanning_image : '/uploads/scanning-images/' + media.scanning_image %>" alt="Media thumbnail" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                            <img class="h-11 w-11 rounded-lg object-cover" src="<%= (/^(https?:)?\/\//i.test(media.scanning_image) || media.scanning_image.startsWith('/')) ? media.scanning_image : '/uploads/scanning-images/' + media.scanning_image %>" alt="Media thumbnail" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
                             <div class="hidden h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                                 <i class="fas fa-<%= media.media_type === 'video' ? 'video' : media.media_type === 'audio' ? 'music' : 'image' %>"></i>
                             </div>
